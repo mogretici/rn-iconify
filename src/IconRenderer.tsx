@@ -3,12 +3,25 @@
  * Handles cache lookup, network fetching, and SVG rendering
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { CacheManager } from './cache/CacheManager';
 import { fetchIcon } from './network/IconifyAPI';
 import type { IconRendererProps, IconLoadingState } from './types';
+
+/**
+ * Escape special characters for XML attribute values
+ * Prevents XSS attacks when user input is used as color prop
+ */
+function escapeXmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
 
 export function IconRenderer({
   iconName,
@@ -31,6 +44,8 @@ export function IconRenderer({
   const [showFallback, setShowFallback] = useState(false);
   const mountedRef = useRef(true);
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isLoadingRef = useRef(false); // Track loading state for closure
 
   // Calculate dimensions
   const iconWidth = propWidth ?? size;
@@ -40,12 +55,19 @@ export function IconRenderer({
   const loadIcon = useCallback(async () => {
     if (!iconName) return;
 
+    // Cancel any previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     // 1. Check cache first (synchronous)
     const cached = CacheManager.get(iconName);
     if (cached) {
       if (mountedRef.current) {
         setSvg(cached);
         setState('loaded');
+        isLoadingRef.current = false;
         onLoad?.();
       }
       return;
@@ -53,9 +75,12 @@ export function IconRenderer({
 
     // 2. Set loading state and start fallback timer
     setState('loading');
+    isLoadingRef.current = true;
+
     if (fallbackDelay > 0) {
       fallbackTimerRef.current = setTimeout(() => {
-        if (mountedRef.current && state === 'loading') {
+        // Use ref instead of state to avoid stale closure
+        if (mountedRef.current && isLoadingRef.current) {
           setShowFallback(true);
         }
       }, fallbackDelay);
@@ -65,7 +90,7 @@ export function IconRenderer({
 
     // 3. Fetch from network
     try {
-      const fetchedSvg = await fetchIcon(iconName);
+      const fetchedSvg = await fetchIcon(iconName, abortControllerRef.current.signal);
 
       if (mountedRef.current) {
         // Store in cache
@@ -73,16 +98,22 @@ export function IconRenderer({
 
         setSvg(fetchedSvg);
         setState('loaded');
+        isLoadingRef.current = false;
         setShowFallback(false);
         onLoad?.();
       }
     } catch (error) {
+      // Ignore abort errors
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       if (mountedRef.current) {
         setState('error');
+        isLoadingRef.current = false;
         onError?.(error instanceof Error ? error : new Error(String(error)));
       }
     }
-  }, [iconName, fallback, fallbackDelay, onLoad, onError, state]);
+  }, [iconName, fallback, fallbackDelay, onLoad, onError]); // Removed 'state' from deps
 
   // Effect to load icon
   useEffect(() => {
@@ -91,16 +122,19 @@ export function IconRenderer({
 
     return () => {
       mountedRef.current = false;
+      isLoadingRef.current = false;
       if (fallbackTimerRef.current) {
         clearTimeout(fallbackTimerRef.current);
+      }
+      // Abort any in-flight requests on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, [loadIcon]);
 
-  // Calculate transform for rotation and flip
-  const getTransformStyle = ():
-    | Array<{ rotate: string } | { scaleX: number } | { scaleY: number }>
-    | undefined => {
+  // Memoize transform style calculation
+  const transformStyle = useMemo(() => {
     const transforms: Array<{ rotate: string } | { scaleX: number } | { scaleY: number }> = [];
 
     if (rotate !== 0) {
@@ -116,12 +150,14 @@ export function IconRenderer({
     }
 
     return transforms.length > 0 ? transforms : undefined;
-  };
+  }, [rotate, flip]);
 
-  // Apply color to SVG
-  const colorizedSvg = svg
-    ? svg.replace(/currentColor/g, color).replace(/<svg/, `<svg fill="${color}"`)
-    : null;
+  // Memoize colorized SVG to avoid recalculating on every render
+  const colorizedSvg = useMemo(() => {
+    if (!svg) return null;
+    const safeColor = escapeXmlAttribute(color);
+    return svg.replace(/currentColor/g, safeColor).replace(/<svg/, `<svg fill="${safeColor}"`);
+  }, [svg, color]);
 
   // Render fallback
   if ((state === 'loading' && showFallback) || state === 'error') {
@@ -152,7 +188,7 @@ export function IconRenderer({
       <View
         style={[
           styles.container,
-          { width: iconWidth, height: iconHeight, transform: getTransformStyle() },
+          { width: iconWidth, height: iconHeight, transform: transformStyle },
           style,
         ]}
         accessibilityLabel={accessibilityLabel}

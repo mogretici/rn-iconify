@@ -53,6 +53,9 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
 
     override fun invalidate() {
         scope.cancel()
+        // Cleanup OkHttpClient resources
+        httpClient.dispatcher.executorService.shutdown()
+        httpClient.connectionPool.evictAll()
         super.invalidate()
     }
 
@@ -148,6 +151,69 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
 
     // MARK: - Private Methods
 
+    /**
+     * Iconify API Response data classes
+     */
+    private data class IconifyResponse(
+        val prefix: String,
+        val icons: Map<String, IconData>,
+        val width: Int? = null,
+        val height: Int? = null,
+        val not_found: List<String>? = null
+    )
+
+    private data class IconData(
+        val body: String,
+        val width: Int? = null,
+        val height: Int? = null,
+        val left: Int? = null,
+        val top: Int? = null,
+        val rotate: Int? = null,
+        val hFlip: Boolean? = null,
+        val vFlip: Boolean? = null
+    )
+
+    /**
+     * Build SVG string from Iconify icon data (matches JS implementation)
+     */
+    private fun buildSvg(data: IconData, defaultWidth: Int, defaultHeight: Int): String {
+        val width = data.width ?: defaultWidth
+        val height = data.height ?: defaultHeight
+        val left = data.left ?: 0
+        val top = data.top ?: 0
+        val viewBox = "$left $top $width $height"
+
+        var body = data.body
+
+        // Apply transformations if needed
+        val transforms = mutableListOf<String>()
+
+        data.rotate?.let { rotate ->
+            if (rotate != 0) {
+                val rotation = rotate * 90
+                transforms.add("rotate($rotation ${width / 2} ${height / 2})")
+            }
+        }
+
+        if (data.hFlip == true || data.vFlip == true) {
+            val scaleX = if (data.hFlip == true) -1 else 1
+            val scaleY = if (data.vFlip == true) -1 else 1
+            val translateX = if (data.hFlip == true) width else 0
+            val translateY = if (data.vFlip == true) height else 0
+            transforms.add("translate($translateX $translateY) scale($scaleX $scaleY)")
+        }
+
+        if (transforms.isNotEmpty()) {
+            val transform = transforms.joinToString(" ")
+            body = "<g transform=\"$transform\">$body</g>"
+        }
+
+        return """<svg xmlns="http://www.w3.org/2000/svg" viewBox="$viewBox" width="$width" height="$height">$body</svg>"""
+    }
+
+    /**
+     * Fetch single icon using JSON API (consistent with JS implementation)
+     */
     private suspend fun fetchIcon(name: String) {
         val parts = name.split(":")
         require(parts.size == 2) { "Invalid icon name format: $name" }
@@ -165,8 +231,8 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
 
         missCount.incrementAndGet()
 
-        // Fetch from Iconify API
-        val url = "https://api.iconify.design/$prefix/$iconName.svg"
+        // Fetch from Iconify JSON API (consistent with JS implementation)
+        val url = "https://api.iconify.design/$prefix.json?icons=$iconName"
         val request = Request.Builder()
             .url(url)
             .build()
@@ -177,11 +243,23 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
                     throw Exception("HTTP ${response.code}")
                 }
 
-                val body = response.body?.bytes()
+                val body = response.body?.string()
                     ?: throw Exception("Empty response")
 
+                // Parse JSON response
+                val gson = com.google.gson.Gson()
+                val iconifyResponse = gson.fromJson(body, IconifyResponse::class.java)
+
+                val iconData = iconifyResponse.icons[iconName]
+                    ?: throw Exception("Icon '$name' not found in API response")
+
+                // Build SVG from icon data
+                val defaultWidth = iconifyResponse.width ?: 24
+                val defaultHeight = iconifyResponse.height ?: 24
+                val svg = buildSvg(iconData, defaultWidth, defaultHeight)
+
                 // Cache the SVG data
-                cacheFile.writeBytes(body)
+                cacheFile.writeText(svg)
             }
         }
     }

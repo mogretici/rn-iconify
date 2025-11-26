@@ -106,14 +106,22 @@ export interface IconifyIconData {
 }
 
 /**
- * Iconify API response for a single icon
+ * Iconify API response structure
+ * @see https://iconify.design/docs/api/icon-data.html
  */
 export interface IconifyAPIResponse {
+  /** Icon set prefix */
   prefix: string;
+  /** Map of icon names to their data */
   icons: Record<string, IconifyIconData>;
+  /** Default width for icons without explicit width */
   width?: number;
+  /** Default height for icons without explicit height */
   height?: number;
+  /** Last modification timestamp */
   lastModified?: number;
+  /** Array of icon names that were not found (if any requested icons don't exist) */
+  not_found?: string[];
 }
 
 /**

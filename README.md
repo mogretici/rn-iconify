@@ -167,6 +167,39 @@ await clearCache();
 />
 ```
 
+## Architecture
+
+### Cache Layers
+
+Icons flow through a 3-tier caching system:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Memory    │ --> │  MMKV Disk  │ --> │   Network   │
+│   Cache     │     │    Cache    │     │  (Iconify)  │
+│   < 1ms     │     │   < 5ms     │     │  100-500ms  │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+1. **Memory Cache** - Instant access via LRU Map
+2. **MMKV Disk Cache** - JSI-based synchronous storage, survives app restarts
+3. **Network** - Fetches from Iconify JSON API with retry logic
+
+### Network Features
+
+- **30s request timeout** with automatic retry (2 attempts)
+- **Request deduplication** prevents duplicate network calls
+- **AbortController** support for cancellation
+- **Batch fetching** with alphabetically sorted icons (Iconify best practice)
+- **Partial failure handling** - individual icon failures don't block others
+
+### Native Modules (iOS/Android)
+
+- Background prefetching with native threading
+- Consistent JSON API usage across all platforms
+- Thread-safe cache statistics
+- Proper resource cleanup on module invalidation
+
 ## Performance
 
 | Metric             | Value     |

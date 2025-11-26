@@ -57,7 +57,7 @@ describe('Icon Component Integration', () => {
     });
 
     it('renders with custom size', async () => {
-      const { getByTestId } = render(<Mdi name="settings" size={48} testID="mdi-settings" />);
+      const { getByTestId } = render(<Mdi name="cog" size={48} testID="mdi-settings" />);
 
       await waitFor(() => {
         expect(getByTestId('mdi-settings')).toBeTruthy();
@@ -133,7 +133,7 @@ describe('Cache Integration', () => {
   });
 
   it('prefetches multiple icons', async () => {
-    const icons = ['mdi:home', 'mdi:settings', 'mdi:user'];
+    const icons = ['mdi:home', 'mdi:cog', 'mdi:account'];
     const result = await CacheManager.prefetch(icons, fetchIcon);
 
     expect(result.success.length).toBeGreaterThan(0);
@@ -174,7 +174,7 @@ describe('Props Integration', () => {
   it('renders fallback while loading', async () => {
     const FallbackComponent = () => <></>;
     const { getByTestId } = render(
-      <Mdi name="slow-icon" size={24} fallback={<FallbackComponent />} testID="fallback-icon" />
+      <Mdi name="account" size={24} fallback={<FallbackComponent />} testID="fallback-icon" />
     );
 
     await waitFor(() => {
@@ -200,7 +200,7 @@ describe('Props Integration', () => {
       Promise.resolve({ ok: false, status: 404 })
     );
 
-    render(<Mdi name="nonexistent-icon" size={24} onError={onError} testID="error-icon" />);
+    render(<Mdi name="account" size={24} onError={onError} testID="error-icon" />);
 
     await waitFor(
       () => {
@@ -221,10 +221,10 @@ describe('Accessibility', () => {
   });
 
   it('uses icon name as default accessibility label', async () => {
-    const { getByLabelText } = render(<Mdi name="settings" size={24} />);
+    const { getByLabelText } = render(<Mdi name="cog" size={24} />);
 
     await waitFor(() => {
-      expect(getByLabelText('settings')).toBeTruthy();
+      expect(getByLabelText('cog')).toBeTruthy();
     });
   });
 });

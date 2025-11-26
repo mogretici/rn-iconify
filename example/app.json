@@ -28,9 +28,6 @@
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-router"
-    ],
     "scheme": "rn-iconify-example"
   }
 }

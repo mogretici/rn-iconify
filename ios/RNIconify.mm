@@ -29,6 +29,11 @@ RCT_EXTERN_METHOD(clearCache:(RCTPromiseResolveBlock)resolve
 // Synchronous cache check
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(isCached:(NSString *)iconName)
 
+// Export constants
++ (BOOL)requiresMainQueueSetup {
+  return NO;
+}
+
 @end
 
 #ifdef RCT_NEW_ARCH_ENABLED

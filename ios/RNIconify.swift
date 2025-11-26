@@ -14,6 +14,7 @@ class RNIconify: NSObject {
   private let cacheDirectory: URL
   private var hitCount: Int = 0
   private var missCount: Int = 0
+  private let statsLock = NSLock() // Thread safety for hit/miss counts
 
   // MARK: - Initialization
 
@@ -33,6 +34,11 @@ class RNIconify: NSObject {
 
     // Create cache directory if needed
     try? FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
+  }
+
+  deinit {
+    // Cleanup URLSession resources
+    urlSession.invalidateAndCancel()
   }
 
   // MARK: - React Native Bridge
@@ -119,8 +125,10 @@ class RNIconify: NSObject {
         }
       }
 
+      self.statsLock.lock()
       let totalRequests = self.hitCount + self.missCount
       let hitRate = totalRequests > 0 ? Double(self.hitCount) / Double(totalRequests) : 0.0
+      self.statsLock.unlock()
 
       DispatchQueue.main.async {
         resolve([
@@ -155,8 +163,10 @@ class RNIconify: NSObject {
           try FileManager.default.removeItem(at: fileURL)
         }
 
+        self.statsLock.lock()
         self.hitCount = 0
         self.missCount = 0
+        self.statsLock.unlock()
 
         DispatchQueue.main.async {
           resolve(nil)
@@ -191,6 +201,74 @@ class RNIconify: NSObject {
 
   // MARK: - Private Methods
 
+  /**
+   * Iconify API Response Structure
+   */
+  private struct IconifyResponse: Codable {
+    let prefix: String
+    let icons: [String: IconData]
+    let width: Int?
+    let height: Int?
+    let notFound: [String]?
+
+    enum CodingKeys: String, CodingKey {
+      case prefix, icons, width, height
+      case notFound = "not_found"
+    }
+  }
+
+  private struct IconData: Codable {
+    let body: String
+    let width: Int?
+    let height: Int?
+    let left: Int?
+    let top: Int?
+    let rotate: Int?
+    let hFlip: Bool?
+    let vFlip: Bool?
+  }
+
+  /**
+   * Build SVG string from Iconify icon data (matches JS implementation)
+   */
+  private func buildSvg(from data: IconData, defaultWidth: Int, defaultHeight: Int) -> String {
+    let width = data.width ?? defaultWidth
+    let height = data.height ?? defaultHeight
+    let left = data.left ?? 0
+    let top = data.top ?? 0
+    let viewBox = "\(left) \(top) \(width) \(height)"
+
+    var body = data.body
+
+    // Apply transformations if needed
+    var transforms: [String] = []
+
+    if let rotate = data.rotate, rotate != 0 {
+      let rotation = rotate * 90
+      transforms.append("rotate(\(rotation) \(width / 2) \(height / 2))")
+    }
+
+    if data.hFlip == true || data.vFlip == true {
+      let scaleX = data.hFlip == true ? -1 : 1
+      let scaleY = data.vFlip == true ? -1 : 1
+      let translateX = data.hFlip == true ? width : 0
+      let translateY = data.vFlip == true ? height : 0
+      transforms.append("translate(\(translateX) \(translateY)) scale(\(scaleX) \(scaleY))")
+    }
+
+    if !transforms.isEmpty {
+      let transform = transforms.joined(separator: " ")
+      body = "<g transform=\"\(transform)\">\(body)</g>"
+    }
+
+    return """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="\(viewBox)" width="\(width)" height="\(height)">\(body)</svg>
+    """
+  }
+
+  /**
+   * Fetch single icon using JSON API (consistent with JS implementation)
+   */
   private func fetchIcon(_ name: String, completion: @escaping (Result<Data, Error>) -> Void) {
     // Parse icon name (prefix:name)
     let parts = name.split(separator: ":")
@@ -210,15 +288,19 @@ class RNIconify: NSObject {
     let cacheFile = cacheFileURL(for: name)
     if FileManager.default.fileExists(atPath: cacheFile.path),
        let cachedData = try? Data(contentsOf: cacheFile) {
+      statsLock.lock()
       hitCount += 1
+      statsLock.unlock()
       completion(.success(cachedData))
       return
     }
 
+    statsLock.lock()
     missCount += 1
+    statsLock.unlock()
 
-    // Fetch from Iconify API
-    let urlString = "https://api.iconify.design/\(prefix)/\(iconName).svg"
+    // Fetch from Iconify JSON API (consistent with JS implementation)
+    let urlString = "https://api.iconify.design/\(prefix).json?icons=\(iconName)"
     guard let url = URL(string: urlString) else {
       completion(.failure(NSError(
         domain: "RNIconify",
@@ -229,6 +311,8 @@ class RNIconify: NSObject {
     }
 
     urlSession.dataTask(with: url) { [weak self] data, response, error in
+      guard let self = self else { return }
+
       if let error = error {
         completion(.failure(error))
         return
@@ -261,10 +345,44 @@ class RNIconify: NSObject {
         return
       }
 
-      // Cache the SVG data
-      try? data.write(to: cacheFile)
+      // Parse JSON response
+      do {
+        let iconifyResponse = try JSONDecoder().decode(IconifyResponse.self, from: data)
 
-      completion(.success(data))
+        guard let iconData = iconifyResponse.icons[iconName] else {
+          completion(.failure(NSError(
+            domain: "RNIconify",
+            code: 5,
+            userInfo: [NSLocalizedDescriptionKey: "Icon '\(name)' not found in API response"]
+          )))
+          return
+        }
+
+        // Build SVG from icon data
+        let defaultWidth = iconifyResponse.width ?? 24
+        let defaultHeight = iconifyResponse.height ?? 24
+        let svg = self.buildSvg(from: iconData, defaultWidth: defaultWidth, defaultHeight: defaultHeight)
+
+        guard let svgData = svg.data(using: .utf8) else {
+          completion(.failure(NSError(
+            domain: "RNIconify",
+            code: 6,
+            userInfo: [NSLocalizedDescriptionKey: "Failed to encode SVG"]
+          )))
+          return
+        }
+
+        // Cache the SVG data
+        try? svgData.write(to: cacheFile)
+
+        completion(.success(svgData))
+      } catch {
+        completion(.failure(NSError(
+          domain: "RNIconify",
+          code: 7,
+          userInfo: [NSLocalizedDescriptionKey: "Failed to parse API response: \(error.localizedDescription)"]
+        )))
+      }
     }.resume()
   }
 

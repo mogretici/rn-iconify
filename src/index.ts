@@ -36,6 +36,7 @@ export { CacheManager };
 
 // Network Utilities
 export { fetchIcon, fetchIconsBatch, parseIconName, checkAPIHealth } from './network/IconifyAPI';
+export type { BatchFetchResult } from './network/IconifyAPI';
 
 // Native Module Utilities
 export { getNativeIconify, isNativeModuleAvailable } from './native';

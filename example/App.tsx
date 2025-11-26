@@ -3,7 +3,7 @@
  * Demonstrates icon components, transformations, and cache management
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -64,33 +64,41 @@ export default function App() {
   const [cacheStats, setCacheStats] = useState({ memoryCount: 0, diskCount: 0 });
   const [prefetchStatus, setPrefetchStatus] = useState<string>('');
 
-  useEffect(() => {
-    // Update cache stats periodically
-    const interval = setInterval(() => {
-      setCacheStats(getCacheStats());
-    }, 1000);
-    return () => clearInterval(interval);
+  // Refresh cache stats on demand instead of polling
+  const refreshCacheStats = useCallback(() => {
+    setCacheStats(getCacheStats());
   }, []);
+
+  // Initial cache stats load
+  useEffect(() => {
+    refreshCacheStats();
+  }, [refreshCacheStats]);
 
   const handlePrefetch = async () => {
     setPrefetchStatus('Prefetching...');
-    const result = await prefetchIcons([
-      'mdi:account',
-      'mdi:bell',
-      'mdi:calendar',
-      'heroicons:academic-cap',
-      'heroicons:adjustments-horizontal',
-      'lucide:activity',
-      'lucide:airplay',
-    ]);
-    setPrefetchStatus(
-      `Done! Success: ${result.success.length}, Failed: ${result.failed.length}`
-    );
+    try {
+      const result = await prefetchIcons([
+        'mdi:account',
+        'mdi:bell',
+        'mdi:calendar',
+        'heroicons:academic-cap',
+        'heroicons:adjustments-horizontal',
+        'lucide:activity',
+        'lucide:airplay',
+      ]);
+      setPrefetchStatus(
+        `Done! Success: ${result.success.length}, Failed: ${result.failed.length}`
+      );
+    } catch (error) {
+      setPrefetchStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      refreshCacheStats();
+    }
   };
 
-  const handleClearCache = () => {
-    clearCache();
-    setCacheStats(getCacheStats());
+  const handleClearCache = async () => {
+    await clearCache();
+    refreshCacheStats();
   };
 
   return (

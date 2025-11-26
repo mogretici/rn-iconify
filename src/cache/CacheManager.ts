@@ -11,6 +11,11 @@ import { getNativeIconify, isNativeModuleAvailable } from '../native';
 
 class CacheManagerImpl {
   /**
+   * Track in-flight prefetch operations to prevent race conditions
+   */
+  private prefetchingIcons = new Set<string>();
+
+  /**
    * Get icon SVG from cache (memory first, then disk)
    * @returns SVG string or null if not cached
    */
@@ -97,32 +102,40 @@ class CacheManagerImpl {
     iconNames: string[],
     fetchFn: (iconName: string) => Promise<string>
   ): Promise<{ success: string[]; failed: string[] }> {
-    // Filter out already cached icons
-    const toFetch = iconNames.filter((name) => !this.has(name));
+    // Filter out already cached icons AND icons currently being prefetched
+    const toFetch = iconNames.filter((name) => !this.has(name) && !this.prefetchingIcons.has(name));
 
     if (toFetch.length === 0) {
       return { success: [], failed: [] };
     }
 
-    // Try native module first for better performance
-    if (isNativeModuleAvailable()) {
-      try {
-        const nativeModule = getNativeIconify();
-        const result = await nativeModule.prefetchIcons(toFetch);
+    // Mark icons as being prefetched to prevent race conditions
+    toFetch.forEach((name) => this.prefetchingIcons.add(name));
 
-        // Note: Native module caches to its own disk location
-        // Icons will be available on next app launch via native cache
-        return result;
-      } catch (error) {
-        // Fall through to JS implementation
-        if (__DEV__) {
-          console.warn('[rn-iconify] Native prefetch failed, using JS fallback:', error);
+    try {
+      // Try native module first for better performance
+      if (isNativeModuleAvailable()) {
+        try {
+          const nativeModule = getNativeIconify();
+          const result = await nativeModule.prefetchIcons(toFetch);
+
+          // Note: Native module caches to its own disk location
+          // Icons will be available on next app launch via native cache
+          return result;
+        } catch (error) {
+          // Fall through to JS implementation
+          if (__DEV__) {
+            console.warn('[rn-iconify] Native prefetch failed, using JS fallback:', error);
+          }
         }
       }
-    }
 
-    // JS fallback implementation
-    return this.prefetchWithJS(toFetch, fetchFn);
+      // JS fallback implementation
+      return await this.prefetchWithJS(toFetch, fetchFn);
+    } finally {
+      // Clean up prefetching set
+      toFetch.forEach((name) => this.prefetchingIcons.delete(name));
+    }
   }
 
   /**
@@ -148,12 +161,12 @@ class CacheManagerImpl {
         })
       );
 
-      for (const result of results) {
+      for (let j = 0; j < results.length; j++) {
+        const result = results[j];
         if (result.status === 'fulfilled') {
           success.push(result.value);
         } else {
-          const index = results.indexOf(result);
-          const name = batch[index];
+          const name = batch[j];
           if (name) {
             failed.push(name);
           }

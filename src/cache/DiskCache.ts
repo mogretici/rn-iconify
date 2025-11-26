@@ -17,6 +17,11 @@ const CACHE_VERSION_KEY = '__cache_version';
 
 class DiskCacheImpl {
   private initialized = false;
+  // In-memory LRU tracking to avoid disk writes on every get()
+  private accessTimes = new Map<string, number>();
+  private pendingMetadataSync = false;
+  private metadataSyncTimerId: ReturnType<typeof setTimeout> | null = null;
+  private readonly METADATA_SYNC_INTERVAL = 30000; // 30 seconds
 
   constructor() {
     this.initialize();
@@ -45,11 +50,47 @@ class DiskCacheImpl {
   get(iconName: string): string | null {
     const svg = storage.getString(iconName);
     if (svg) {
-      // Update access time for LRU tracking
-      storage.set(`${META_KEY_PREFIX}${iconName}`, Date.now());
+      // Update access time in memory only (avoid disk write on every get)
+      this.accessTimes.set(iconName, Date.now());
+      this.scheduleMetadataSync();
       return svg;
     }
     return null;
+  }
+
+  /**
+   * Schedule metadata sync to disk (batched to avoid frequent writes)
+   */
+  private scheduleMetadataSync(): void {
+    if (this.pendingMetadataSync) return;
+    this.pendingMetadataSync = true;
+
+    this.metadataSyncTimerId = setTimeout(() => {
+      this.syncMetadataToDisk();
+      this.pendingMetadataSync = false;
+      this.metadataSyncTimerId = null;
+    }, this.METADATA_SYNC_INTERVAL);
+  }
+
+  /**
+   * Cancel any pending metadata sync
+   */
+  private cancelPendingMetadataSync(): void {
+    if (this.metadataSyncTimerId !== null) {
+      clearTimeout(this.metadataSyncTimerId);
+      this.metadataSyncTimerId = null;
+      this.pendingMetadataSync = false;
+    }
+  }
+
+  /**
+   * Sync in-memory access times to disk
+   */
+  private syncMetadataToDisk(): void {
+    for (const [iconName, timestamp] of this.accessTimes) {
+      storage.set(`${META_KEY_PREFIX}${iconName}`, timestamp);
+    }
+    this.accessTimes.clear();
   }
 
   /**
@@ -79,6 +120,9 @@ class DiskCacheImpl {
    * Clear all entries from disk cache
    */
   clear(): void {
+    // Cancel any pending metadata sync before clearing
+    this.cancelPendingMetadataSync();
+    this.accessTimes.clear();
     storage.clearAll();
     storage.set(CACHE_VERSION_KEY, CACHE_VERSION);
   }
@@ -117,6 +161,9 @@ class DiskCacheImpl {
    * @param maxSizeBytes Maximum cache size in bytes
    */
   evictToSize(maxSizeBytes: number): void {
+    // Sync pending access times before eviction
+    this.syncMetadataToDisk();
+
     const stats = this.getStats();
     if (stats.sizeBytes <= maxSizeBytes) return;
 
@@ -125,7 +172,9 @@ class DiskCacheImpl {
 
     // Collect all entries with metadata
     for (const key of keys) {
-      const timestamp = storage.getNumber(`${META_KEY_PREFIX}${key}`) ?? 0;
+      // Check in-memory access times first, fallback to disk
+      const timestamp =
+        this.accessTimes.get(key) ?? storage.getNumber(`${META_KEY_PREFIX}${key}`) ?? 0;
       const value = storage.getString(key);
       const size = value ? value.length * 2 : 0;
       entries.push({ key, timestamp, size });

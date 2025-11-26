@@ -69,6 +69,14 @@ export function createIconSet<T extends string>(
     accessibilityLabel,
     testID,
   }: IconProps<T>) {
+    // Runtime validation for icon name
+    if (__DEV__ && !(name in iconNames)) {
+      console.warn(
+        `[rn-iconify] Invalid icon name "${name}" for prefix "${prefix}". ` +
+          `Check if the icon exists in the icon set.`
+      );
+    }
+
     // Get the actual icon name (handles mapped names like _500px -> "500px")
     const actualName = iconNames[name] === true ? name : iconNames[name];
     const iconName = `${prefix}:${actualName}`;
