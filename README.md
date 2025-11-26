@@ -1,15 +1,23 @@
 # rn-iconify
 
-> **268,000+ icons** for React Native with Expo Vector Icons-style API, native MMKV caching, and full TypeScript autocomplete
+> **268,000+ icons** for React Native with native MMKV caching and full TypeScript autocomplete
+
+Use **Material Design Icons**, **Heroicons**, **Lucide**, **Phosphor**, **Font Awesome**, **Feather**, **Tabler**, and **200+ more icon sets** in your React Native app with a simple, type-safe API.
 
 [![npm version](https://img.shields.io/npm/v/rn-iconify.svg)](https://www.npmjs.com/package/rn-iconify)
 [![license](https://img.shields.io/npm/l/rn-iconify.svg)](https://github.com/mogretici/rn-iconify/blob/main/LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-lightgrey.svg)](https://reactnative.dev/)
+
+<p align="center">
+  <img src="./assets/demo.gif" alt="rn-iconify demo" width="300" />
+</p>
 
 ## Features
 
 - **212 Icon Sets** - Material Design, Heroicons, Lucide, Phosphor, Font Awesome, and 200+ more
 - **268,000+ Icons** - Access the entire [Iconify](https://iconify.design) ecosystem
-- **Expo Vector Icons API** - Familiar `<Mdi name="home" />` syntax
+- **Simple Component API** - Clean `<Mdi name="home" />` syntax
 - **Full TypeScript Autocomplete** - Per-component type safety without IDE slowdown
 - **Native MMKV Caching** - 30x faster than AsyncStorage, persistent disk cache
 - **TurboModule Support** - Native background prefetching for New Architecture

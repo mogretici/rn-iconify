@@ -1,7 +1,7 @@
 {
   "name": "rn-iconify",
-  "version": "0.1.0",
-  "description": "200,000+ Iconify icons for React Native with Expo Vector Icons-style API, native MMKV caching, and full TypeScript autocomplete",
+  "version": "1.0.0",
+  "description": "268,000+ Iconify icons for React Native with native MMKV caching and full TypeScript autocomplete",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
   "types": "lib/typescript/index.d.ts",

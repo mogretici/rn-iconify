@@ -1,6 +1,6 @@
 /**
  * rn-iconify
- * 268,000+ Iconify icons for React Native with Expo Vector Icons-style API
+ * 268,000+ Iconify icons for React Native with native MMKV caching
  *
  * @example
  * ```tsx

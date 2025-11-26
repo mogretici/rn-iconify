@@ -1,6 +1,5 @@
 /**
  * createIconSet - Factory function for creating typed icon components
- * Similar to Expo Vector Icons pattern
  */
 
 import React from 'react';
