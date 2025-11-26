@@ -18,24 +18,28 @@ import {
   Mdi,
   Heroicons,
   Lucide,
-  Phosphor,
+  Ph,
   Feather,
+  MdiLight,
   getCacheStats,
   clearCache,
   prefetchIcons,
+  CacheManager,
 } from 'rn-iconify';
 
 // Section component
 function Section({
   title,
   children,
+  isDark,
 }: {
   title: string;
   children: React.ReactNode;
+  isDark?: boolean;
 }) {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+    <View style={[styles.section, isDark && styles.sectionDark]}>
+      <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>{title}</Text>
       <View style={styles.sectionContent}>{children}</View>
     </View>
   );
@@ -58,21 +62,34 @@ function IconRow({
 }
 
 export default function App() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const systemColorScheme = useColorScheme();
+  const [manualDarkMode, setManualDarkMode] = useState<boolean | null>(null);
+  const isDark = manualDarkMode ?? systemColorScheme === 'dark';
   const iconColor = isDark ? '#FFFFFF' : '#000000';
+
+  const toggleDarkMode = () => {
+    setManualDarkMode(prev => prev === null ? !isDark : !prev);
+  };
   const [cacheStats, setCacheStats] = useState({ memoryCount: 0, diskCount: 0 });
   const [prefetchStatus, setPrefetchStatus] = useState<string>('');
+  const [loadedIcons, setLoadedIcons] = useState<string[]>([]);
+  const [nativeAvailable, setNativeAvailable] = useState(false);
 
   // Refresh cache stats on demand instead of polling
   const refreshCacheStats = useCallback(() => {
     setCacheStats(getCacheStats());
   }, []);
 
-  // Initial cache stats load
+  // Initial cache stats load and native module check
   useEffect(() => {
     refreshCacheStats();
+    setNativeAvailable(CacheManager.isNativeAvailable());
   }, [refreshCacheStats]);
+
+  // Icon load handler
+  const handleIconLoad = useCallback((iconName: string) => {
+    setLoadedIcons(prev => prev.includes(iconName) ? prev : [...prev, iconName]);
+  }, []);
 
   const handlePrefetch = async () => {
     setPrefetchStatus('Prefetching...');
@@ -106,16 +123,32 @@ export default function App() {
       style={[styles.container, isDark && styles.containerDark]}
     >
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={[styles.title, isDark && styles.titleDark]}>
-          rn-iconify Demo
-        </Text>
-        <Text style={[styles.subtitle, isDark && styles.subtitleDark]}>
-          200,000+ icons for React Native
-        </Text>
 
+      {/* Sticky Header */}
+      <View style={[styles.header, isDark && styles.headerDark]}>
+        <View style={styles.headerText}>
+          <Text style={[styles.title, isDark && styles.titleDark]}>
+            rn-iconify Demo
+          </Text>
+          <Text style={[styles.subtitle, isDark && styles.subtitleDark]}>
+            200,000+ icons for React Native
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.darkModeButton, isDark && styles.darkModeButtonDark]}
+          onPress={toggleDarkMode}
+        >
+          <Mdi
+            name={isDark ? 'weather-sunny' : 'weather-night'}
+            size={24}
+            color={isDark ? '#FFD700' : '#5C6BC0'}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Icon Sets Section */}
-        <Section title="Icon Sets">
+        <Section isDark={isDark} title="Icon Sets">
           <IconRow label="MDI">
             <Mdi name="home" size={32} color={iconColor} />
             <Mdi name="account" size={32} color={iconColor} />
@@ -133,7 +166,7 @@ export default function App() {
           </IconRow>
 
           <IconRow label="Lucide">
-            <Lucide name="home" size={32} color={iconColor} />
+            <Lucide name="house" size={32} color={iconColor} />
             <Lucide name="user" size={32} color={iconColor} />
             <Lucide name="settings" size={32} color={iconColor} />
             <Lucide name="bell" size={32} color={iconColor} />
@@ -141,11 +174,11 @@ export default function App() {
           </IconRow>
 
           <IconRow label="Phosphor">
-            <Phosphor name="house" size={32} color={iconColor} />
-            <Phosphor name="user" size={32} color={iconColor} />
-            <Phosphor name="gear" size={32} color={iconColor} />
-            <Phosphor name="bell" size={32} color={iconColor} />
-            <Phosphor name="heart" size={32} color="#E91E63" />
+            <Ph name="house" size={32} color={iconColor} />
+            <Ph name="user" size={32} color={iconColor} />
+            <Ph name="gear" size={32} color={iconColor} />
+            <Ph name="bell" size={32} color={iconColor} />
+            <Ph name="heart" size={32} color="#E91E63" />
           </IconRow>
 
           <IconRow label="Feather">
@@ -158,7 +191,7 @@ export default function App() {
         </Section>
 
         {/* Sizes Section */}
-        <Section title="Sizes">
+        <Section isDark={isDark} title="Sizes">
           <View style={styles.sizesRow}>
             <View style={styles.sizeItem}>
               <Mdi name="star" size={16} color={iconColor} />
@@ -194,7 +227,7 @@ export default function App() {
         </Section>
 
         {/* Colors Section */}
-        <Section title="Colors">
+        <Section isDark={isDark} title="Colors">
           <View style={styles.colorsRow}>
             <Mdi name="palette" size={40} color="#F44336" />
             <Mdi name="palette" size={40} color="#E91E63" />
@@ -207,7 +240,7 @@ export default function App() {
         </Section>
 
         {/* Transformations Section */}
-        <Section title="Transformations">
+        <Section isDark={isDark} title="Transformations">
           <IconRow label="Rotation">
             <View style={styles.transformItem}>
               <Mdi name="arrow-up" size={32} color={iconColor} rotate={0} />
@@ -247,8 +280,94 @@ export default function App() {
           </IconRow>
         </Section>
 
+        {/* Additional Icon Set Section */}
+        <Section isDark={isDark} title="More Icon Sets (212 Total)">
+          <Text style={[styles.description, isDark && styles.descriptionDark]}>
+            rn-iconify includes 212 icon sets. Here's MdiLight:
+          </Text>
+          <View style={styles.codeBlock}>
+            <Text style={styles.code}>
+              {`import { MdiLight } from 'rn-iconify';
+<MdiLight name="home" size={32} />`}
+            </Text>
+          </View>
+          <View style={[styles.iconShowcase, { marginTop: 12 }]}>
+            <MdiLight name="home" size={32} color={iconColor} />
+            <MdiLight name="account" size={32} color={iconColor} />
+            <MdiLight name="settings" size={32} color={iconColor} />
+            <MdiLight name="bell" size={32} color={iconColor} />
+          </View>
+        </Section>
+
+        {/* Callbacks Section */}
+        <Section isDark={isDark} title="Callbacks (onLoad / onError)">
+          <Text style={[styles.description, isDark && styles.descriptionDark]}>
+            Track when icons load or fail:
+          </Text>
+          <View style={styles.callbackDemo}>
+            <Mdi
+              name="check-circle"
+              size={32}
+              color="#4CAF50"
+              onLoad={() => handleIconLoad('check-circle')}
+              onError={(error) => console.log('Error:', error)}
+            />
+            <Text style={[styles.callbackText, isDark && styles.callbackTextDark]}>
+              {loadedIcons.includes('check-circle') ? '✓ Loaded' : 'Loading...'}
+            </Text>
+          </View>
+        </Section>
+
+        {/* Fallback Section */}
+        <Section isDark={isDark} title="Fallback Component">
+          <Text style={[styles.description, isDark && styles.descriptionDark]}>
+            Show a placeholder while loading:
+          </Text>
+          <View style={styles.fallbackDemo}>
+            <Mdi
+              name="cloud-download"
+              size={48}
+              color={iconColor}
+              fallback={
+                <View style={styles.fallbackPlaceholder}>
+                  <Text style={styles.fallbackText}>...</Text>
+                </View>
+              }
+            />
+          </View>
+        </Section>
+
+        {/* Style & Accessibility Section */}
+        <Section isDark={isDark} title="Style & Accessibility">
+          <Text style={[styles.description, isDark && styles.descriptionDark]}>
+            Custom styles and accessibility props:
+          </Text>
+          <View style={styles.styleDemo}>
+            <Mdi
+              name="star"
+              size={48}
+              color="#FFD700"
+              style={{
+                shadowColor: '#FFD700',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.8,
+                shadowRadius: 10,
+              }}
+              testID="star-icon"
+              accessibilityLabel="Gold star icon"
+            />
+            <Mdi
+              name="heart"
+              size={48}
+              color="#E91E63"
+              style={{ opacity: 0.5 }}
+              accessibilityLabel="Pink heart icon"
+            />
+          </View>
+        </Section>
+
         {/* Cache Management Section */}
-        <Section title="Cache Management">
+        <Section isDark={isDark} title="Cache Management">
           <View style={styles.cacheStats}>
             <Text style={[styles.cacheText, isDark && styles.cacheTextDark]}>
               Memory: {cacheStats.memoryCount} icons
@@ -257,6 +376,9 @@ export default function App() {
               Disk: {cacheStats.diskCount} icons
             </Text>
           </View>
+          <Text style={[styles.nativeStatus, isDark && styles.nativeStatusDark]}>
+            Native Module: {nativeAvailable ? '✓ Available' : '✗ Not Available'}
+          </Text>
 
           <View style={styles.cacheButtons}>
             <TouchableOpacity
@@ -282,7 +404,7 @@ export default function App() {
         </Section>
 
         {/* Usage Example Section */}
-        <Section title="Usage Example">
+        <Section isDark={isDark} title="Usage Example">
           <View style={styles.codeBlock}>
             <Text style={styles.code}>
               {`import { Mdi, Lucide } from 'rn-iconify';
@@ -309,24 +431,49 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  headerDark: {
+    backgroundColor: '#121212',
+    borderBottomColor: '#333',
+  },
+  headerText: {
+    flex: 1,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
     color: '#000',
-    marginTop: 8,
   },
   titleDark: {
     color: '#FFF',
   },
   subtitle: {
     fontSize: 14,
-    textAlign: 'center',
     color: '#666',
-    marginBottom: 24,
   },
   subtitleDark: {
     color: '#AAA',
+  },
+  darkModeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  darkModeButtonDark: {
+    backgroundColor: '#333',
   },
   section: {
     marginBottom: 24,
@@ -339,11 +486,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  sectionDark: {
+    backgroundColor: '#1E1E1E',
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
     color: '#333',
+  },
+  sectionTitleDark: {
+    color: '#FFF',
   },
   sectionContent: {},
   iconRow: {
@@ -442,5 +595,64 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontSize: 12,
     color: '#D4D4D4',
+  },
+  description: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  descriptionDark: {
+    color: '#AAA',
+  },
+  iconShowcase: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  callbackDemo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  callbackText: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  callbackTextDark: {
+    color: '#81C784',
+  },
+  fallbackDemo: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+  },
+  fallbackPlaceholder: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fallbackText: {
+    fontSize: 18,
+    color: '#999',
+  },
+  styleDemo: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 16,
+  },
+  nativeStatus: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 12,
+  },
+  nativeStatusDark: {
+    color: '#AAA',
   },
 });
