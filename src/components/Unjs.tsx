@@ -1,0 +1,77 @@
+/**
+ * Unjs Icon Set
+ * @see https://icon-sets.iconify.design/unjs/
+ *
+ * Auto-generated - do not edit manually
+ */
+
+import { createIconSet } from '../createIconSet';
+
+const unjsIconNames = {
+  automd: true,
+  'bundle-runner': true,
+  c12: true,
+  changelogen: true,
+  citty: true,
+  confbox: true,
+  consola: true,
+  'cookie-es': true,
+  crossws: true,
+  db0: true,
+  defu: true,
+  destr: true,
+  fontaine: true,
+  'fs-memo': true,
+  'get-port-please': true,
+  giget: true,
+  h3: true,
+  hookable: true,
+  httpxy: true,
+  'image-meta': true,
+  ipx: true,
+  'jimp-compact': true,
+  jiti: true,
+  knitwork: true,
+  listhen: true,
+  'magic-regexp': true,
+  magicast: true,
+  mdbox: true,
+  mkdist: true,
+  mlly: true,
+  mongoz: true,
+  nanotar: true,
+  nitro: true,
+  'node-fetch-native': true,
+  nypm: true,
+  ofetch: true,
+  ohash: true,
+  pathe: true,
+  'perfect-debounce': true,
+  'pkg-types': true,
+  radix3: true,
+  rc9: true,
+  scule: true,
+  'serve-placeholder': true,
+  'std-env': true,
+  'theme-colors': true,
+  ufo: true,
+  unbuild: true,
+  uncrypto: true,
+  unctx: true,
+  undocs: true,
+  unenv: true,
+  ungh: true,
+  unhead: true,
+  unimport: true,
+  unpdf: true,
+  unplugin: true,
+  unstorage: true,
+  untun: true,
+  untyped: true,
+  unwasm: true,
+  uqr: true,
+  webpackbar: true,
+} as const;
+
+export type UnjsIconName = keyof typeof unjsIconNames;
+export const Unjs = createIconSet<UnjsIconName>('unjs', unjsIconNames);

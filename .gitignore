@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+lib/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+
+# Package manager locks (keep one)
+# yarn.lock
+# package-lock.json
+
+# React Native
+*.jsbundle
+*.bundle
+
+# Expo
+.expo/
