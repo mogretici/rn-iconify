@@ -1,0 +1,267 @@
+# Theme Provider
+
+Configure global defaults for all icons in your app using the `IconThemeProvider`.
+
+## Basic Usage
+
+Wrap your app with `IconThemeProvider` to set global defaults:
+
+```tsx copy
+import { IconThemeProvider, Mdi, Heroicons } from 'rn-iconify';
+
+function App() {
+  return (
+    <IconThemeProvider
+      theme={{
+        size: 24,
+        color: '#333333',
+      }}
+    >
+      {/* All icons inherit these defaults */}
+      <Mdi name="home" />           {/* size=24, color=#333333 */}
+      <Heroicons name="user" />      {/* size=24, color=#333333 */}
+    </IconThemeProvider>
+  );
+}
+```
+
+## Theme Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `size` | `number` | `24` | Default icon size |
+| `color` | `string` | `'#000000'` | Default icon color |
+| `placeholder` | `ReactNode \| string` | - | Default placeholder |
+
+## Full Example
+
+```tsx copy
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+import { ActivityIndicator } from 'react-native';
+
+function App() {
+  return (
+    <IconThemeProvider
+      theme={{
+        size: 20,
+        color: '#6366f1',
+        placeholder: <ActivityIndicator size="small" color="#6366f1" />,
+      }}
+    >
+      <Navigation />
+    </IconThemeProvider>
+  );
+}
+```
+
+## Override Theme Values
+
+Individual icons can override theme defaults:
+
+```tsx copy
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+
+function App() {
+  return (
+    <IconThemeProvider theme={{ size: 24, color: 'blue' }}>
+      <Mdi name="home" />                    {/* size=24, color=blue */}
+      <Mdi name="settings" size={32} />       {/* size=32, color=blue */}
+      <Mdi name="heart" color="red" />        {/* size=24, color=red */}
+      <Mdi name="star" size={48} color="gold" /> {/* size=48, color=gold */}
+    </IconThemeProvider>
+  );
+}
+```
+
+## Dark Mode Support
+
+Integrate with your app's theme system:
+
+```tsx copy
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+import { useColorScheme } from 'react-native';
+
+function App() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <IconThemeProvider
+      theme={{
+        size: 24,
+        color: isDark ? '#ffffff' : '#000000',
+      }}
+    >
+      <MainApp />
+    </IconThemeProvider>
+  );
+}
+```
+
+## With React Navigation
+
+Combine with React Navigation's theme:
+
+```tsx copy
+import { IconThemeProvider } from 'rn-iconify';
+import { NavigationContainer, useTheme } from '@react-navigation/native';
+
+function ThemedApp() {
+  const { colors } = useTheme();
+
+  return (
+    <IconThemeProvider
+      theme={{
+        size: 24,
+        color: colors.text,
+      }}
+    >
+      <AppNavigator />
+    </IconThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <NavigationContainer>
+      <ThemedApp />
+    </NavigationContainer>
+  );
+}
+```
+
+## Nested Providers
+
+Theme providers can be nested for section-specific styling:
+
+```tsx copy
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+
+function App() {
+  return (
+    <IconThemeProvider theme={{ color: 'gray' }}>
+      {/* Gray icons */}
+      <Mdi name="home" />
+
+      <IconThemeProvider theme={{ color: 'blue' }}>
+        {/* Blue icons in this section */}
+        <Mdi name="settings" />
+        <Mdi name="user" />
+      </IconThemeProvider>
+
+      {/* Back to gray */}
+      <Mdi name="menu" />
+    </IconThemeProvider>
+  );
+}
+```
+
+## useIconTheme Hook
+
+Access theme values programmatically:
+
+```tsx copy
+import { useIconTheme, Mdi } from 'rn-iconify';
+import { View, Text } from 'react-native';
+
+function IconWithLabel({ name, label }: { name: string; label: string }) {
+  const theme = useIconTheme();
+
+  return (
+    <View style={{ alignItems: 'center' }}>
+      <Mdi name={name} />
+      <Text style={{ color: theme.color, fontSize: theme.size / 2 }}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+```
+
+## TypeScript
+
+Full TypeScript support:
+
+```tsx copy
+import { IconThemeProvider, IconTheme } from 'rn-iconify';
+
+const myTheme: IconTheme = {
+  size: 24,
+  color: '#333',
+  placeholder: 'shimmer',
+};
+
+function App() {
+  return (
+    <IconThemeProvider theme={myTheme}>
+      <MainApp />
+    </IconThemeProvider>
+  );
+}
+```
+
+## Best Practices
+
+### 1. Single Root Provider
+
+Place one provider at your app root:
+
+```tsx copy
+// ✅ Good
+function App() {
+  return (
+    <IconThemeProvider theme={{ size: 24 }}>
+      <MainApp />
+    </IconThemeProvider>
+  );
+}
+
+// ❌ Avoid - multiple root providers
+function App() {
+  return (
+    <>
+      <IconThemeProvider theme={{ size: 24 }}>
+        <Header />
+      </IconThemeProvider>
+      <IconThemeProvider theme={{ size: 24 }}>
+        <Content />
+      </IconThemeProvider>
+    </>
+  );
+}
+```
+
+### 2. Semantic Color Names
+
+Use your app's color tokens:
+
+```tsx copy
+import { colors } from './theme';
+
+<IconThemeProvider theme={{ color: colors.primary }}>
+```
+
+### 3. Responsive Sizing
+
+Adjust based on screen size:
+
+```tsx copy
+import { useWindowDimensions } from 'react-native';
+
+function App() {
+  const { width } = useWindowDimensions();
+  const iconSize = width > 768 ? 28 : 24;
+
+  return (
+    <IconThemeProvider theme={{ size: iconSize }}>
+      <MainApp />
+    </IconThemeProvider>
+  );
+}
+```
+
+## Next Steps
+
+- [Icon Aliases](/features/icon-aliases) - Custom icon name mappings
+- [React Navigation](/features/react-navigation) - Navigation integration
+- [Accessibility](/features/accessibility) - A11y settings

@@ -1,0 +1,646 @@
+---
+id: react-navigation
+title: React Navigation
+sidebar_position: 4
+description: Integrate rn-iconify with React Navigation
+keywords: [react-navigation, tabs, drawer, header, navigation]
+---
+
+rn-iconify provides helpers for seamless integration with React Navigation.
+
+## Tab Navigator
+
+Use `createTabBarIcon` for bottom tab navigation:
+
+```tsx
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createTabBarIcon } from 'rn-iconify';
+
+const Tab = createBottomTabNavigator();
+
+function TabNavigator() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: createTabBarIcon('mdi:home'),
+        }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{
+          tabBarIcon: createTabBarIcon('heroicons:magnifying-glass'),
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          tabBarIcon: createTabBarIcon('mdi:account'),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+```
+
+## Tab Icon Options
+
+Customize tab icons with additional options:
+
+```tsx
+<Tab.Screen
+  name="Home"
+  component={HomeScreen}
+  options={{
+    tabBarIcon: createTabBarIcon({
+      focused: 'mdi:home',
+      unfocused: 'mdi:home-outline',
+      size: 28,
+    }),
+  }}
+/>
+```
+
+## Drawer Navigator
+
+Use `createDrawerIcon` for drawer navigation:
+
+```tsx
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createDrawerIcon } from 'rn-iconify';
+
+const Drawer = createDrawerNavigator();
+
+function DrawerNavigator() {
+  return (
+    <Drawer.Navigator>
+      <Drawer.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          drawerIcon: createDrawerIcon('mdi:home'),
+        }}
+      />
+      <Drawer.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          drawerIcon: createDrawerIcon('mdi:cog'),
+        }}
+      />
+      <Drawer.Screen
+        name="Help"
+        component={HelpScreen}
+        options={{
+          drawerIcon: createDrawerIcon('mdi:help-circle'),
+        }}
+      />
+    </Drawer.Navigator>
+  );
+}
+```
+
+## Header Icons
+
+Use `createHeaderIcon` for navigation header buttons:
+
+```tsx
+import { createHeaderIcon } from 'rn-iconify';
+
+function DetailsScreen({ navigation }) {
+  return (
+    <Stack.Screen
+      name="Details"
+      component={DetailsContent}
+      options={{
+        headerRight: createHeaderIcon({
+          icon: 'mdi:dots-vertical',
+          onPress: () => console.log('Menu pressed'),
+        }),
+        headerLeft: createHeaderIcon({
+          icon: 'mdi:arrow-left',
+          onPress: () => navigation.goBack(),
+        }),
+      }}
+    />
+  );
+}
+```
+
+## Header Icon Options
+
+```tsx
+createHeaderIcon({
+  // Icon name (required)
+  icon: 'mdi:menu',
+
+  // Press handler
+  onPress: () => {},
+
+  // Custom size (default: 24)
+  size: 24,
+
+  // Custom color (overrides theme)
+  color: '#333',
+
+  // Accessibility label
+  accessibilityLabel: 'Open menu',
+
+  // Hit slop for easier tapping
+  hitSlop: { top: 10, bottom: 10, left: 10, right: 10 },
+})
+```
+
+## Complete Example
+
+Full navigation setup with rn-iconify:
+
+```tsx
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { IconThemeProvider, createTabBarIcon, createHeaderIcon } from 'rn-iconify';
+
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+function HomeStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="HomeMain"
+        component={HomeScreen}
+        options={({ navigation }) => ({
+          headerRight: createHeaderIcon({
+            icon: 'mdi:bell',
+            onPress: () => navigation.navigate('Notifications'),
+          }),
+        })}
+      />
+      <Stack.Screen name="Details" component={DetailsScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function App() {
+  return (
+    <IconThemeProvider theme={{ size: 24 }}>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={{
+            tabBarActiveTintColor: '#6366f1',
+            tabBarInactiveTintColor: '#9ca3af',
+          }}
+        >
+          <Tab.Screen
+            name="Home"
+            component={HomeStack}
+            options={{
+              headerShown: false,
+              tabBarIcon: createTabBarIcon('mdi:home'),
+            }}
+          />
+          <Tab.Screen
+            name="Search"
+            component={SearchScreen}
+            options={{
+              tabBarIcon: createTabBarIcon('mdi:magnify'),
+            }}
+          />
+          <Tab.Screen
+            name="Profile"
+            component={ProfileScreen}
+            options={{
+              tabBarIcon: createTabBarIcon('mdi:account'),
+            }}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </IconThemeProvider>
+  );
+}
+```
+
+## With Icon Aliases
+
+Combine with icon aliases for cleaner code:
+
+```tsx
+import { createIconAliases, createTabBarIcon } from 'rn-iconify';
+
+const { Icon } = createIconAliases({
+  aliases: {
+    tabHome: 'mdi:home',
+    tabSearch: 'mdi:magnify',
+    tabProfile: 'mdi:account',
+    tabSettings: 'mdi:cog',
+  } as const,
+});
+
+// Use alias names in navigation
+<Tab.Screen
+  name="Home"
+  options={{
+    tabBarIcon: createTabBarIcon('mdi:home'), // Direct icon reference
+  }}
+/>
+```
+
+## Focused/Unfocused States
+
+Different icons for focused and unfocused states:
+
+```tsx
+<Tab.Screen
+  name="Home"
+  options={{
+    tabBarIcon: createTabBarIcon({
+      focused: 'mdi:home',
+      unfocused: 'mdi:home-outline',
+    }),
+  }}
+/>
+
+<Tab.Screen
+  name="Heart"
+  options={{
+    tabBarIcon: createTabBarIcon({
+      focused: 'mdi:heart',
+      unfocused: 'mdi:heart-outline',
+    }),
+  }}
+/>
+```
+
+## Badge Support
+
+Add badges to tab icons:
+
+```tsx
+<Tab.Screen
+  name="Notifications"
+  options={{
+    tabBarIcon: createTabBarIcon('mdi:bell'),
+    tabBarBadge: 3, // React Navigation's built-in badge
+  }}
+/>
+```
+
+## TypeScript Support
+
+Full type safety with navigation:
+
+```tsx
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { createTabBarIcon } from 'rn-iconify';
+
+type RootTabParamList = {
+  Home: undefined;
+  Search: { query?: string };
+  Profile: { userId: string };
+};
+
+type HomeScreenProps = BottomTabScreenProps<RootTabParamList, 'Home'>;
+
+function HomeScreen({ navigation }: HomeScreenProps) {
+  // Fully typed navigation
+}
+```
+
+## Best Practices
+
+### 1. Consistent Icon Set
+
+Use icons from the same set for visual consistency:
+
+```tsx
+// ✅ Good - consistent
+tabBarIcon: createTabBarIcon('mdi:home')
+tabBarIcon: createTabBarIcon('mdi:magnify')
+tabBarIcon: createTabBarIcon('mdi:account')
+
+// ❌ Avoid - mixed sets
+tabBarIcon: createTabBarIcon('mdi:home')
+tabBarIcon: createTabBarIcon('heroicons:magnifying-glass')
+tabBarIcon: createTabBarIcon('lucide:user')
+```
+
+### 2. Prefetch Navigation Icons
+
+Preload icons for instant rendering:
+
+```tsx
+import { prefetchIcons } from 'rn-iconify';
+
+async function initNavigation() {
+  await prefetchIcons([
+    'mdi:home',
+    'mdi:magnify',
+    'mdi:account',
+    'mdi:cog',
+    'mdi:bell',
+  ]);
+}
+```
+
+### 3. Use Theme Provider
+
+Wrap navigation with theme provider:
+
+```tsx
+<IconThemeProvider theme={{ color: colors.primary }}>
+  <NavigationContainer>
+    {/* Navigation inherits theme */}
+  </NavigationContainer>
+</IconThemeProvider>
+```
+
+## Convenience Functions
+
+### createBackIcon
+
+Create a preconfigured back button icon:
+
+```tsx
+import { createBackIcon } from 'rn-iconify';
+
+<Stack.Screen
+  name="Details"
+  options={({ navigation }) => ({
+    headerLeft: createBackIcon({
+      onPress: () => navigation.goBack(),
+    }),
+  })}
+/>
+```
+
+Uses `mdi:arrow-left` by default. The icon name is fixed, but size, color, and other options can be customized. Use `createHeaderIcon` for a different icon:
+
+```tsx
+// Use default back icon
+createBackIcon({
+  onPress: () => navigation.goBack(),
+  size: 28,
+  accessibilityLabel: 'Go back',
+})
+
+// For custom icon, use createHeaderIcon instead
+createHeaderIcon({
+  icon: 'heroicons:arrow-left',
+  onPress: () => navigation.goBack(),
+  size: 28,
+  accessibilityLabel: 'Go back',
+})
+```
+
+### createCloseIcon
+
+Create a preconfigured close button icon:
+
+```tsx
+import { createCloseIcon } from 'rn-iconify';
+
+<Modal.Screen
+  name="FullscreenModal"
+  options={({ navigation }) => ({
+    headerLeft: createCloseIcon({
+      onPress: () => navigation.goBack(),
+    }),
+  })}
+/>
+```
+
+Uses `mdi:close` by default.
+
+### createMenuIcon
+
+Create a preconfigured menu/hamburger button icon:
+
+```tsx
+import { createMenuIcon } from 'rn-iconify';
+import { DrawerActions } from '@react-navigation/native';
+
+<Stack.Screen
+  name="Home"
+  options={({ navigation }) => ({
+    headerLeft: createMenuIcon({
+      onPress: () => navigation.dispatch(DrawerActions.openDrawer()),
+    }),
+  })}
+/>
+```
+
+Uses `mdi:menu` by default.
+
+---
+
+## Batch Creation
+
+### createTabBarIcons
+
+Create multiple tab icons at once for cleaner code:
+
+```tsx
+import { createTabBarIcons } from 'rn-iconify';
+
+const tabIcons = createTabBarIcons({
+  Home: { focused: 'mdi:home', unfocused: 'mdi:home-outline' },
+  Search: { focused: 'mdi:magnify', unfocused: 'mdi:magnify' },
+  Profile: { focused: 'mdi:account', unfocused: 'mdi:account-outline' },
+  Settings: { focused: 'mdi:cog', unfocused: 'mdi:cog-outline' },
+});
+
+// Use in navigator
+<Tab.Navigator>
+  <Tab.Screen
+    name="Home"
+    options={{ tabBarIcon: tabIcons.Home }}
+  />
+  <Tab.Screen
+    name="Search"
+    options={{ tabBarIcon: tabIcons.Search }}
+  />
+  <Tab.Screen
+    name="Profile"
+    options={{ tabBarIcon: tabIcons.Profile }}
+  />
+  <Tab.Screen
+    name="Settings"
+    options={{ tabBarIcon: tabIcons.Settings }}
+  />
+</Tab.Navigator>
+```
+
+### createDrawerIcons
+
+Create multiple drawer icons at once:
+
+```tsx
+import { createDrawerIcons } from 'rn-iconify';
+
+const drawerIcons = createDrawerIcons({
+  Home: 'mdi:home',
+  Profile: 'mdi:account',
+  Settings: 'mdi:cog',
+  Help: 'mdi:help-circle',
+  Logout: 'mdi:logout',
+});
+
+<Drawer.Navigator>
+  <Drawer.Screen
+    name="Home"
+    options={{ drawerIcon: drawerIcons.Home }}
+  />
+  <Drawer.Screen
+    name="Profile"
+    options={{ drawerIcon: drawerIcons.Profile }}
+  />
+</Drawer.Navigator>
+```
+
+---
+
+## Shorthand Functions
+
+### tabIcon
+
+Shorthand alias for `createTabBarIcon`:
+
+```tsx
+import { tabIcon } from 'rn-iconify';
+
+// Automatically generates focused and unfocused variants
+tabBarIcon: tabIcon('mdi', 'home')
+// Generates: focused = 'mdi:home', unfocused = 'mdi:home-outline'
+
+// Custom outline suffix
+tabBarIcon: tabIcon('mdi', 'home', '-variant')
+// Generates: focused = 'mdi:home', unfocused = 'mdi:home-variant'
+```
+
+---
+
+## API Reference
+
+### createTabBarIcon
+
+```tsx
+function createTabBarIcon(
+  config: SimpleTabBarIconConfig | TabBarIconConfig
+): TabBarIconFunction;
+
+// Simple config options
+type SimpleTabBarIconConfig =
+  | string                    // Same icon for both states
+  | [string, string];         // [focused, unfocused]
+
+interface TabBarIconConfig {
+  focused: string;            // Icon for focused state
+  unfocused?: string;         // Icon for unfocused state (defaults to focused)
+  size?: number;              // Custom size override
+  focusedColor?: string;      // Color when focused
+  unfocusedColor?: string;    // Color when unfocused
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+}
+```
+
+### createTabBarIcons
+
+```tsx
+function createTabBarIcons<T extends Record<string, SimpleTabBarIconConfig | TabBarIconConfig>>(
+  configs: T
+): { [K in keyof T]: TabBarIconFunction };
+```
+
+### createDrawerIcon
+
+```tsx
+function createDrawerIcon(
+  config: string | DrawerIconConfig
+): DrawerIconFunction;
+
+interface DrawerIconConfig {
+  icon: string;               // Default icon
+  focusedIcon?: string;       // Icon when focused
+  size?: number;              // Custom size override
+  style?: StyleProp<ViewStyle>;
+}
+```
+
+### createDrawerIcons
+
+```tsx
+function createDrawerIcons<T extends Record<string, string | DrawerIconConfig>>(
+  configs: T
+): { [K in keyof T]: DrawerIconFunction };
+```
+
+### createHeaderIcon
+
+```tsx
+function createHeaderIcon(config: HeaderIconConfig): (props: HeaderIconProps) => React.ReactNode;
+
+interface HeaderIconConfig {
+  icon: string;               // Icon name (required)
+  size?: number;              // Icon size (default: 24)
+  color?: string;             // Icon color (uses navigation tintColor if not set)
+  onPress?: () => void;       // Press handler
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+  hitSlop?: { top?: number; bottom?: number; left?: number; right?: number };
+}
+```
+
+### createBackIcon
+
+```tsx
+function createBackIcon(
+  options?: Omit<HeaderIconConfig, 'icon'>
+): (props: HeaderIconProps) => React.ReactNode;
+```
+
+Uses `mdi:arrow-left` with `accessibilityLabel: "Go back"`.
+
+### createCloseIcon
+
+```tsx
+function createCloseIcon(
+  options?: Omit<HeaderIconConfig, 'icon'>
+): (props: HeaderIconProps) => React.ReactNode;
+```
+
+Uses `mdi:close` with `accessibilityLabel: "Close"`.
+
+### createMenuIcon
+
+```tsx
+function createMenuIcon(
+  options?: Omit<HeaderIconConfig, 'icon'>
+): (props: HeaderIconProps) => React.ReactNode;
+```
+
+Uses `mdi:menu` with `accessibilityLabel: "Open menu"`.
+
+### tabIcon
+
+```tsx
+function tabIcon(
+  prefix: string,
+  name: string,
+  outlineSuffix?: string  // Default: '-outline'
+): TabBarIconFunction;
+```
+
+---
+
+## Next Steps
+
+- [Icon Aliases](/docs/features/icon-aliases) - Custom icon names
+- [Theme Provider](/docs/features/theme-provider) - Global styling
+- [Animations](/docs/features/animations) - Animated tab icons

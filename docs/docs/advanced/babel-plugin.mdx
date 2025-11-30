@@ -1,0 +1,303 @@
+---
+id: babel-plugin
+title: Babel Plugin
+sidebar_position: 1
+description: Bundle icons at build time for 0ms first render
+keywords: [babel, plugin, bundling, build-time, optimization]
+---
+
+Bundle icons at build time for 0ms first render - no network requests, no loading states.
+
+
+:::info
+  The Babel plugin is optional. rn-iconify works out of the box with runtime fetching. Use this for production optimization.
+:::
+
+## Installation
+
+The Babel plugin is included with rn-iconify:
+
+```bash
+npm install rn-iconify
+```
+
+## Configuration
+
+Add to your `babel.config.js`:
+
+```js
+module.exports = {
+  presets: ['module:metro-react-native-babel-preset'],
+  plugins: [
+    ['rn-iconify/babel', {
+      // Icons are auto-detected from your source code
+      // No manual configuration needed!
+    }],
+  ],
+};
+```
+
+## How It Works
+
+The Babel plugin automatically:
+
+1. **Scans your code** - Finds all icon usages like `<Mdi name="home" />`
+2. **Collects icon names** - Tracks which icons are used in each file
+3. **Fetches at build time** - Downloads SVG data from Iconify API
+4. **Generates cache** - Creates a local cache file with all icon data
+5. **Instant runtime** - Icons render immediately without network requests
+
+```tsx
+// Your code - plugin detects these automatically
+<Mdi name="home" />
+<Heroicons name="user" />
+prefetchIcons(['mdi:settings', 'lucide:camera'])
+```
+
+## Configuration Options
+
+```js
+module.exports = {
+  plugins: [
+    ['rn-iconify/babel', {
+      // Include specific patterns (supports wildcards)
+      include: [
+        'mdi:*',        // All Material Design Icons
+        'heroicons:*',  // All Heroicons
+      ],
+
+      // Exclude patterns
+      exclude: [
+        'mdi:test-*',   // Skip test icons
+      ],
+
+      // Output path for generated cache
+      outputPath: '.rn-iconify-cache',
+
+      // Enable verbose logging
+      verbose: true,
+
+      // Disable the plugin temporarily
+      disabled: false,
+    }],
+  ],
+};
+```
+
+### Options Reference
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `include` | `string[]` | `[]` | Icon patterns to include (wildcards supported) |
+| `exclude` | `string[]` | `[]` | Icon patterns to exclude |
+| `outputPath` | `string` | `.rn-iconify-cache` | Generated cache location |
+| `verbose` | `boolean` | `false` | Log detected icons during build |
+| `disabled` | `boolean` | `false` | Disable the plugin |
+
+## Pattern Matching
+
+Use glob patterns for flexible icon selection:
+
+```js
+plugins: [
+  ['rn-iconify/babel', {
+    include: [
+      'mdi:home*',       // home, home-outline, home-variant, etc.
+      'mdi:arrow-*',     // All arrow icons
+      'heroicons:*-solid', // All solid Heroicons
+    ],
+    exclude: [
+      'mdi:*-off',       // Exclude disabled variants
+    ],
+  }],
+],
+```
+
+## Auto-Detection
+
+By default, the plugin auto-detects icons from your code:
+
+```tsx
+// All of these are automatically detected:
+
+// JSX usage
+<Mdi name="home" />
+<Heroicons name="user" />
+<Lucide name="camera" />
+
+// prefetchIcons calls
+prefetchIcons(['mdi:home', 'mdi:settings'])
+```
+
+## Bundle Size Impact
+
+Bundled icons add to your JavaScript bundle:
+
+| Icons Bundled | Approximate Size |
+|---------------|------------------|
+| 10 icons | ~5 KB |
+| 100 icons | ~50 KB |
+| 1,000 icons | ~500 KB |
+
+:::warning
+  The plugin only bundles icons it detects in your code. If you use dynamic icon names, consider using the `include` option to ensure they're bundled.
+:::
+
+## Dynamic Icon Names
+
+Dynamic icon names aren't auto-detected. Use `include` to bundle them:
+
+```tsx
+// Not detected (dynamic name)
+const iconName = `mdi:${state}`;
+<Mdi name={iconName} />
+
+// Solution: Add to include list
+['rn-iconify/babel', {
+  include: ['mdi:loading', 'mdi:success', 'mdi:error'],
+}]
+```
+
+## Expo Configuration
+
+For Expo projects, modify `babel.config.js`:
+
+```js
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      ['rn-iconify/babel', {
+        verbose: __DEV__, // Only log in development
+      }],
+    ],
+  };
+};
+```
+
+## Clearing Cache
+
+After changing configuration, clear Metro cache:
+
+```bash
+# React Native CLI
+npx react-native start --reset-cache
+
+# Expo
+npx expo start --clear
+```
+
+## Build Output
+
+With `verbose: true`, you'll see detected icons during build:
+
+```
+[rn-iconify] Build started. Project root: /path/to/project
+[rn-iconify] Detected 47 unique icons across 23 files
+[rn-iconify] Icon sets: mdi (28), heroicons (12), lucide (7)
+[rn-iconify] Generating bundle...
+[rn-iconify] Bundle generated: .rn-iconify-cache/icons.json (15.2 KB)
+```
+
+## Generated Files
+
+The plugin creates a cache directory:
+
+```
+.rn-iconify-cache/
+├── icons.json      # Icon data
+└── icons.js        # JavaScript module
+```
+
+Add to `.gitignore`:
+
+```gitignore
+.rn-iconify-cache/
+```
+
+## CI/CD Integration
+
+Ensure icons are bundled in CI:
+
+```yaml
+# .github/workflows/build.yml
+- name: Build App
+  run: |
+    npm install
+    npx react-native bundle \
+      --platform android \
+      --dev false \
+      --entry-file index.js \
+      --bundle-output ./android/app/src/main/assets/index.android.bundle
+```
+
+## Troubleshooting
+
+### Icons Not Bundling
+
+1. Check icon component names are correct (`Mdi`, not `mdi`)
+2. Clear Metro cache
+3. Enable verbose mode to see detected icons
+
+```js
+['rn-iconify/babel', {
+  verbose: true,
+}]
+```
+
+### Network Errors During Build
+
+The plugin needs network access to fetch icons. If behind a proxy:
+
+```bash
+# Set proxy environment variables
+export HTTP_PROXY=http://proxy.example.com:8080
+export HTTPS_PROXY=http://proxy.example.com:8080
+```
+
+### Large Bundle Size
+
+1. Review what icons are being bundled (use `verbose: true`)
+2. Use specific includes instead of wildcards
+3. Add excludes for unused icon variants
+
+## Performance Comparison
+
+| Method | First Render | Bundle Size | Network |
+|--------|-------------|-------------|---------|
+| Runtime fetch | ~100-500ms | Minimal | Required |
+| Prefetch | ~0ms (after prefetch) | Minimal | Required |
+| Babel plugin | 0ms | Increases | None |
+
+## Recommended Strategy
+
+1. **Development**: Let plugin auto-detect icons
+2. **Production**: Review bundled icons, optimize with includes/excludes
+3. **Critical path**: Ensure navigation and common UI icons are bundled
+
+```js
+// babel.config.js
+const isProduction = process.env.NODE_ENV === 'production';
+
+module.exports = {
+  plugins: [
+    ['rn-iconify/babel', {
+      verbose: !isProduction,
+      // In production, explicitly include only needed icons
+      include: isProduction ? [
+        'mdi:home',
+        'mdi:settings',
+        'mdi:account',
+        'mdi:arrow-left',
+      ] : [],
+    }],
+  ],
+};
+```
+
+## Next Steps
+
+- [CLI Tools](/docs/advanced/cli-tools) - Analyze icon usage
+- [Offline Bundles](/docs/advanced/offline-bundles) - Full offline support
+- [Architecture](/docs/advanced/architecture) - How bundling works

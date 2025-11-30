@@ -1,0 +1,2359 @@
+---
+id: utilities
+title: Utilities
+sidebar_position: 3
+description: API reference for utility functions
+keywords: [api, utilities, prefetch, bundle, configure, cache]
+---
+
+API reference for utility functions.
+
+## prefetchIcons
+
+Preload icons into cache for instant rendering.
+
+```tsx
+import { prefetchIcons } from 'rn-iconify';
+
+const result = await prefetchIcons([
+  'mdi:home',
+  'mdi:settings',
+  'heroicons:user',
+]);
+
+console.log(`Loaded: ${result.success.length}, Failed: ${result.failed.length}`);
+```
+
+### Parameters
+
+```tsx
+function prefetchIcons(iconNames: string[]): Promise<{
+  success: string[];
+  failed: string[];
+}>;
+```
+
+### Example
+
+```tsx
+import { prefetchIcons } from 'rn-iconify';
+
+async function initApp() {
+  const result = await prefetchIcons([
+    'mdi:home',
+    'mdi:settings',
+    'mdi:account',
+    'heroicons:user',
+  ]);
+
+  console.log(`Prefetched ${result.success.length} icons`);
+
+  if (result.failed.length > 0) {
+    console.warn('Failed to prefetch:', result.failed);
+  }
+}
+```
+
+---
+
+## clearCache
+
+Clear all cached icons (memory, disk, and native).
+
+```tsx
+import { clearCache } from 'rn-iconify';
+
+await clearCache();
+```
+
+### Parameters
+
+```tsx
+function clearCache(): Promise<void>;
+```
+
+---
+
+## getCacheStats
+
+Get cache statistics.
+
+```tsx
+import { getCacheStats } from 'rn-iconify';
+
+const stats = getCacheStats();
+console.log(`Memory: ${stats.memoryCount}, Bundled: ${stats.bundledCount}`);
+console.log(`Disk: ${stats.diskCount}, Size: ${(stats.diskSizeBytes / 1024).toFixed(1)} KB`);
+```
+
+### Returns
+
+```tsx
+function getCacheStats(): {
+  memoryCount: number;
+  bundledCount: number;
+  diskCount: number;
+  diskSizeBytes: number;
+};
+```
+
+### Example
+
+```tsx
+import { getCacheStats } from 'rn-iconify';
+
+function CacheInfo() {
+  const stats = getCacheStats();
+
+  return (
+    <View>
+      <Text>Cached in memory: {stats.memoryCount}</Text>
+      <Text>Bundled icons: {stats.bundledCount}</Text>
+      <Text>Cached on disk: {stats.diskCount}</Text>
+      <Text>Disk size: {(stats.diskSizeBytes / 1024).toFixed(1)} KB</Text>
+    </View>
+  );
+}
+```
+
+---
+
+## configure
+
+Configure global settings.
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  api: {
+    apiUrl: 'https://api.iconify.design',
+    timeout: 30000,
+    retries: 3,
+    retryDelay: 1000,
+  },
+  cache: {
+    maxMemoryItems: 500,
+    enableDiskCache: true,
+    diskCachePrefix: 'rn-iconify:',
+  },
+});
+```
+
+### Parameters
+
+```tsx
+function configure(config: IconifyConfig): void;
+
+interface IconifyConfig {
+  /** API configuration */
+  api?: Partial<IconifyAPIConfig>;
+
+  /** Cache configuration */
+  cache?: Partial<CacheConfig>;
+
+  /** Performance monitoring configuration */
+  performance?: Partial<PerformanceConfig>;
+}
+
+interface IconifyAPIConfig {
+  /** Iconify API server URL */
+  apiUrl?: string;
+
+  /** Request timeout (ms) */
+  timeout?: number;
+
+  /** Retry count */
+  retries?: number;
+
+  /** Retry delay (ms) */
+  retryDelay?: number;
+
+  /** Custom headers */
+  headers?: Record<string, string>;
+
+  /** Enable logging */
+  logging?: boolean;
+}
+
+interface CacheConfig {
+  /** Max icons in memory cache */
+  maxMemoryItems?: number;
+
+  /** Enable disk cache (MMKV) */
+  enableDiskCache?: boolean;
+
+  /** Disk cache key prefix */
+  diskCachePrefix?: string;
+}
+```
+
+---
+
+## getConfiguration
+
+Get current configuration.
+
+```tsx
+import { getConfiguration } from 'rn-iconify';
+
+const config = getConfiguration();
+console.log('API URL:', config.api.apiUrl);
+```
+
+### Returns
+
+```tsx
+function getConfiguration(): ResolvedConfig;
+```
+
+---
+
+## resetConfiguration
+
+Reset configuration to defaults.
+
+```tsx
+import { resetConfiguration } from 'rn-iconify';
+
+resetConfiguration();
+```
+
+---
+
+## createIconSet
+
+Create a custom icon set component with type-safe icon names.
+
+```tsx
+import { createIconSet } from 'rn-iconify';
+
+const mdiIcons = { home: true, settings: true, user: true } as const;
+type MdiIconName = keyof typeof mdiIcons;
+
+const Mdi = createIconSet<MdiIconName>('mdi', mdiIcons);
+
+<Mdi name="home" size={24} color="blue" />
+```
+
+### Parameters
+
+```tsx
+function createIconSet<T extends string>(
+  prefix: string,
+  iconNames: Record<T, true | string>
+): React.FC<IconProps<T>>;
+```
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `prefix` | `string` | Icon set prefix (e.g., "mdi", "heroicons") |
+| `iconNames` | `Record<T, true \| string>` | Object with icon names as keys. Value is `true` for direct names, or `string` for mapped names |
+
+### Example
+
+```tsx
+import { createIconSet } from 'rn-iconify';
+
+// Create icon set with type-safe names
+const mdiIcons = {
+  home: true,
+  settings: true,
+  user: true,
+  _500px: '500px', // Mapped name for icons starting with numbers
+} as const;
+
+type MdiIconName = keyof typeof mdiIcons;
+const Mdi = createIconSet<MdiIconName>('mdi', mdiIcons);
+
+// Usage - full TypeScript autocomplete!
+<Mdi name="home" size={24} />
+<Mdi name="settings" size={24} />
+<Mdi name="_500px" size={24} /> // Renders as '500px'
+```
+
+---
+
+## createIconAliases
+
+Create custom icon name mappings.
+
+```tsx
+import { createIconAliases } from 'rn-iconify';
+
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    user: 'heroicons:user',
+  } as const,
+});
+
+<Icon name="home" />
+```
+
+### Parameters
+
+```tsx
+function createIconAliases<T extends IconAliasMap>(
+  config: CreateIconAliasesConfig<T>
+): IconAliasResult<T>;
+
+interface CreateIconAliasesConfig<T extends IconAliasMap> {
+  /** Icon alias definitions */
+  aliases: T;
+
+  /** Validate icon names at creation time (dev only) @default true */
+  validate?: boolean;
+}
+```
+
+### Returns
+
+```tsx
+interface IconAliasResult<T extends IconAliasMap> {
+  /** The alias map */
+  aliases: IconAliases<T>;
+
+  /** Type-safe Icon component with alias support */
+  Icon: React.ComponentType<GenericIconProps<AliasName<T>>>;
+
+  /** Provider component for alias context */
+  Provider: React.ComponentType<{ children: React.ReactNode }>;
+
+  /** Resolve an alias to full icon name */
+  resolve: (name: AliasName<T> | string) => string;
+
+  /** Type helper for alias names */
+  AliasName: AliasName<T>;
+}
+```
+
+### Example
+
+```tsx
+import { createIconAliases } from 'rn-iconify';
+
+const { Icon, Provider, resolve, aliases } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    settings: 'mdi:cog',
+    user: 'heroicons:user',
+    search: 'lucide:search',
+  } as const,
+});
+
+// Wrap your app with the Provider
+function App() {
+  return (
+    <Provider>
+      <Icon name="home" />
+      <Icon name="user" size={32} />
+    </Provider>
+  );
+}
+
+// Resolve alias to full icon name
+console.log(resolve('home')); // 'mdi:home'
+```
+
+---
+
+## createTabBarIcon
+
+Create tab bar icon factory for React Navigation.
+
+```tsx
+import { createTabBarIcon } from 'rn-iconify';
+
+<Tab.Screen
+  name="Home"
+  options={{
+    tabBarIcon: createTabBarIcon('mdi:home'),
+  }}
+/>
+```
+
+### Parameters
+
+```tsx
+function createTabBarIcon(
+  config: SimpleTabBarIconConfig | TabBarIconConfig
+): TabBarIconFunction;
+
+// Simple config options
+type SimpleTabBarIconConfig = string | [string, string];
+
+// Full config
+interface TabBarIconConfig {
+  focused: string;
+  unfocused?: string;
+  size?: number;
+  focusedColor?: string;
+  unfocusedColor?: string;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+}
+
+type TabBarIconFunction = (props: {
+  focused: boolean;
+  color: string;
+  size: number;
+}) => React.ReactNode;
+```
+
+### Example
+
+```tsx
+import { createTabBarIcon } from 'rn-iconify';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+const Tab = createBottomTabNavigator();
+
+<Tab.Navigator>
+  {/* Simple: single icon */}
+  <Tab.Screen
+    name="Home"
+    component={HomeScreen}
+    options={{
+      tabBarIcon: createTabBarIcon('mdi:home'),
+    }}
+  />
+  {/* Tuple: [focused, unfocused] */}
+  <Tab.Screen
+    name="Profile"
+    component={ProfileScreen}
+    options={{
+      tabBarIcon: createTabBarIcon(['mdi:account', 'mdi:account-outline']),
+    }}
+  />
+  {/* Full config object */}
+  <Tab.Screen
+    name="Settings"
+    component={SettingsScreen}
+    options={{
+      tabBarIcon: createTabBarIcon({
+        focused: 'mdi:cog',
+        unfocused: 'mdi:cog-outline',
+        focusedColor: '#6366f1',
+      }),
+    }}
+  />
+</Tab.Navigator>
+```
+
+---
+
+## createDrawerIcon
+
+Create drawer icon factory for React Navigation.
+
+```tsx
+import { createDrawerIcon } from 'rn-iconify';
+
+<Drawer.Screen
+  name="Home"
+  options={{
+    drawerIcon: createDrawerIcon('mdi:home'),
+  }}
+/>
+```
+
+### Parameters
+
+```tsx
+function createDrawerIcon(
+  config: string | DrawerIconConfig
+): DrawerIconFunction;
+
+interface DrawerIconConfig {
+  icon: string;
+  focusedIcon?: string;
+  size?: number;
+  style?: StyleProp<ViewStyle>;
+}
+```
+
+---
+
+## createHeaderIcon
+
+Create header icon for React Navigation.
+
+```tsx
+import { createHeaderIcon } from 'rn-iconify';
+
+<Stack.Screen
+  options={{
+    headerRight: createHeaderIcon({
+      icon: 'mdi:dots-vertical',
+      onPress: () => console.log('Menu pressed'),
+    }),
+  }}
+/>
+```
+
+### Parameters
+
+```tsx
+function createHeaderIcon(config: HeaderIconConfig): (props: HeaderIconProps) => React.ReactNode;
+
+// HeaderIconProps = { tintColor?: string; pressColor?: string; pressOpacity?: number }
+
+interface HeaderIconConfig {
+  /** Icon name (full name or alias) */
+  icon: string;
+
+  /** Press handler */
+  onPress?: () => void;
+
+  /** Icon size */
+  size?: number;
+
+  /** Icon color */
+  color?: string;
+
+  /** Accessibility label */
+  accessibilityLabel?: string;
+
+  /** Container style */
+  style?: StyleProp<ViewStyle>;
+
+  /** Hit slop for touch area */
+  hitSlop?: { top?: number; bottom?: number; left?: number; right?: number };
+}
+```
+
+---
+
+## createBackIcon
+
+Create a preconfigured back button icon for React Navigation headers.
+
+```tsx
+import { createBackIcon } from 'rn-iconify';
+
+<Stack.Screen
+  name="Details"
+  options={({ navigation }) => ({
+    headerLeft: createBackIcon({
+      onPress: () => navigation.goBack(),
+    }),
+  })}
+/>
+```
+
+### Parameters
+
+```tsx
+function createBackIcon(
+  options?: Omit<HeaderIconConfig, 'icon'>
+): (props: HeaderIconProps) => React.ReactNode;
+```
+
+Uses `mdi:arrow-left` by default with `accessibilityLabel: "Go back"`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `onPress` | `() => void` | - | Press handler |
+| `size` | `number` | `24` | Icon size |
+| `color` | `string` | - | Icon color (uses navigation tintColor if not set) |
+| `accessibilityLabel` | `string` | `'Go back'` | Accessibility label |
+| `style` | `StyleProp<ViewStyle>` | - | Container style |
+| `hitSlop` | `object` | - | Touch area extension |
+
+### Example
+
+```tsx
+import { createBackIcon } from 'rn-iconify';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+const Stack = createNativeStackNavigator();
+
+<Stack.Navigator>
+  <Stack.Screen
+    name="Details"
+    component={DetailsScreen}
+    options={({ navigation }) => ({
+      headerLeft: createBackIcon({
+        onPress: () => navigation.goBack(),
+        size: 28,
+      }),
+    })}
+  />
+</Stack.Navigator>
+```
+
+---
+
+## createCloseIcon
+
+Create a preconfigured close button icon for modals and dismissible screens.
+
+```tsx
+import { createCloseIcon } from 'rn-iconify';
+
+<Modal.Screen
+  name="FullscreenModal"
+  options={({ navigation }) => ({
+    headerLeft: createCloseIcon({
+      onPress: () => navigation.goBack(),
+    }),
+  })}
+/>
+```
+
+### Parameters
+
+```tsx
+function createCloseIcon(
+  options?: Omit<HeaderIconConfig, 'icon'>
+): (props: HeaderIconProps) => React.ReactNode;
+```
+
+Uses `mdi:close` by default with `accessibilityLabel: "Close"`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `onPress` | `() => void` | - | Press handler |
+| `size` | `number` | `24` | Icon size |
+| `color` | `string` | - | Icon color (uses navigation tintColor if not set) |
+| `accessibilityLabel` | `string` | `'Close'` | Accessibility label |
+| `style` | `StyleProp<ViewStyle>` | - | Container style |
+| `hitSlop` | `object` | - | Touch area extension |
+
+### Example
+
+```tsx
+import { createCloseIcon } from 'rn-iconify';
+
+// Modal with close button
+<Stack.Screen
+  name="Settings"
+  component={SettingsScreen}
+  options={({ navigation }) => ({
+    presentation: 'modal',
+    headerLeft: createCloseIcon({
+      onPress: () => navigation.dismiss(),
+    }),
+  })}
+/>
+```
+
+---
+
+## createMenuIcon
+
+Create a preconfigured menu/hamburger button icon for drawer navigation.
+
+```tsx
+import { createMenuIcon } from 'rn-iconify';
+import { DrawerActions } from '@react-navigation/native';
+
+<Stack.Screen
+  name="Home"
+  options={({ navigation }) => ({
+    headerLeft: createMenuIcon({
+      onPress: () => navigation.dispatch(DrawerActions.openDrawer()),
+    }),
+  })}
+/>
+```
+
+### Parameters
+
+```tsx
+function createMenuIcon(
+  options?: Omit<HeaderIconConfig, 'icon'>
+): (props: HeaderIconProps) => React.ReactNode;
+```
+
+Uses `mdi:menu` by default with `accessibilityLabel: "Open menu"`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `onPress` | `() => void` | - | Press handler |
+| `size` | `number` | `24` | Icon size |
+| `color` | `string` | - | Icon color (uses navigation tintColor if not set) |
+| `accessibilityLabel` | `string` | `'Open menu'` | Accessibility label |
+| `style` | `StyleProp<ViewStyle>` | - | Container style |
+| `hitSlop` | `object` | - | Touch area extension |
+
+### Example
+
+```tsx
+import { createMenuIcon } from 'rn-iconify';
+import { DrawerActions } from '@react-navigation/native';
+
+function DrawerScreen() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={({ navigation }) => ({
+          headerLeft: createMenuIcon({
+            onPress: () => navigation.dispatch(DrawerActions.openDrawer()),
+            size: 28,
+          }),
+        })}
+      />
+    </Stack.Navigator>
+  );
+}
+```
+
+---
+
+## createTabBarIcons
+
+Create multiple tab bar icons at once for cleaner code.
+
+```tsx
+import { createTabBarIcons } from 'rn-iconify';
+
+const tabIcons = createTabBarIcons({
+  Home: { focused: 'mdi:home', unfocused: 'mdi:home-outline' },
+  Search: 'mdi:magnify',
+  Profile: ['mdi:account', 'mdi:account-outline'],
+  Settings: { focused: 'mdi:cog', unfocused: 'mdi:cog-outline' },
+});
+
+// Use in navigator
+<Tab.Screen name="Home" options={{ tabBarIcon: tabIcons.Home }} />
+<Tab.Screen name="Search" options={{ tabBarIcon: tabIcons.Search }} />
+```
+
+### Parameters
+
+```tsx
+function createTabBarIcons<T extends Record<string, SimpleTabBarIconConfig | TabBarIconConfig>>(
+  configs: T
+): { [K in keyof T]: TabBarIconFunction };
+```
+
+---
+
+## createDrawerIcons
+
+Create multiple drawer icons at once.
+
+```tsx
+import { createDrawerIcons } from 'rn-iconify';
+
+const drawerIcons = createDrawerIcons({
+  Home: 'mdi:home',
+  Profile: 'mdi:account',
+  Settings: 'mdi:cog',
+  Help: 'mdi:help-circle',
+});
+
+<Drawer.Screen name="Home" options={{ drawerIcon: drawerIcons.Home }} />
+```
+
+### Parameters
+
+```tsx
+function createDrawerIcons<T extends Record<string, string | DrawerIconConfig>>(
+  configs: T
+): { [K in keyof T]: DrawerIconFunction };
+```
+
+---
+
+## tabIcon
+
+Shorthand function that automatically generates focused and unfocused icon variants.
+
+```tsx
+import { tabIcon } from 'rn-iconify';
+
+// Automatically creates focused='mdi:home' and unfocused='mdi:home-outline'
+tabBarIcon: tabIcon('mdi', 'home')
+
+// Custom outline suffix
+tabBarIcon: tabIcon('mdi', 'home', '-variant')
+// Creates: focused='mdi:home', unfocused='mdi:home-variant'
+```
+
+### Parameters
+
+```tsx
+function tabIcon(
+  prefix: string,
+  name: string,
+  outlineSuffix?: string  // @default '-outline'
+): TabBarIconFunction;
+```
+
+---
+
+## loadOfflineBundle
+
+Load an offline icon bundle synchronously.
+
+```tsx
+import { loadOfflineBundle } from 'rn-iconify';
+import bundle from './icons/bundle.json';
+
+loadOfflineBundle(bundle);
+```
+
+### Parameters
+
+```tsx
+function loadOfflineBundle(
+  bundle: IconBundle,
+  options?: {
+    skipExisting?: boolean;
+    verbose?: boolean;
+  }
+): BundleLoadResult;
+
+interface IconBundle {
+  /** Bundle version (e.g., "1.0.0") */
+  version: string;
+
+  /** Generation timestamp */
+  generatedAt: string;
+
+  /** Icons data */
+  icons: Record<string, {
+    svg: string;
+    width: number;
+    height: number;
+  }>;
+
+  /** Total icon count */
+  count: number;
+}
+
+interface BundleLoadResult {
+  /** Number of icons loaded */
+  loaded: number;
+
+  /** Number of icons skipped (already cached) */
+  skipped: number;
+
+  /** Total icons in bundle */
+  total: number;
+
+  /** Bundle version */
+  version: string;
+
+  /** Load time in milliseconds */
+  loadTimeMs: number;
+}
+```
+
+---
+
+## loadOfflineBundleAsync
+
+Load an offline icon bundle asynchronously with progress tracking.
+
+```tsx
+import { loadOfflineBundleAsync } from 'rn-iconify';
+
+const result = await loadOfflineBundleAsync(
+  require('./icons/bundle.json'),
+  {
+    batchSize: 100,
+    onProgress: (loaded, total) => {
+      console.log(`Loading: ${loaded}/${total}`);
+    },
+  }
+);
+```
+
+### Parameters
+
+```tsx
+function loadOfflineBundleAsync(
+  bundle: IconBundle,
+  options?: {
+    /** Skip icons already in cache @default true */
+    skipExisting?: boolean;
+    /** Log loading progress @default false */
+    verbose?: boolean;
+    /** Icons to load per batch @default 50 */
+    batchSize?: number;
+    /** Progress callback */
+    onProgress?: (loaded: number, total: number) => void;
+  }
+): Promise<BundleLoadResult>;
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `skipExisting` | `boolean` | `true` | Skip icons already in cache |
+| `verbose` | `boolean` | `false` | Log loading progress |
+| `batchSize` | `number` | `50` | Icons to load per batch |
+| `onProgress` | `function` | - | Progress callback `(loaded, total) => void` |
+
+---
+
+## isBundleCompatible
+
+Check if a bundle is compatible with this version of rn-iconify.
+
+```tsx
+import { isBundleCompatible } from 'rn-iconify';
+
+const bundle = require('./icons/bundle.json');
+
+if (isBundleCompatible(bundle)) {
+  loadOfflineBundle(bundle);
+} else {
+  console.warn('Bundle is not compatible with this version');
+}
+```
+
+### Parameters
+
+```tsx
+function isBundleCompatible(bundle: IconBundle): boolean;
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bundle` | `IconBundle` | The icon bundle object |
+
+### Returns
+
+Returns `true` if the bundle is compatible (v1.x), `false` otherwise.
+
+---
+
+## getBundleStats
+
+Get statistics about an icon bundle.
+
+```tsx
+import { getBundleStats } from 'rn-iconify';
+
+const bundle = require('./icons/bundle.json');
+const stats = getBundleStats(bundle);
+
+console.log('Icon count:', stats.iconCount);
+console.log('Prefixes:', stats.prefixes);
+console.log('Size:', (stats.estimatedSizeBytes / 1024).toFixed(2), 'KB');
+console.log('Generated:', stats.generatedAt.toLocaleDateString());
+```
+
+### Parameters
+
+```tsx
+function getBundleStats(bundle: IconBundle): {
+  iconCount: number;
+  prefixes: string[];
+  estimatedSizeBytes: number;
+  generatedAt: Date;
+};
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `bundle` | `IconBundle` | The icon bundle object |
+
+### Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `iconCount` | `number` | Total number of icons in the bundle |
+| `prefixes` | `string[]` | Array of icon set prefixes (sorted) |
+| `estimatedSizeBytes` | `number` | Estimated total size of SVG data |
+| `generatedAt` | `Date` | When the bundle was generated |
+
+---
+
+## fetchIcon
+
+Fetch a single icon from the API.
+
+```tsx
+import { fetchIcon } from 'rn-iconify';
+
+const svgString = await fetchIcon('mdi:home');
+console.log(svgString); // Full SVG string
+```
+
+### Parameters
+
+```tsx
+function fetchIcon(
+  iconName: string,
+  signal?: AbortSignal
+): Promise<string>;
+```
+
+---
+
+## enablePerformanceMonitoring
+
+Enable performance monitoring.
+
+```tsx
+import { enablePerformanceMonitoring } from 'rn-iconify';
+
+enablePerformanceMonitoring();
+```
+
+---
+
+## disablePerformanceMonitoring
+
+Disable performance monitoring.
+
+```tsx
+import { disablePerformanceMonitoring } from 'rn-iconify';
+
+disablePerformanceMonitoring();
+```
+
+---
+
+## getPerformanceReport
+
+Get performance report.
+
+```tsx
+import { getPerformanceReport } from 'rn-iconify';
+
+const report = getPerformanceReport();
+console.log('Cache hit rate:', report.cacheStats.hitRate);
+```
+
+### Returns
+
+```tsx
+function getPerformanceReport(): PerformanceReport;
+
+interface PerformanceReport {
+  summary: PerformanceSummary;
+  cacheStats: CacheStatistics;
+  loadTimesByType: {
+    memory: number;
+    bundled: number;
+    disk: number;
+    network: number;
+  };
+  slowestIcons: Array<{
+    iconName: string;
+    avgDuration: number;
+    count: number;
+  }>;
+  mostUsedIcons: Array<{
+    iconName: string;
+    count: number;
+  }>;
+  recentEvents: IconLoadEvent[];
+  generatedAt: number;
+}
+
+interface PerformanceSummary {
+  avgLoadTime: number;
+  minLoadTime: number;
+  maxLoadTime: number;
+  p50LoadTime: number;
+  p90LoadTime: number;
+  p99LoadTime: number;
+  totalLoads: number;
+  totalErrors: number;
+  uptime: number;
+}
+```
+
+---
+
+## printPerformanceReport
+
+Print a formatted performance report to console.
+
+```tsx
+import { printPerformanceReport } from 'rn-iconify';
+
+printPerformanceReport();
+```
+
+---
+
+## Network Utilities
+
+### fetchCollection
+
+Fetch all icons from a specific icon set collection.
+
+```tsx
+import { fetchCollection } from 'rn-iconify';
+
+const collection = await fetchCollection('mdi');
+console.log(`Found ${collection.icons.length} icons`);
+```
+
+#### Parameters
+
+```tsx
+function fetchCollection(
+  prefix: string,
+  signal?: AbortSignal
+): Promise<IconifyCollectionInfo>;
+
+interface IconifyCollectionInfo {
+  /** Icon set prefix */
+  prefix: string;
+  /** Total number of icons */
+  total: number;
+  /** Icon set display name */
+  title?: string;
+  /** Array of icon names */
+  icons: string[];
+  /** Icon aliases (maps alias name to parent icon name) */
+  aliases?: Record<string, string>;
+  /** Icon categories */
+  categories?: Record<string, string[]>;
+}
+```
+
+#### Example
+
+```tsx
+import { fetchCollection } from 'rn-iconify';
+
+async function loadIconSet() {
+  const controller = new AbortController();
+
+  try {
+    const collection = await fetchCollection('heroicons', controller.signal);
+    console.log(`${collection.title}: ${collection.total} icons`);
+    console.log('First 10:', collection.icons.slice(0, 10));
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Request cancelled');
+    }
+  }
+}
+```
+
+---
+
+### searchIconsAPI
+
+Search icons across multiple icon sets using the Iconify API.
+
+```tsx
+import { searchIconsAPI } from 'rn-iconify';
+
+const results = await searchIconsAPI('home', ['mdi', 'heroicons'], 50);
+console.log(results); // ['mdi:home', 'mdi:home-outline', 'heroicons:home', ...]
+```
+
+#### Parameters
+
+```tsx
+function searchIconsAPI(
+  query: string,
+  prefixes?: string[],
+  limit?: number,
+  signal?: AbortSignal
+): Promise<string[]>;
+```
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `query` | `string` | required | Search query |
+| `prefixes` | `string[]` | all | Icon sets to search |
+| `limit` | `number` | `100` | Maximum results |
+| `signal` | `AbortSignal` | - | Abort signal |
+
+#### Example
+
+```tsx
+import { searchIconsAPI } from 'rn-iconify';
+
+async function searchIcons(query: string) {
+  const results = await searchIconsAPI(
+    query,
+    ['mdi', 'heroicons', 'lucide'],
+    20
+  );
+
+  return results.map(fullName => {
+    const [prefix, name] = fullName.split(':');
+    return { prefix, name, fullName };
+  });
+}
+```
+
+---
+
+### parseIconName
+
+Parse an icon name into prefix and name components.
+
+```tsx
+import { parseIconName } from 'rn-iconify';
+
+const { prefix, name } = parseIconName('mdi:home');
+console.log(prefix); // 'mdi'
+console.log(name);   // 'home'
+```
+
+#### Parameters
+
+```tsx
+function parseIconName(iconName: string): {
+  prefix: string;
+  name: string;
+} | null;
+```
+
+#### Example
+
+```tsx
+import { parseIconName } from 'rn-iconify';
+
+function validateIconName(input: string): boolean {
+  const parsed = parseIconName(input);
+  if (!parsed) {
+    console.error('Invalid icon name format');
+    return false;
+  }
+  return true;
+}
+
+// Valid
+parseIconName('mdi:home');      // { prefix: 'mdi', name: 'home' }
+parseIconName('heroicons:user'); // { prefix: 'heroicons', name: 'user' }
+
+// Invalid
+parseIconName('invalid');       // null
+parseIconName('');              // null
+```
+
+---
+
+### fetchIconsBatch
+
+Fetch multiple icons in a single optimized request.
+
+```tsx
+import { fetchIconsBatch } from 'rn-iconify';
+
+const result = await fetchIconsBatch([
+  'mdi:home',
+  'mdi:settings',
+  'heroicons:user',
+]);
+
+console.log(`Loaded: ${result.success.size}, Failed: ${result.failed.length}`);
+```
+
+#### Parameters
+
+```tsx
+function fetchIconsBatch(
+  iconNames: string[],
+  signal?: AbortSignal
+): Promise<BatchFetchResult>;
+
+interface BatchFetchResult {
+  /** Successfully fetched icons (iconName -> SVG string) */
+  success: Map<string, string>;
+
+  /** Failed icon fetches with error details */
+  failed: Array<{ iconName: string; error: string }>;
+}
+```
+
+#### Example
+
+```tsx
+import { fetchIconsBatch } from 'rn-iconify';
+
+async function preloadIcons(icons: string[]) {
+  const result = await fetchIconsBatch(icons);
+
+  console.log(`Loaded: ${result.success.size}`);
+
+  if (result.failed.length > 0) {
+    result.failed.forEach(({ iconName, error }) => {
+      console.warn(`Failed to load ${iconName}: ${error}`);
+    });
+  }
+
+  // Access individual SVG data
+  const homeSvg = result.success.get('mdi:home');
+  if (homeSvg) {
+    console.log('Home icon SVG:', homeSvg);
+  }
+}
+```
+
+---
+
+### checkAPIHealth
+
+Check if the Iconify API is reachable.
+
+```tsx
+import { checkAPIHealth } from 'rn-iconify';
+
+const isHealthy = await checkAPIHealth();
+if (!isHealthy) {
+  console.warn('API is not reachable');
+}
+```
+
+#### Parameters
+
+```tsx
+function checkAPIHealth(): Promise<boolean>;
+```
+
+#### Example
+
+```tsx
+import { checkAPIHealth, configure } from 'rn-iconify';
+
+async function initializeWithFallback() {
+  const isOnline = await checkAPIHealth();
+
+  if (!isOnline) {
+    console.log('Offline mode - using bundled icons only');
+    // Load offline bundle
+    loadOfflineBundle(require('./icons/bundle.json'));
+  }
+}
+```
+
+---
+
+### getAPIBaseUrl
+
+Get the current API base URL from configuration.
+
+```tsx
+import { getAPIBaseUrl } from 'rn-iconify';
+
+const url = getAPIBaseUrl();
+console.log(url); // 'https://api.iconify.design'
+```
+
+#### Parameters
+
+```tsx
+function getAPIBaseUrl(): string;
+```
+
+#### Example
+
+```tsx
+import { getAPIBaseUrl, configure } from 'rn-iconify';
+
+// Check current URL
+console.log(getAPIBaseUrl()); // 'https://api.iconify.design'
+
+// Configure custom server
+configure({
+  api: { apiUrl: 'https://icons.mycompany.com' }
+});
+
+console.log(getAPIBaseUrl()); // 'https://icons.mycompany.com'
+```
+
+---
+
+## Animation Helpers
+
+### getEasingFunction
+
+Convert easing string to animation function.
+
+```tsx
+import { getEasingFunction } from 'rn-iconify';
+import { Easing } from 'react-native';
+
+const easingFn = getEasingFunction('ease-in-out');
+// Returns: Easing.inOut(Easing.ease)
+
+const customEasing = getEasingFunction('linear');
+// Returns: Easing.linear
+```
+
+#### Parameters
+
+```tsx
+function getEasingFunction(
+  easing: AnimationEasing
+): (value: number) => number;
+
+// AnimationEasing = 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bounce'
+```
+
+---
+
+### resolveAnimation
+
+Resolve animation configuration with defaults.
+
+```tsx
+import { resolveAnimation } from 'rn-iconify';
+
+const config = resolveAnimation('spin');
+// Returns: { duration: 1000, iterations: -1, easing: 'linear' }
+
+const customConfig = resolveAnimation({
+  type: 'pulse',
+  duration: 500,
+});
+// Returns: { type: 'pulse', duration: 500, iterations: -1, easing: 'ease-in-out' }
+```
+
+#### Parameters
+
+```tsx
+function resolveAnimation(
+  animation: AnimationType,
+  overrides?: {
+    duration?: number;
+    loop?: boolean;
+    easing?: AnimationEasing;
+    delay?: number;
+  }
+): ResolvedAnimationConfig;
+
+interface ResolvedAnimationConfig {
+  type: 'rotate' | 'scale' | 'opacity' | 'translate' | 'sequence';
+  duration: number;
+  loop: boolean;
+  iterations: number;
+  easing: AnimationEasing;
+  direction: AnimationDirection;
+  delay: number;
+  from: number | { x: number; y: number };
+  to: number | { x: number; y: number };
+}
+```
+
+---
+
+### isAnimationPreset
+
+Type guard to check if a value is a valid animation preset.
+
+```tsx
+import { isAnimationPreset } from 'rn-iconify';
+
+isAnimationPreset('spin');    // true
+isAnimationPreset('pulse');   // true
+isAnimationPreset('invalid'); // false
+isAnimationPreset(123);       // false
+```
+
+#### Parameters
+
+```tsx
+function isAnimationPreset(value: string): value is AnimationPreset;
+
+// AnimationPreset = 'spin' | 'pulse' | 'bounce' | 'shake' | 'ping' | 'wiggle'
+```
+
+---
+
+### getDefaultDuration
+
+Get the default duration for an animation type.
+
+```tsx
+import { getDefaultDuration } from 'rn-iconify';
+
+getDefaultDuration('spin');   // 1000 (1 second)
+getDefaultDuration('pulse');  // 1500
+getDefaultDuration('bounce'); // 600
+getDefaultDuration('shake');  // 500
+getDefaultDuration('ping');   // 1000
+getDefaultDuration('wiggle'); // 300
+```
+
+#### Parameters
+
+```tsx
+function getDefaultDuration(preset: AnimationPreset): number;
+```
+
+---
+
+### getDefaultLoop
+
+Check if an animation type loops by default.
+
+```tsx
+import { getDefaultLoop } from 'rn-iconify';
+
+getDefaultLoop('spin');   // true (continuous rotation)
+getDefaultLoop('pulse');  // true
+getDefaultLoop('bounce'); // true
+getDefaultLoop('shake');  // false (plays once)
+getDefaultLoop('ping');   // true
+getDefaultLoop('wiggle'); // false
+```
+
+#### Parameters
+
+```tsx
+function getDefaultLoop(preset: AnimationPreset): boolean;
+```
+
+---
+
+## Theme Helpers
+
+### mergeWithDefaults
+
+Merge theme values with defaults. Ensures all required properties have values.
+
+```tsx
+import { mergeWithDefaults } from 'rn-iconify';
+
+// Given custom theme: { size: 32 }
+const theme = { size: 32 };
+
+const merged = mergeWithDefaults(theme);
+// Returns: { size: 32, color: '#000000', ... } // color and other defaults filled in
+```
+
+#### Parameters
+
+```tsx
+function mergeWithDefaults(theme: IconTheme): IconTheme;
+```
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `theme` | `IconTheme` | Partial theme to merge with defaults |
+
+#### Example
+
+```tsx
+import { mergeWithDefaults } from 'rn-iconify';
+
+// Ensure theme has all required values
+const customTheme = { size: 32 };
+const completeTheme = mergeWithDefaults(customTheme);
+// Returns: { size: 32, color: '#000000', placeholderColor: '#E1E1E1', ... }
+
+// Use in a custom theme provider
+function MyThemeProvider({ theme, children }) {
+  const mergedTheme = mergeWithDefaults(theme);
+  return (
+    <IconThemeProvider theme={mergedTheme}>
+      {children}
+    </IconThemeProvider>
+  );
+}
+```
+
+:::info
+For merging icon props inside React components, use the `useMergedIconProps` hook instead, which accesses the current theme context.
+:::
+
+---
+
+## Alias Helpers
+
+### defineAliases
+
+Define icon aliases without creating a component.
+
+```tsx
+import { defineAliases } from 'rn-iconify';
+
+const aliases = defineAliases({
+  home: 'mdi:home',
+  user: 'heroicons:user',
+  settings: 'mdi:cog',
+});
+
+// Use with Icon
+<Icon name={aliases.home} />
+```
+
+#### Parameters
+
+```tsx
+function defineAliases<T extends Record<string, string>>(
+  aliases: T
+): T;
+```
+
+#### Example
+
+```tsx
+import { defineAliases, Icon } from 'rn-iconify';
+
+// Define aliases in a central file
+export const icons = defineAliases({
+  // Navigation
+  home: 'mdi:home',
+  back: 'mdi:arrow-left',
+  menu: 'mdi:menu',
+
+  // Actions
+  add: 'mdi:plus',
+  edit: 'mdi:pencil',
+  delete: 'mdi:delete',
+} as const);
+
+// Usage anywhere
+<Icon name={icons.home} size={24} />
+```
+
+---
+
+## Native Module Helpers
+
+### getNativeIconify
+
+Get the native Iconify module instance. Returns a unified interface that works across both TurboModule (New Architecture) and Bridge (Old Architecture).
+
+```tsx
+import { getNativeIconify } from 'rn-iconify';
+
+const nativeModule = getNativeIconify();
+
+if (nativeModule.isAvailable) {
+  // Native module is available
+  const stats = await nativeModule.getCacheStats();
+  console.log(`Cache hit rate: ${stats.hitRate}`);
+} else {
+  // Falls back to JS implementation automatically
+  console.log('Using JS fallback');
+}
+```
+
+#### Parameters
+
+```tsx
+function getNativeIconify(): NativeIconifyInterface;
+
+interface NativeIconifyInterface {
+  /** Prefetch icons into native cache */
+  prefetchIcons(icons: string[]): Promise<PrefetchResult>;
+
+  /** Get cache statistics */
+  getCacheStats(): Promise<CacheStats>;
+
+  /** Clear all cached icons */
+  clearCache(): Promise<void>;
+
+  /** Check if an icon is cached */
+  isCached(iconName: string): boolean;
+
+  /** Get module constants */
+  getConstants(): ModuleConstants;
+
+  /** Whether native module is available */
+  isAvailable: boolean;
+}
+
+interface PrefetchResult {
+  success: string[];
+  failed: string[];
+}
+
+interface CacheStats {
+  memoryCount: number;
+  diskCount: number;
+  diskSizeBytes: number;
+  hitRate: number;
+}
+
+interface ModuleConstants {
+  cacheDirectory: string;
+  maxCacheSize: number;
+  version: string;
+}
+```
+
+#### Example
+
+```tsx
+import { getNativeIconify } from 'rn-iconify';
+
+async function checkNativeCache() {
+  const native = getNativeIconify();
+
+  if (!native.isAvailable) {
+    console.log('Native module not available, using JS fallback');
+    return;
+  }
+
+  // Prefetch icons natively
+  const result = await native.prefetchIcons(['mdi:home', 'mdi:settings']);
+  console.log(`Prefetched: ${result.success.length}`);
+
+  // Check cache stats
+  const stats = await native.getCacheStats();
+  console.log(`Memory: ${stats.memoryCount}, Disk: ${stats.diskCount}`);
+
+  // Check if specific icon is cached
+  const isCached = native.isCached('mdi:home');
+  console.log(`mdi:home cached: ${isCached}`);
+}
+```
+
+---
+
+### isNativeModuleAvailable
+
+Check if the native Iconify module is available.
+
+```tsx
+import { isNativeModuleAvailable } from 'rn-iconify';
+
+if (isNativeModuleAvailable()) {
+  console.log('Using native storage (faster)');
+} else {
+  console.log('Using JS storage');
+}
+```
+
+#### Parameters
+
+```tsx
+function isNativeModuleAvailable(): boolean;
+```
+
+#### Example
+
+```tsx
+import { isNativeModuleAvailable, configure } from 'rn-iconify';
+
+// Configure based on native module availability
+configure({
+  cache: {
+    // Use larger cache if native module is available
+    maxMemoryItems: isNativeModuleAvailable() ? 1000 : 200,
+  },
+});
+```
+
+---
+
+## Accessibility Utilities
+
+### defaultLabelGenerator
+
+Generate human-readable accessibility labels from icon names.
+
+```tsx
+import { defaultLabelGenerator } from 'rn-iconify';
+
+defaultLabelGenerator('mdi:home');           // 'home icon'
+defaultLabelGenerator('heroicons:user-circle'); // 'user circle icon'
+defaultLabelGenerator('lucide:arrow-left');  // 'arrow left icon'
+```
+
+#### Parameters
+
+```tsx
+function defaultLabelGenerator(iconName: string): string;
+```
+
+---
+
+### adjustForHighContrast
+
+Adjust a color for high contrast mode by pushing it toward black or white.
+
+```tsx
+import { adjustForHighContrast } from 'rn-iconify';
+
+// Colors with luminance > 0.5 become black, others become white
+adjustForHighContrast('#333333'); // '#ffffff' (dark color → white)
+adjustForHighContrast('#cccccc'); // '#000000' (light color → black)
+```
+
+#### Parameters
+
+```tsx
+function adjustForHighContrast(color: string): string;
+```
+
+---
+
+### meetsContrastRequirement
+
+Check if a foreground/background color combination meets WCAG contrast requirements.
+
+```tsx
+import { meetsContrastRequirement } from 'rn-iconify';
+
+meetsContrastRequirement('#000000', '#FFFFFF', 'AA');  // true
+meetsContrastRequirement('#777777', '#FFFFFF', 'AA');  // false
+meetsContrastRequirement('#000000', '#FFFFFF', 'AAA'); // true
+```
+
+#### Parameters
+
+```tsx
+function meetsContrastRequirement(
+  foreground: string,
+  background: string,
+  level?: 'AA' | 'AAA'
+): boolean;
+```
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `foreground` | `string` | required | Foreground (text/icon) color |
+| `background` | `string` | required | Background color |
+| `level` | `'AA' \| 'AAA'` | `'AA'` | WCAG conformance level |
+
+---
+
+### getHighContrastAlternative
+
+Generate a high contrast alternative color for a given background.
+
+```tsx
+import { getHighContrastAlternative } from 'rn-iconify';
+
+getHighContrastAlternative('#666666', '#FFFFFF'); // '#000000'
+getHighContrastAlternative('#666666', '#000000'); // '#FFFFFF'
+```
+
+#### Parameters
+
+```tsx
+function getHighContrastAlternative(
+  color: string,
+  background?: string
+): string;
+```
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `color` | `string` | required | Original color |
+| `background` | `string` | `'#FFFFFF'` | Background color |
+
+---
+
+### calculateTouchTargetPadding
+
+Calculate the padding needed to meet minimum touch target size requirements.
+
+```tsx
+import { calculateTouchTargetPadding } from 'rn-iconify';
+
+calculateTouchTargetPadding(24, 44); // 10 (need 10px padding on each side)
+calculateTouchTargetPadding(48, 44); // 0 (already large enough)
+```
+
+#### Parameters
+
+```tsx
+function calculateTouchTargetPadding(
+  iconSize: number,
+  minTargetSize: number
+): number;
+```
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `iconSize` | `number` | Current icon size in pixels |
+| `minTargetSize` | `number` | Minimum touch target size (typically 44px) |
+
+---
+
+## Explorer Utilities
+
+### POPULAR_ICON_SETS
+
+Array of popular icon set metadata for the Icon Explorer.
+
+```tsx
+import { POPULAR_ICON_SETS } from 'rn-iconify';
+
+console.log(POPULAR_ICON_SETS.length); // 24 popular icon sets
+console.log(POPULAR_ICON_SETS[0]);
+// { prefix: 'mdi', name: 'Material Design Icons', total: 7000, ... }
+```
+
+#### Type
+
+```tsx
+const POPULAR_ICON_SETS: IconSetInfo[];
+
+interface IconSetInfo {
+  prefix: string;
+  name: string;
+  total: number;
+  author: string;
+  license: string;
+  samples: string[];
+  category: 'general' | 'brand' | 'emoji' | 'flags' | 'weather';
+}
+```
+
+---
+
+### getAllIconSets
+
+Get all available icon sets.
+
+```tsx
+import { getAllIconSets } from 'rn-iconify';
+
+const iconSets = getAllIconSets();
+console.log(`${iconSets.length} icon sets available`);
+```
+
+#### Parameters
+
+```tsx
+function getAllIconSets(): IconSetInfo[];
+```
+
+---
+
+### getIconSetByPrefix
+
+Get an icon set by its prefix.
+
+```tsx
+import { getIconSetByPrefix } from 'rn-iconify';
+
+const mdi = getIconSetByPrefix('mdi');
+console.log(mdi?.name);  // 'Material Design Icons'
+console.log(mdi?.total); // 7000
+```
+
+#### Parameters
+
+```tsx
+function getIconSetByPrefix(prefix: string): IconSetInfo | undefined;
+```
+
+---
+
+### getIconSetsByCategory
+
+Get all icon sets in a specific category.
+
+```tsx
+import { getIconSetsByCategory } from 'rn-iconify';
+
+const brandIcons = getIconSetsByCategory('brand');
+// [{ prefix: 'fa6-brands', ... }, { prefix: 'simple-icons', ... }, ...]
+
+const emojiSets = getIconSetsByCategory('emoji');
+// [{ prefix: 'twemoji', ... }, { prefix: 'noto', ... }]
+```
+
+#### Parameters
+
+```tsx
+function getIconSetsByCategory(
+  category: 'general' | 'brand' | 'emoji' | 'flags' | 'weather'
+): IconSetInfo[];
+```
+
+---
+
+### searchIconSets
+
+Search icon sets by name or prefix.
+
+```tsx
+import { searchIconSets } from 'rn-iconify';
+
+const results = searchIconSets('material');
+// [{ prefix: 'mdi', name: 'Material Design Icons', ... },
+//  { prefix: 'material-symbols', name: 'Material Symbols', ... }]
+```
+
+#### Parameters
+
+```tsx
+function searchIconSets(query: string): IconSetInfo[];
+```
+
+---
+
+### generateImportStatement
+
+Generate an import statement for an icon.
+
+```tsx
+import { generateImportStatement } from 'rn-iconify';
+
+generateImportStatement('mdi:home');
+// "import { Mdi } from 'rn-iconify';"
+
+generateImportStatement('heroicons:user');
+// "import { Heroicons } from 'rn-iconify';"
+```
+
+#### Parameters
+
+```tsx
+function generateImportStatement(iconName: string): string;
+```
+
+---
+
+### generateIconJSX
+
+Generate JSX code for rendering an icon.
+
+```tsx
+import { generateIconJSX } from 'rn-iconify';
+
+generateIconJSX('mdi:home');
+// '<Mdi name="home" size={24} color="currentColor" />'
+
+generateIconJSX('heroicons:user', 32, '#007AFF');
+// '<Heroicons name="user" size={32} color="#007AFF" />'
+```
+
+#### Parameters
+
+```tsx
+function generateIconJSX(
+  iconName: string,
+  size?: number,
+  color?: string
+): string;
+```
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `iconName` | `string` | required | Full icon name (prefix:name) |
+| `size` | `number` | `24` | Icon size |
+| `color` | `string` | `'currentColor'` | Icon color |
+
+---
+
+## Constants
+
+Pre-configured default values exported for customization.
+
+### DEFAULT_ICON_THEME
+
+Default theme values for icons.
+
+```tsx
+import { DEFAULT_ICON_THEME } from 'rn-iconify';
+
+const DEFAULT_ICON_THEME = {
+  size: 24,
+  color: '#000000',
+  placeholderColor: '#E1E1E1',
+  placeholderDuration: 1000,
+  rotate: 0,
+  fallbackDelay: 0,
+};
+```
+
+### DEFAULT_CONFIG
+
+Default configuration for the library.
+
+```tsx
+import { DEFAULT_CONFIG } from 'rn-iconify';
+
+const DEFAULT_CONFIG = {
+  api: {
+    apiUrl: 'https://api.iconify.design',
+    timeout: 30000,
+    retries: 2,
+    retryDelay: 1000,
+    headers: {},
+    logging: false,
+  },
+  cache: {
+    maxMemoryItems: 500,
+    enableDiskCache: true,
+    diskCachePrefix: 'rn-iconify:',
+  },
+  performance: {
+    enabled: false,
+    trackLoadTimes: true,
+    trackCacheStats: true,
+    maxHistorySize: 1000,
+  },
+};
+```
+
+### DEFAULT_PLACEHOLDER_CONFIG
+
+Default placeholder configuration.
+
+```tsx
+import { DEFAULT_PLACEHOLDER_CONFIG } from 'rn-iconify';
+
+const DEFAULT_PLACEHOLDER_CONFIG = {
+  color: '#E1E1E1',
+  highlightColor: '#F5F5F5',
+  duration: 1000,
+  borderRadius: 4,
+};
+```
+
+### DEFAULT_ACCESSIBILITY_CONFIG
+
+Default accessibility configuration.
+
+```tsx
+import { DEFAULT_ACCESSIBILITY_CONFIG } from 'rn-iconify';
+
+const DEFAULT_ACCESSIBILITY_CONFIG = {
+  autoLabels: true,
+  labelGenerator: defaultLabelGenerator,
+  highContrast: false,
+  respectReducedMotion: true,
+  defaultRole: 'image',
+  showFocusIndicators: true,
+  minTouchTargetSize: 44,
+};
+```
+
+### ANIMATION_PRESETS
+
+Pre-configured animation settings for common use cases.
+
+```tsx
+import { ANIMATION_PRESETS } from 'rn-iconify';
+
+const ANIMATION_PRESETS = {
+  // Continuous rotation (loading spinner)
+  spin: {
+    type: 'rotate',
+    duration: 1000,
+    loop: true,
+    iterations: -1,
+    easing: 'linear',
+    direction: 'normal',
+    delay: 0,
+    from: 0,
+    to: 360,
+  },
+
+  // Pulsing opacity (heartbeat effect)
+  pulse: {
+    type: 'opacity',
+    duration: 1500,
+    loop: true,
+    iterations: -1,
+    easing: 'ease-in-out',
+    direction: 'alternate',
+    delay: 0,
+    from: 1,
+    to: 0.4,
+  },
+
+  // Bouncing scale (attention grabber)
+  bounce: {
+    type: 'scale',
+    duration: 600,
+    loop: true,
+    iterations: -1,
+    easing: 'bounce',
+    direction: 'alternate',
+    delay: 0,
+    from: 1,
+    to: 1.2,
+  },
+
+  // Horizontal shake (error/warning)
+  shake: {
+    type: 'translate',
+    duration: 500,
+    loop: false,
+    iterations: 1,
+    easing: 'ease-out',
+    direction: 'normal',
+    delay: 0,
+    from: { x: 0, y: 0 },
+    to: { x: 10, y: 0 },
+  },
+
+  // Ping effect (notification)
+  ping: {
+    type: 'scale',
+    duration: 1000,
+    loop: true,
+    iterations: -1,
+    easing: 'ease-out',
+    direction: 'normal',
+    delay: 0,
+    from: 1,
+    to: 1.5,
+  },
+
+  // Quick wiggle (playful attention)
+  wiggle: {
+    type: 'rotate',
+    duration: 300,
+    loop: false,
+    iterations: 1,
+    easing: 'ease-in-out',
+    direction: 'alternate',
+    delay: 0,
+    from: -15,
+    to: 15,
+  },
+};
+```
+
+**Usage:**
+
+```tsx
+import { AnimatedIcon, ANIMATION_PRESETS, Mdi } from 'rn-iconify';
+
+// Use a preset name directly
+<AnimatedIcon animate="spin">
+  <Mdi name="loading" size={24} />
+</AnimatedIcon>
+
+// Use preset config with overrides
+<AnimatedIcon
+  animate={{
+    ...ANIMATION_PRESETS.bounce,
+    duration: 400,
+  }}
+>
+  <Mdi name="bell" size={24} />
+</AnimatedIcon>
+```
+
+### DEFAULT_ANIMATION_DURATIONS
+
+Default animation durations per preset (in milliseconds).
+
+```tsx
+import { DEFAULT_ANIMATION_DURATIONS } from 'rn-iconify';
+
+const DEFAULT_ANIMATION_DURATIONS = {
+  spin: 1000,
+  pulse: 1500,
+  bounce: 600,
+  shake: 500,
+  ping: 1000,
+  wiggle: 300,
+};
+```
+
+### DEFAULT_ANIMATION_LOOPS
+
+Default loop settings per preset.
+
+```tsx
+import { DEFAULT_ANIMATION_LOOPS } from 'rn-iconify';
+
+const DEFAULT_ANIMATION_LOOPS = {
+  spin: true,
+  pulse: true,
+  bounce: true,
+  shake: false,
+  ping: true,
+  wiggle: false,
+};
+```
+
+### DEFAULT_EXPLORER_CONFIG
+
+Default Icon Explorer configuration.
+
+```tsx
+import { DEFAULT_EXPLORER_CONFIG } from 'rn-iconify';
+
+const DEFAULT_EXPLORER_CONFIG = {
+  iconSets: [],  // All icon sets
+  initialQuery: '',
+  maxResults: 100,
+  keyboardShortcuts: true,
+  preview: DEFAULT_PREVIEW_CONFIG,
+};
+```
+
+### DEFAULT_PREVIEW_CONFIG
+
+Default preview configuration for Icon Explorer.
+
+```tsx
+import { DEFAULT_PREVIEW_CONFIG } from 'rn-iconify';
+
+const DEFAULT_PREVIEW_CONFIG = {
+  sizes: [16, 24, 32, 48, 64],
+  colors: ['#000000', '#6366F1', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6'],
+  showName: true,
+  showCode: true,
+  backgroundColor: '#FFFFFF',
+};
+```
+
+### DEFAULT_NAVIGATION_PRESETS
+
+Pre-configured navigation icon presets using MDI icons.
+
+```tsx
+import { DEFAULT_NAVIGATION_PRESETS } from 'rn-iconify';
+
+const DEFAULT_NAVIGATION_PRESETS = {
+  home: { focused: 'mdi:home', unfocused: 'mdi:home-outline' },
+  search: { focused: 'mdi:magnify', unfocused: 'mdi:magnify' },
+  profile: { focused: 'mdi:account', unfocused: 'mdi:account-outline' },
+  settings: { focused: 'mdi:cog', unfocused: 'mdi:cog-outline' },
+  notifications: { focused: 'mdi:bell', unfocused: 'mdi:bell-outline' },
+  messages: { focused: 'mdi:message', unfocused: 'mdi:message-outline' },
+  favorites: { focused: 'mdi:heart', unfocused: 'mdi:heart-outline' },
+  cart: { focused: 'mdi:cart', unfocused: 'mdi:cart-outline' },
+};
+
+// Usage
+tabBarIcon: createTabBarIcon(DEFAULT_NAVIGATION_PRESETS.home)
+```
+
+---
+
+## withAccessibility
+
+Higher-order component props enhancer for adding accessibility to existing icon components.
+
+```tsx
+import { withAccessibility } from 'rn-iconify';
+
+// Enhance icon props with accessibility
+const accessibleProps = withAccessibility({
+  name: 'home',
+  size: 24,
+  color: '#000',
+  accessibilityLabel: 'Home',
+});
+
+// Use in a custom component
+function MyIcon(props) {
+  const enhancedProps = withAccessibility(props);
+  return <View {...enhancedProps}><Icon {...props} /></View>;
+}
+```
+
+### Parameters
+
+```tsx
+function withAccessibility<P extends AccessibleIconProps>(
+  props: P & UseAccessibleIconInput
+): P & UseAccessibleIconOutput['accessibilityProps'];
+```
+
+The function merges the input props with accessibility props:
+- `accessible`: Set to `true` unless `accessibilityElementsHidden` is true
+- `accessibilityRole`: Defaults to `'image'`
+
+### Use Cases
+
+- Server-side rendering (SSR) where hooks can't be used
+- Custom icon components that need accessibility
+- Wrapping third-party icon libraries

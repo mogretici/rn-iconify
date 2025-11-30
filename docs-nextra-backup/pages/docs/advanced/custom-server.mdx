@@ -1,0 +1,340 @@
+# Custom Server
+
+Configure rn-iconify to use a custom Iconify API server for faster loading, offline support, or enterprise requirements.
+
+import { Callout } from 'nextra/components'
+
+## Why Use a Custom Server?
+
+- **Faster loading**: Server in your region/network
+- **Offline/air-gapped**: No external network required
+- **Enterprise**: Compliance with network policies
+- **Custom icons**: Serve your own icon sets
+
+## Configuration
+
+Set the Iconify API server URL:
+
+```tsx copy
+import { setIconifyServer } from 'rn-iconify';
+
+// Configure before using any icons
+setIconifyServer('https://your-iconify-server.com');
+```
+
+## Self-Hosted Iconify API
+
+### Docker Setup
+
+Run the official Iconify API server:
+
+```bash copy
+docker run -d \
+  --name iconify-api \
+  -p 3000:3000 \
+  iconify/api
+```
+
+Then configure rn-iconify:
+
+```tsx copy
+setIconifyServer('http://localhost:3000');
+```
+
+### Production Docker Compose
+
+```yaml copy
+# docker-compose.yml
+version: '3.8'
+
+services:
+  iconify-api:
+    image: iconify/api
+    ports:
+      - "3000:3000"
+    volumes:
+      - iconify-cache:/app/cache
+    restart: unless-stopped
+    environment:
+      - ICONIFY_SOURCE=full
+
+volumes:
+  iconify-cache:
+```
+
+### Custom Icon Sets
+
+Add your own icons to the server:
+
+```bash copy
+# Create custom icon set
+mkdir -p icons/my-icons
+
+# Add icon JSON files
+cat > icons/my-icons/icons.json << 'EOF'
+{
+  "prefix": "my",
+  "icons": {
+    "logo": {
+      "body": "<path d=\"M12 2L2 7l10 5 10-5-10-5z\"/>"
+    },
+    "custom-icon": {
+      "body": "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+    }
+  },
+  "width": 24,
+  "height": 24
+}
+EOF
+
+# Mount to Docker container
+docker run -d \
+  -p 3000:3000 \
+  -v $(pwd)/icons:/app/icons \
+  iconify/api
+```
+
+Use custom icons:
+
+```tsx copy
+import { Icon } from 'rn-iconify';
+
+// Use your custom icon set
+<Icon name="my:logo" size={24} />
+<Icon name="my:custom-icon" size={24} />
+```
+
+## Multiple Servers
+
+Configure different servers for different icon sets:
+
+```tsx copy
+import { setIconifyServer } from 'rn-iconify';
+
+// Primary server for most icons
+setIconifyServer('https://api.iconify.design');
+
+// Custom server for specific sets
+setIconifyServer('https://internal.company.com/icons', {
+  prefixes: ['company', 'internal'],
+});
+```
+
+## Fallback Configuration
+
+Set up fallback servers:
+
+```tsx copy
+import { configureIconify } from 'rn-iconify';
+
+configureIconify({
+  servers: [
+    'https://primary-server.com',
+    'https://fallback-server.com',
+    'https://api.iconify.design', // Official as last resort
+  ],
+  timeout: 5000, // 5 second timeout per server
+  retries: 2,
+});
+```
+
+## Network Configuration
+
+### Timeout
+
+```tsx copy
+import { configureIconify } from 'rn-iconify';
+
+configureIconify({
+  timeout: 10000, // 10 seconds
+});
+```
+
+### Headers
+
+Add custom headers (for authentication, etc.):
+
+```tsx copy
+configureIconify({
+  headers: {
+    'Authorization': 'Bearer your-token',
+    'X-Custom-Header': 'value',
+  },
+});
+```
+
+### SSL/TLS
+
+For self-signed certificates in development:
+
+```tsx copy
+// Only in development!
+if (__DEV__) {
+  configureIconify({
+    rejectUnauthorized: false,
+  });
+}
+```
+
+## Enterprise Setup
+
+### Internal CDN
+
+Host icon assets on your CDN:
+
+```tsx copy
+setIconifyServer('https://cdn.company.com/iconify');
+```
+
+### Proxy Configuration
+
+Route through corporate proxy:
+
+```tsx copy
+configureIconify({
+  proxy: 'http://proxy.company.com:8080',
+});
+```
+
+### Air-Gapped Environments
+
+For completely offline environments:
+
+1. **Bundle all icons** using Babel plugin:
+```js
+// babel.config.js
+['rn-iconify/babel', {
+  icons: ['mdi:*', 'heroicons:*'],
+  strict: true, // Fail if any icon missing
+}],
+```
+
+2. **Or use offline bundles**:
+```tsx copy
+import { loadOfflineBundle } from 'rn-iconify';
+import iconBundle from './icon-bundle.json';
+
+loadOfflineBundle(iconBundle);
+```
+
+## Server Health Check
+
+Verify server connectivity:
+
+```tsx copy
+import { checkServerHealth } from 'rn-iconify';
+
+async function verifyIconServer() {
+  const health = await checkServerHealth();
+
+  if (!health.ok) {
+    console.error('Icon server unreachable:', health.error);
+    // Fall back to bundled icons or show error
+  }
+
+  console.log('Server latency:', health.latency, 'ms');
+}
+```
+
+## Monitoring
+
+Log server requests:
+
+```tsx copy
+import { onIconRequest, onIconError } from 'rn-iconify';
+
+// Log all requests
+onIconRequest((icon, server, duration) => {
+  console.log(`Loaded ${icon} from ${server} in ${duration}ms`);
+});
+
+// Log errors
+onIconError((icon, error) => {
+  console.error(`Failed to load ${icon}:`, error);
+});
+```
+
+## Caching with Custom Server
+
+Configure caching behavior:
+
+```tsx copy
+import { configureCache } from 'rn-iconify';
+
+configureCache({
+  // Cache icons for 7 days
+  ttl: 7 * 24 * 60 * 60 * 1000,
+
+  // Max cached icons
+  maxSize: 5000,
+
+  // Persist cache across app restarts
+  persistent: true,
+});
+```
+
+## Development vs Production
+
+```tsx copy
+import { setIconifyServer } from 'rn-iconify';
+
+if (__DEV__) {
+  // Local server for development
+  setIconifyServer('http://localhost:3000');
+} else {
+  // Production CDN
+  setIconifyServer('https://icons.company.com');
+}
+```
+
+## API Compatibility
+
+Custom servers must implement the Iconify API v3 endpoints:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /{prefix}.json` | Full icon set |
+| `GET /{prefix}/{name}.json` | Single icon |
+| `GET /{prefix}?icons={names}` | Multiple icons |
+
+<Callout type="info">
+  The official Iconify API Docker image implements all required endpoints.
+</Callout>
+
+## Troubleshooting
+
+### CORS Errors
+
+Configure server CORS headers:
+
+```nginx
+# nginx.conf
+location /iconify/ {
+  add_header Access-Control-Allow-Origin *;
+  add_header Access-Control-Allow-Methods "GET, OPTIONS";
+}
+```
+
+### Connection Refused
+
+Check server is running and accessible:
+
+```bash
+curl http://localhost:3000/mdi.json?icons=home
+```
+
+### Icons Not Loading
+
+Enable verbose logging:
+
+```tsx copy
+configureIconify({
+  verbose: true,
+});
+```
+
+## Next Steps
+
+- [Offline Bundles](/advanced/offline-bundles) - Full offline support
+- [Babel Plugin](/advanced/babel-plugin) - Build-time bundling
+- [Architecture](/advanced/architecture) - Understanding the system

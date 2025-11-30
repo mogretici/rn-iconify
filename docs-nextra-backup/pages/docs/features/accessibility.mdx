@@ -1,0 +1,351 @@
+# Accessibility
+
+rn-iconify is built with accessibility in mind, providing features to make your icons usable by everyone.
+
+## Accessibility Labels
+
+Icons automatically generate accessibility labels based on icon names:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+
+// Auto-generated label: "home icon"
+<Mdi name="home" />
+
+// Auto-generated label: "arrow-left icon"
+<Mdi name="arrow-left" />
+```
+
+## Custom Labels
+
+Override auto-generated labels with custom text:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+
+<Mdi
+  name="arrow-left"
+  accessibilityLabel="Go back"
+/>
+
+<Mdi
+  name="dots-vertical"
+  accessibilityLabel="More options"
+/>
+
+<Mdi
+  name="close"
+  accessibilityLabel="Close dialog"
+/>
+```
+
+## Decorative Icons
+
+For icons that are purely decorative and should be ignored by screen readers:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+
+// Hide from screen readers
+<Mdi
+  name="star"
+  accessibilityRole="none"
+  accessibilityLabel=""
+  accessible={false}
+/>
+```
+
+## Touch Targets
+
+Ensure icons meet minimum touch target sizes (44x44pt recommended):
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { TouchableOpacity } from 'react-native';
+
+// ✅ Good - adequate touch target
+<TouchableOpacity
+  style={{ padding: 10 }}
+  accessibilityRole="button"
+  accessibilityLabel="Settings"
+>
+  <Mdi name="cog" size={24} />
+</TouchableOpacity>
+
+// ❌ Avoid - small touch target
+<TouchableOpacity accessibilityRole="button">
+  <Mdi name="cog" size={16} />
+</TouchableOpacity>
+```
+
+## Hit Slop
+
+Extend touch area without changing visual size:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { Pressable } from 'react-native';
+
+<Pressable
+  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+  accessibilityRole="button"
+  accessibilityLabel="Close"
+>
+  <Mdi name="close" size={24} />
+</Pressable>
+```
+
+## Color Contrast
+
+Ensure sufficient color contrast for visibility:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { View } from 'react-native';
+
+// ✅ Good - high contrast
+<View style={{ backgroundColor: 'white' }}>
+  <Mdi name="check" color="#000000" />  {/* Black on white */}
+</View>
+
+// ✅ Good - sufficient contrast
+<View style={{ backgroundColor: '#f5f5f5' }}>
+  <Mdi name="check" color="#333333" />  {/* Dark gray on light gray */}
+</View>
+
+// ❌ Avoid - low contrast
+<View style={{ backgroundColor: '#f5f5f5' }}>
+  <Mdi name="check" color="#cccccc" />  {/* Light gray on light gray */}
+</View>
+```
+
+## High Contrast Mode
+
+Support system high contrast settings:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { useColorScheme, AccessibilityInfo } from 'react-native';
+import { useEffect, useState } from 'react';
+
+function AccessibleIcon({ name, defaultColor }: { name: string; defaultColor: string }) {
+  const [highContrast, setHighContrast] = useState(false);
+  const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    // Check for high contrast mode (iOS)
+    AccessibilityInfo.isReduceMotionEnabled().then(enabled => {
+      // High contrast often correlates with reduce motion preference
+      setHighContrast(enabled);
+    });
+  }, []);
+
+  const color = highContrast
+    ? (colorScheme === 'dark' ? '#ffffff' : '#000000')
+    : defaultColor;
+
+  return <Mdi name={name} color={color} />;
+}
+```
+
+## Reduced Motion
+
+Respect user's motion preferences:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { AccessibilityInfo } from 'react-native';
+import { useEffect, useState } from 'react';
+
+function AnimatedIcon({ name }: { name: string }) {
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+
+    const subscription = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      setReduceMotion
+    );
+
+    return () => subscription.remove();
+  }, []);
+
+  return (
+    <Mdi
+      name={name}
+      animation={reduceMotion ? undefined : 'spin'}
+    />
+  );
+}
+```
+
+## Semantic Icons
+
+Use appropriate accessibility roles:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { Pressable, View } from 'react-native';
+
+// Button icon
+<Pressable accessibilityRole="button" accessibilityLabel="Delete item">
+  <Mdi name="delete" />
+</Pressable>
+
+// Link icon
+<Pressable accessibilityRole="link" accessibilityLabel="Visit website">
+  <Mdi name="open-in-new" />
+</Pressable>
+
+// Image/decorative icon
+<View accessibilityRole="image" accessibilityLabel="Status: Online">
+  <Mdi name="circle" color="green" />
+</View>
+```
+
+## State Communication
+
+Communicate icon states to screen readers:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { Pressable } from 'react-native';
+
+function ToggleButton({ isActive, onToggle }: { isActive: boolean; onToggle: () => void }) {
+  return (
+    <Pressable
+      onPress={onToggle}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: isActive }}
+      accessibilityLabel="Dark mode"
+    >
+      <Mdi
+        name={isActive ? 'toggle-switch' : 'toggle-switch-off'}
+        color={isActive ? 'green' : 'gray'}
+      />
+    </Pressable>
+  );
+}
+```
+
+## Icon + Text Combinations
+
+When icons accompany text, decide what screen readers should announce:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { View, Text, Pressable } from 'react-native';
+
+// Option 1: Read text only (icon is decorative)
+<Pressable accessibilityLabel="Settings">
+  <Mdi name="cog" accessible={false} />
+  <Text>Settings</Text>
+</Pressable>
+
+// Option 2: Read both (icon adds meaning)
+<Pressable accessibilityLabel="Delete item permanently">
+  <Mdi name="delete-forever" accessibilityLabel="Permanent" />
+  <Text>Delete</Text>
+</Pressable>
+```
+
+## Loading States
+
+Announce loading states:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { View } from 'react-native';
+
+function LoadingIcon({ isLoading }: { isLoading: boolean }) {
+  return (
+    <View
+      accessibilityRole="progressbar"
+      accessibilityState={{ busy: isLoading }}
+      accessibilityLabel={isLoading ? 'Loading' : 'Loaded'}
+    >
+      <Mdi
+        name={isLoading ? 'loading' : 'check'}
+        animation={isLoading ? 'spin' : undefined}
+      />
+    </View>
+  );
+}
+```
+
+## Testing Accessibility
+
+### VoiceOver (iOS)
+
+1. Enable VoiceOver: Settings → Accessibility → VoiceOver
+2. Navigate to icons and verify labels are read correctly
+3. Ensure touch targets are easily selectable
+
+### TalkBack (Android)
+
+1. Enable TalkBack: Settings → Accessibility → TalkBack
+2. Verify icon labels and roles
+3. Test navigation flow
+
+### React Native Testing Library
+
+```tsx copy
+import { render, screen } from '@testing-library/react-native';
+import { Mdi } from 'rn-iconify';
+
+test('icon has correct accessibility label', () => {
+  render(<Mdi name="home" accessibilityLabel="Go to home" />);
+
+  expect(screen.getByLabelText('Go to home')).toBeTruthy();
+});
+```
+
+## Accessibility Checklist
+
+- [ ] All interactive icons have accessibility labels
+- [ ] Decorative icons are hidden from screen readers
+- [ ] Touch targets are at least 44x44pt
+- [ ] Color contrast ratio is at least 4.5:1
+- [ ] Animations respect reduced motion preferences
+- [ ] Loading states are announced
+- [ ] Icon states (active, disabled) are communicated
+
+## Best Practices
+
+### 1. Meaningful Labels
+
+```tsx
+// ✅ Good - describes action
+accessibilityLabel="Close dialog"
+
+// ❌ Avoid - describes icon
+accessibilityLabel="X icon"
+```
+
+### 2. Context Matters
+
+```tsx
+// Same icon, different contexts
+<Mdi name="plus" accessibilityLabel="Add new item" />
+<Mdi name="plus" accessibilityLabel="Increase quantity" />
+<Mdi name="plus" accessibilityLabel="Expand section" />
+```
+
+### 3. Group Related Elements
+
+```tsx copy
+<Pressable
+  accessibilityRole="button"
+  accessibilityLabel="Like this post, currently 42 likes"
+>
+  <Mdi name="heart" accessible={false} />
+  <Text>42</Text>
+</Pressable>
+```
+
+## Next Steps
+
+- [Theme Provider](/features/theme-provider) - Global accessibility settings
+- [Animations](/features/animations) - Motion and reduced motion
+- [React Navigation](/features/react-navigation) - Accessible navigation icons

@@ -1,0 +1,324 @@
+# CLI Tools
+
+rn-iconify includes command-line tools for managing icons, generating bundles, and analyzing usage.
+
+## Available Commands
+
+```bash
+npx rn-iconify <command> [options]
+```
+
+| Command | Description |
+|---------|-------------|
+| `generate` | Generate icon bundle files |
+| `analyze` | Analyze icon usage in your project |
+| `list` | List available icon sets |
+| `search` | Search for icons |
+| `info` | Show icon set information |
+
+## Generate Command
+
+Generate bundled icon files for offline use:
+
+```bash copy
+npx rn-iconify generate --icons "mdi:home,mdi:settings" --output ./src/icons
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--icons` | Comma-separated icons or patterns |
+| `--output` | Output directory |
+| `--format` | Output format: `js`, `ts`, `json` |
+| `--verbose` | Show detailed output |
+
+### Examples
+
+```bash copy
+# Generate specific icons
+npx rn-iconify generate --icons "mdi:home,mdi:cog,heroicons:user"
+
+# Generate all icons from a set
+npx rn-iconify generate --icons "lucide:*"
+
+# Generate with TypeScript
+npx rn-iconify generate --icons "mdi:home" --format ts
+
+# Custom output directory
+npx rn-iconify generate --icons "mdi:*" --output ./src/generated/icons
+```
+
+## Analyze Command
+
+Analyze icon usage across your project:
+
+```bash copy
+npx rn-iconify analyze
+```
+
+### Output
+
+```
+📊 Icon Usage Analysis
+
+Found 47 unique icons across 23 files
+
+By Icon Set:
+  mdi: 28 icons
+  heroicons: 12 icons
+  lucide: 7 icons
+
+Most Used Icons:
+  1. mdi:home (12 usages)
+  2. mdi:arrow-left (8 usages)
+  3. heroicons:user (6 usages)
+
+Unbundled Icons: 15
+  Consider bundling these frequently used icons:
+  - mdi:settings (5 usages)
+  - mdi:menu (4 usages)
+
+Bundle Recommendation:
+  npx rn-iconify generate --icons "mdi:home,mdi:arrow-left,mdi:settings,mdi:menu"
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--src` | Source directory to analyze (default: `./src`) |
+| `--json` | Output as JSON |
+| `--verbose` | Show all files and usages |
+
+```bash copy
+# Analyze specific directory
+npx rn-iconify analyze --src ./app
+
+# JSON output for CI integration
+npx rn-iconify analyze --json > icon-usage.json
+```
+
+## List Command
+
+List available icon sets:
+
+```bash copy
+npx rn-iconify list
+```
+
+### Output
+
+```
+📦 Available Icon Sets (200+ sets, 268,000+ icons)
+
+Popular Sets:
+  mdi          Material Design Icons    7,447 icons
+  heroicons    Heroicons               1,288 icons
+  lucide       Lucide Icons            1,650 icons
+  ph           Phosphor Icons          9,072 icons
+  feather      Feather Icons             286 icons
+  tabler       Tabler Icons            5,963 icons
+
+Use 'npx rn-iconify info <set>' for details
+```
+
+### Filter by Category
+
+```bash copy
+# List only brand icon sets
+npx rn-iconify list --category brands
+
+# List sets with > 1000 icons
+npx rn-iconify list --min-icons 1000
+```
+
+## Search Command
+
+Search for icons across all sets:
+
+```bash copy
+npx rn-iconify search "home"
+```
+
+### Output
+
+```
+🔍 Search Results for "home" (156 results)
+
+mdi:
+  home, home-outline, home-variant, home-city, home-plus...
+
+heroicons:
+  home, home-modern, home-solid...
+
+lucide:
+  home, home-icon...
+
+ph:
+  house, house-fill, house-line, house-simple...
+
+Use --limit to show more results
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--set` | Search specific icon set |
+| `--limit` | Max results per set |
+| `--exact` | Exact match only |
+
+```bash copy
+# Search in specific set
+npx rn-iconify search "arrow" --set mdi
+
+# Exact match
+npx rn-iconify search "home" --exact
+
+# More results
+npx rn-iconify search "user" --limit 50
+```
+
+## Info Command
+
+Get detailed information about an icon set:
+
+```bash copy
+npx rn-iconify info mdi
+```
+
+### Output
+
+```
+📦 Material Design Icons (mdi)
+
+Icons:     7,447
+Author:    Austin Andrews
+License:   Apache-2.0
+Website:   https://materialdesignicons.com
+
+Categories:
+  Actions, Alert, AV, Communication, Content, Device...
+
+Sample Icons:
+  home, settings, account, heart, star, check, close...
+
+Import:
+  import { Mdi } from 'rn-iconify';
+
+Bundle Command:
+  npx rn-iconify generate --icons "mdi:*"
+```
+
+## Integration with package.json
+
+Add scripts for common operations:
+
+```json copy
+{
+  "scripts": {
+    "icons:analyze": "rn-iconify analyze --src ./src",
+    "icons:generate": "rn-iconify generate --icons \"mdi:home,mdi:settings\" --output ./src/icons",
+    "icons:search": "rn-iconify search"
+  }
+}
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml copy
+# .github/workflows/icons.yml
+name: Icon Analysis
+
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - name: Analyze Icons
+        run: npx rn-iconify analyze --json > icon-report.json
+      - name: Upload Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: icon-report
+          path: icon-report.json
+```
+
+### Pre-commit Hook
+
+Add icon analysis to pre-commit:
+
+```bash copy
+# .husky/pre-commit
+npx rn-iconify analyze --src ./src
+```
+
+## Programmatic Usage
+
+Use CLI functionality in Node.js scripts:
+
+```js copy
+const { analyze, generate, search } = require('rn-iconify/cli');
+
+// Analyze usage
+const report = await analyze({
+  src: './src',
+});
+console.log(report.totalIcons);
+
+// Generate bundle
+await generate({
+  icons: ['mdi:home', 'mdi:settings'],
+  output: './src/icons',
+  format: 'ts',
+});
+
+// Search icons
+const results = await search('home', {
+  limit: 10,
+});
+```
+
+## Troubleshooting
+
+### Command Not Found
+
+Ensure rn-iconify is installed:
+
+```bash
+npm install rn-iconify
+```
+
+### Network Errors
+
+The CLI fetches icon data from Iconify API. If offline:
+
+```bash
+# Use cached icons only
+npx rn-iconify generate --icons "mdi:home" --offline
+```
+
+### Permission Errors
+
+If output directory is protected:
+
+```bash
+# Check directory permissions
+ls -la ./src/icons
+
+# Or use a different directory
+npx rn-iconify generate --output ./generated
+```
+
+## Next Steps
+
+- [Babel Plugin](/advanced/babel-plugin) - Build-time bundling
+- [Offline Bundles](/advanced/offline-bundles) - Full offline support
+- [Architecture](/advanced/architecture) - How it all works

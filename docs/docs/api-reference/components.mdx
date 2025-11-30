@@ -1,0 +1,772 @@
+---
+id: components
+title: Components
+sidebar_position: 1
+description: API reference for all icon set components
+keywords: [api, components, mdi, heroicons, lucide, phosphor]
+---
+
+API reference for all icon components.
+
+## Icon Components
+
+rn-iconify exports 200+ icon set components. Each component renders icons from its specific icon set.
+
+### Common Props
+
+All icon components accept these props:
+
+```tsx
+interface IconProps {
+  /** Icon name (required) */
+  name: string;
+
+  /** Icon size in pixels (sets both width and height) */
+  size?: number;
+
+  /** Icon width in pixels (overrides size) */
+  width?: number;
+
+  /** Icon height in pixels (overrides size) */
+  height?: number;
+
+  /** Icon color */
+  color?: string;
+
+  /** Rotation angle */
+  rotate?: 0 | 90 | 180 | 270;
+
+  /** Flip direction */
+  flip?: 'horizontal' | 'vertical' | 'both';
+
+  /**
+   * Fallback component shown while loading
+   * @deprecated Use `placeholder` instead for animated placeholders
+   */
+  fallback?: ReactNode;
+
+  /** Delay before showing fallback (ms) */
+  fallbackDelay?: number;
+
+  /** Placeholder while loading */
+  placeholder?: ReactNode | 'skeleton' | 'pulse' | 'shimmer';
+
+  /** Placeholder background color */
+  placeholderColor?: string;
+
+  /** Placeholder animation duration (ms) */
+  placeholderDuration?: number;
+
+  /** Additional styles */
+  style?: StyleProp<ViewStyle>;
+
+  /** Called when icon loads */
+  onLoad?: () => void;
+
+  /** Called on load error */
+  onError?: (error: Error) => void;
+
+  /** Accessibility label */
+  accessibilityLabel?: string;
+
+  /** Test identifier */
+  testID?: string;
+
+  // Animation props (can also use AnimatedIcon wrapper)
+
+  /** Animation type or configuration */
+  animate?: 'spin' | 'pulse' | 'bounce' | 'shake' | 'ping' | 'wiggle' | AnimationConfig;
+
+  /** Animation duration override (ms) */
+  animationDuration?: number;
+
+  /** Animation loop override */
+  animationLoop?: boolean;
+
+  /** Animation easing function */
+  animationEasing?: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bounce' | EasingFunction;
+
+  /** Delay before animation starts (ms) */
+  animationDelay?: number;
+
+  /** Auto-start animation */
+  autoPlay?: boolean;
+
+  /** Called when animation completes */
+  onAnimationComplete?: () => void;
+}
+```
+
+:::info
+Animation props can be used directly on icon components, or you can use the `AnimatedIcon` wrapper for more control. See [Animations](/docs/features/animations) for details.
+:::
+
+### Default Values
+
+| Prop | Default |
+|------|---------|
+| `size` | `24` |
+| `color` | `'#000000'` |
+| `rotate` | `0` |
+| `flip` | `undefined` |
+| `placeholder` | `undefined` |
+| `placeholderColor` | `'#E1E1E1'` |
+| `placeholderDuration` | `1000` |
+| `fallbackDelay` | `0` |
+| `animate` | `undefined` |
+| `animationDelay` | `0` |
+| `autoPlay` | `true` |
+
+---
+
+## Mdi
+
+Material Design Icons - 7,447 icons
+
+```tsx
+import { Mdi, type MdiIconName } from 'rn-iconify';
+
+<Mdi name="home" size={24} color="blue" />
+```
+
+### Props
+
+```tsx
+interface MdiProps extends IconProps {
+  name: MdiIconName;
+}
+```
+
+### Example
+
+```tsx
+<Mdi name="home" />
+<Mdi name="settings" size={32} />
+<Mdi name="heart" color="red" />
+<Mdi name="arrow-right" rotate={90} />
+<Mdi name="star" placeholder="shimmer" />
+```
+
+---
+
+## Heroicons
+
+Heroicons by Tailwind CSS - 1,288 icons
+
+```tsx
+import { Heroicons, type HeroiconsIconName } from 'rn-iconify';
+
+<Heroicons name="user" size={24} color="blue" />
+```
+
+### Props
+
+```tsx
+interface HeroiconsProps extends IconProps {
+  name: HeroiconsIconName;
+}
+```
+
+### Example
+
+```tsx
+<Heroicons name="home" />
+<Heroicons name="user" size={32} />
+<Heroicons name="cog-6-tooth" color="gray" />
+```
+
+---
+
+## Lucide
+
+Lucide Icons - 1,650 icons
+
+```tsx
+import { Lucide, type LucideIconName } from 'rn-iconify';
+
+<Lucide name="camera" size={24} />
+```
+
+### Props
+
+```tsx
+interface LucideProps extends IconProps {
+  name: LucideIconName;
+}
+```
+
+### Example
+
+```tsx
+<Lucide name="home" />
+<Lucide name="settings" size={32} />
+<Lucide name="user" color="#6366f1" />
+```
+
+---
+
+## Ph (Phosphor)
+
+Phosphor Icons - 9,072 icons
+
+```tsx
+import { Ph, type PhIconName } from 'rn-iconify';
+
+<Ph name="house" size={24} />
+```
+
+### Props
+
+```tsx
+interface PhProps extends IconProps {
+  name: PhIconName;
+}
+```
+
+### Example
+
+```tsx
+<Ph name="house" />
+<Ph name="gear" size={32} />
+<Ph name="user" color="purple" />
+```
+
+---
+
+## Tabler
+
+Tabler Icons - 5,963 icons
+
+```tsx
+import { Tabler, type TablerIconName } from 'rn-iconify';
+
+<Tabler name="home" size={24} />
+```
+
+---
+
+## Feather
+
+Feather Icons - 286 icons
+
+```tsx
+import { Feather, type FeatherIconName } from 'rn-iconify';
+
+<Feather name="home" size={24} />
+```
+
+---
+
+## Bi (Bootstrap)
+
+Bootstrap Icons - 2,078 icons
+
+```tsx
+import { Bi, type BiIconName } from 'rn-iconify';
+
+<Bi name="house" size={24} />
+```
+
+---
+
+## Fa6Solid
+
+Font Awesome 6 Solid - 1,402 icons
+
+```tsx
+import { Fa6Solid, type Fa6SolidIconName } from 'rn-iconify';
+
+<Fa6Solid name="house" size={24} />
+```
+
+---
+
+## Fa6Regular
+
+Font Awesome 6 Regular - 163 icons
+
+```tsx
+import { Fa6Regular, type Fa6RegularIconName } from 'rn-iconify';
+
+<Fa6Regular name="circle" size={24} />
+```
+
+---
+
+## Fa6Brands
+
+Font Awesome 6 Brands - 494 icons
+
+```tsx
+import { Fa6Brands, type Fa6BrandsIconName } from 'rn-iconify';
+
+<Fa6Brands name="github" size={24} />
+```
+
+---
+
+## Ion
+
+Ionicons - 1,356 icons
+
+```tsx
+import { Ion, type IonIconName } from 'rn-iconify';
+
+<Ion name="home" size={24} />
+```
+
+---
+
+## Ri (Remix)
+
+Remix Icon - 2,860 icons
+
+```tsx
+import { Ri, type RiIconName } from 'rn-iconify';
+
+<Ri name="home-line" size={24} />
+```
+
+---
+
+## Complete List
+
+All 200+ icon set components follow the same pattern:
+
+| Component | Prefix | Icons | Import |
+|-----------|--------|-------|--------|
+| `Mdi` | mdi | 7,447 | `import { Mdi } from 'rn-iconify'` |
+| `Heroicons` | heroicons | 1,288 | `import { Heroicons } from 'rn-iconify'` |
+| `Lucide` | lucide | 1,650 | `import { Lucide } from 'rn-iconify'` |
+| `Ph` | ph | 9,072 | `import { Ph } from 'rn-iconify'` |
+| `Tabler` | tabler | 5,963 | `import { Tabler } from 'rn-iconify'` |
+| `Feather` | feather | 286 | `import { Feather } from 'rn-iconify'` |
+| `Bi` | bi | 2,078 | `import { Bi } from 'rn-iconify'` |
+| `Fa6Solid` | fa6-solid | 1,402 | `import { Fa6Solid } from 'rn-iconify'` |
+
+See [Icon Sets](/icon-sets) for the complete list.
+
+---
+
+## IconThemeProvider
+
+Provides global defaults for all icon components.
+
+```tsx
+import { IconThemeProvider } from 'rn-iconify';
+
+<IconThemeProvider theme={theme}>
+  {children}
+</IconThemeProvider>
+```
+
+### Props
+
+```tsx
+interface IconThemeProviderProps {
+  /** Theme configuration */
+  theme: IconTheme;
+
+  /** Child components */
+  children: ReactNode;
+}
+
+interface IconTheme {
+  /** Default size */
+  size?: number;
+
+  /** Default color */
+  color?: string;
+
+  /** Default placeholder */
+  placeholder?: ReactNode | 'skeleton' | 'pulse' | 'shimmer';
+
+  /** Placeholder background color */
+  placeholderColor?: string;
+
+  /** Placeholder animation duration (ms) */
+  placeholderDuration?: number;
+
+  /** Default rotation */
+  rotate?: 0 | 90 | 180 | 270;
+
+  /** Default flip direction */
+  flip?: 'horizontal' | 'vertical' | 'both';
+
+  /** Delay before showing fallback (ms) */
+  fallbackDelay?: number;
+}
+```
+
+### Example
+
+```tsx
+<IconThemeProvider
+  theme={{
+    size: 24,
+    color: '#333',
+    placeholder: 'shimmer',
+  }}
+>
+  <App />
+</IconThemeProvider>
+```
+
+---
+
+## Generic Icon Component
+
+For dynamic icon rendering across sets:
+
+```tsx
+import { Icon } from 'rn-iconify';
+
+<Icon name="mdi:home" size={24} />
+<Icon name="heroicons:user" size={24} />
+```
+
+### Props
+
+```tsx
+interface GenericIconProps extends IconProps {
+  /** Full icon name with prefix (e.g., "mdi:home") */
+  name: string;
+}
+```
+
+### Example
+
+```tsx
+const iconName = 'mdi:home'; // Dynamic
+
+<Icon name={iconName} size={24} color="blue" />
+```
+
+---
+
+## AnimatedIcon
+
+Wrapper component for adding animations to icons.
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify';
+import { Mdi } from 'rn-iconify';
+
+<AnimatedIcon animate="spin">
+  <Mdi name="loading" size={24} />
+</AnimatedIcon>
+
+<AnimatedIcon animate="pulse" autoPlay={true}>
+  <Mdi name="heart" size={24} color="red" />
+</AnimatedIcon>
+```
+
+### AnimatedIcon Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | **required** | Icon element to animate |
+| `animate` | `AnimationPreset \| AnimationConfig` | - | Animation to apply |
+| `animationDuration` | `number` | varies | Duration override (ms) |
+| `animationLoop` | `boolean` | varies | Loop override |
+| `animationEasing` | `AnimationEasing` | varies | Easing override |
+| `animationDelay` | `number` | `0` | Delay before start (ms) |
+| `autoPlay` | `boolean` | `true` | Auto-start animation |
+| `onAnimationComplete` | `() => void` | - | Callback on completion |
+| `width` | `number` | - | Width of container |
+| `height` | `number` | - | Height of container |
+| `testID` | `string` | - | Test ID for testing |
+
+### Animation Presets
+
+| Preset | Effect | Duration | Loops |
+|--------|--------|----------|-------|
+| `spin` | 360° rotation | 1000ms | Yes |
+| `pulse` | Opacity fade | 1500ms | Yes |
+| `bounce` | Scale bounce | 600ms | Yes |
+| `shake` | Horizontal shake | 500ms | No |
+| `ping` | Expand effect | 1000ms | Yes |
+| `wiggle` | Rotate ±15° | 300ms | No |
+
+### Ref Support
+
+AnimatedIcon supports ref forwarding for programmatic animation control.
+
+```tsx
+import { useRef } from 'react';
+import { AnimatedIcon, type AnimationControls } from 'rn-iconify';
+import { Mdi } from 'rn-iconify';
+
+function ControlledAnimation() {
+  const animationRef = useRef<AnimationControls>(null);
+
+  return (
+    <>
+      <AnimatedIcon ref={animationRef} animate="spin" autoPlay={false}>
+        <Mdi name="loading" size={24} />
+      </AnimatedIcon>
+
+      <Button onPress={() => animationRef.current?.start()} title="Start" />
+      <Button onPress={() => animationRef.current?.stop()} title="Stop" />
+    </>
+  );
+}
+```
+
+### AnimationControls (Ref Type)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `start()` | `() => void` | Start the animation |
+| `stop()` | `() => void` | Stop the animation |
+| `pause()` | `() => void` | Pause the animation |
+| `resume()` | `() => void` | Resume a paused animation |
+| `reset()` | `() => void` | Reset to initial state |
+| `state` | `AnimationState` | `'idle'` \| `'running'` \| `'paused'` \| `'completed'` |
+| `isAnimating` | `boolean` | Whether animation is currently running |
+
+---
+
+## IconAliasProvider
+
+Provider component for icon aliases.
+
+```tsx
+import { IconAliasProvider, Icon } from 'rn-iconify';
+
+const aliases = {
+  home: 'mdi:home',
+  user: 'heroicons:user',
+  settings: 'mdi:cog',
+} as const;
+
+function App() {
+  return (
+    <IconAliasProvider aliases={aliases}>
+      <Icon name="home" size={24} />
+      <Icon name="user" size={24} />
+    </IconAliasProvider>
+  );
+}
+```
+
+### IconAliasProvider Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `aliases` | `Record<string, string>` | **required** | Alias name to icon name mappings |
+| `extend` | `boolean` | `true` | Whether to inherit parent aliases |
+| `children` | `ReactNode` | **required** | Child components |
+
+---
+
+## AccessibilityProvider
+
+Provider component for accessibility configuration.
+
+```tsx
+import { AccessibilityProvider, Mdi } from 'rn-iconify';
+
+function App() {
+  return (
+    <AccessibilityProvider
+      config={{
+        autoLabels: true,
+        respectReducedMotion: true,
+        minTouchTargetSize: 44,
+      }}
+    >
+      <Mdi name="home" size={24} />
+    </AccessibilityProvider>
+  );
+}
+```
+
+### AccessibilityProvider Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `config` | `AccessibilityConfig` | `{}` | Accessibility configuration (optional) |
+| `children` | `ReactNode` | **required** | Child components |
+
+:::info
+The `config` prop is optional. When not provided or partially provided, default values are used for any missing options.
+:::
+
+### AccessibilityConfig Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `autoLabels` | `boolean` | `true` | Auto-generate accessibility labels |
+| `labelGenerator` | `(name: string) => string` | `defaultLabelGenerator` | Custom label generator |
+| `highContrast` | `boolean` | `false` | Enable high contrast mode |
+| `respectReducedMotion` | `boolean` | `true` | Respect reduced motion preference |
+| `defaultRole` | `AccessibilityRole` | `'image'` | Default accessibility role |
+| `showFocusIndicators` | `boolean` | `true` | Show focus indicators |
+| `minTouchTargetSize` | `number` | `44` | Minimum touch target size |
+
+---
+
+## IconExplorer
+
+Development tool for browsing and testing icons.
+
+```tsx
+import { IconExplorer } from 'rn-iconify';
+
+function DevScreen() {
+  return (
+    <IconExplorer
+      visible={true}
+      onClose={() => console.log('Closed')}
+      onIconSelect={(name) => console.log('Selected:', name)}
+    />
+  );
+}
+```
+
+### IconExplorer Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `visible` | `boolean` | `true` | Whether explorer is visible |
+| `onClose` | `() => void` | - | Callback when closed |
+| `iconSets` | `string[]` | `[]` | Icon sets to include (empty = all) |
+| `initialQuery` | `string` | `''` | Initial search query |
+| `maxResults` | `number` | `100` | Maximum search results |
+| `preview` | `Partial<PreviewConfig>` | - | Preview configuration (sizes, colors, etc.) |
+| `onIconSelect` | `(name: string) => void` | - | Callback when icon selected |
+| `onCopyCode` | `(code: string) => void` | - | Callback when code copied |
+| `keyboardShortcuts` | `boolean` | `true` | Enable keyboard shortcuts |
+| `style` | `object` | - | Custom container styles |
+
+---
+
+## Placeholder Components
+
+rn-iconify provides three built-in placeholder components for loading states, plus a factory component.
+
+### PlaceholderFactory
+
+Factory component that renders the appropriate placeholder based on type.
+
+```tsx
+import { PlaceholderFactory } from 'rn-iconify';
+
+<PlaceholderFactory
+  type="shimmer"
+  width={24}
+  height={24}
+  color="#E1E1E1"
+/>
+```
+
+#### PlaceholderFactory Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `PlaceholderType` | **required** | Placeholder type: `'skeleton'`, `'pulse'`, `'shimmer'`, or custom `ReactNode` |
+| `width` | `number` | **required** | Width of the placeholder |
+| `height` | `number` | **required** | Height of the placeholder |
+| `color` | `string` | `'#E1E1E1'` | Background color |
+| `highlightColor` | `string` | `'#F5F5F5'` | Secondary color (for shimmer gradient) |
+| `duration` | `number` | `1000` | Animation duration (ms) |
+| `borderRadius` | `number` | `4` | Border radius |
+| `testID` | `string` | - | Test ID for testing |
+
+---
+
+### Skeleton
+
+Simple static placeholder with no animation.
+
+```tsx
+import { Skeleton } from 'rn-iconify';
+
+<Skeleton width={24} height={24} color="#E1E1E1" />
+```
+
+#### Skeleton Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Width of the placeholder |
+| `height` | `number` | **required** | Height of the placeholder |
+| `color` | `string` | `'#E1E1E1'` | Background color |
+| `borderRadius` | `number` | `4` | Border radius |
+| `testID` | `string` | - | Test ID for testing |
+
+---
+
+### Pulse
+
+Animated placeholder with opacity fade effect.
+
+```tsx
+import { Pulse } from 'rn-iconify';
+
+<Pulse
+  width={24}
+  height={24}
+  color="#E1E1E1"
+  duration={1500}
+/>
+```
+
+#### Pulse Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Width of the placeholder |
+| `height` | `number` | **required** | Height of the placeholder |
+| `color` | `string` | `'#E1E1E1'` | Background color |
+| `duration` | `number` | `1000` | Animation cycle duration (ms) |
+| `borderRadius` | `number` | `4` | Border radius |
+| `testID` | `string` | - | Test ID for testing |
+
+---
+
+### Shimmer
+
+Animated placeholder with gradient sweep effect.
+
+```tsx
+import { Shimmer } from 'rn-iconify';
+
+<Shimmer
+  width={24}
+  height={24}
+  color="#E1E1E1"
+  highlightColor="#F5F5F5"
+  duration={1000}
+/>
+```
+
+#### Shimmer Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Width of the placeholder |
+| `height` | `number` | **required** | Height of the placeholder |
+| `color` | `string` | `'#E1E1E1'` | Base background color |
+| `highlightColor` | `string` | `'#F5F5F5'` | Gradient highlight color |
+| `duration` | `number` | `1000` | Animation cycle duration (ms) |
+| `borderRadius` | `number` | `4` | Border radius |
+| `testID` | `string` | - | Test ID for testing |
+
+### Usage with Icons
+
+```tsx
+import { Mdi } from 'rn-iconify';
+
+// Using placeholder prop directly
+<Mdi name="home" size={24} placeholder="shimmer" />
+<Mdi name="user" size={24} placeholder="pulse" />
+<Mdi name="settings" size={24} placeholder="skeleton" />
+
+// Custom placeholder component
+<Mdi
+  name="heart"
+  size={32}
+  placeholder={<MyCustomPlaceholder />}
+/>

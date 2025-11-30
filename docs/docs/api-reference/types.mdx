@@ -1,0 +1,2537 @@
+---
+id: types
+title: Types
+sidebar_position: 4
+description: TypeScript type definitions and interfaces
+keywords: [api, types, typescript, interfaces, definitions]
+---
+
+TypeScript type definitions exported by rn-iconify.
+
+## Icon Name Types
+
+Each icon set exports its own icon name type for full autocomplete support.
+
+### MdiIconName
+
+```tsx
+import { type MdiIconName } from 'rn-iconify';
+
+const icon: MdiIconName = 'home'; // ✅
+const invalid: MdiIconName = 'invalid'; // ❌ TypeScript error
+```
+
+### HeroiconsIconName
+
+```tsx
+import { type HeroiconsIconName } from 'rn-iconify';
+
+const icon: HeroiconsIconName = 'user';
+```
+
+### LucideIconName
+
+```tsx
+import { type LucideIconName } from 'rn-iconify';
+
+const icon: LucideIconName = 'camera';
+```
+
+### PhIconName
+
+```tsx
+import { type PhIconName } from 'rn-iconify';
+
+const icon: PhIconName = 'house';
+```
+
+### Other Icon Name Types
+
+All 200+ icon sets have corresponding name types:
+
+```tsx
+import {
+  type TablerIconName,
+  type FeatherIconName,
+  type BiIconName,
+  type Fa6SolidIconName,
+  type Fa6RegularIconName,
+  type Fa6BrandsIconName,
+  type IonIconName,
+  type RiIconName,
+  // ... and 200+ more
+} from 'rn-iconify';
+```
+
+### IconNameType
+
+Utility type for extracting icon names from a component created with `createIconSet`.
+
+```tsx
+import { type IconNameType } from 'rn-iconify';
+
+// Extract icon name type from any icon set component
+type MdiIconName = IconNameType<typeof Mdi>;
+type MyCustomIconName = IconNameType<typeof MyCustomIconSet>;
+```
+
+#### Definition
+
+```tsx
+type IconNameType<T> = T extends React.ComponentType<IconProps<infer N>> ? N : never;
+```
+
+#### Example
+
+```tsx
+import { createIconSet, type IconNameType } from 'rn-iconify';
+
+// Create a custom icon set
+const MyIcons = createIconSet('my-icons', ['icon1', 'icon2', 'icon3']);
+
+// Extract the icon name type
+type MyIconName = IconNameType<typeof MyIcons>;
+
+// Now MyIconName is 'icon1' | 'icon2' | 'icon3'
+const validIcon: MyIconName = 'icon1'; // ✅
+const invalidIcon: MyIconName = 'unknown'; // ❌ TypeScript error
+```
+
+---
+
+## Component Props Types
+
+### IconProps
+
+Base props shared by all icon components.
+
+```tsx
+import { type IconProps } from 'rn-iconify';
+
+interface IconProps<T extends string = string> {
+  /** Icon name from the icon set */
+  name: T;
+
+  /** Icon size (width and height) @default 24 */
+  size?: number;
+
+  /** Icon color @default "#000000" */
+  color?: string;
+
+  /** Custom width (overrides size) */
+  width?: number;
+
+  /** Custom height (overrides size) */
+  height?: number;
+
+  /** Additional styles applied to the icon container */
+  style?: StyleProp<ViewStyle>;
+
+  /** Rotation in degrees */
+  rotate?: 0 | 90 | 180 | 270;
+
+  /** Flip the icon horizontally, vertically, or both */
+  flip?: 'horizontal' | 'vertical' | 'both';
+
+  /** Fallback component shown while the icon is loading (deprecated: use placeholder) */
+  fallback?: ReactNode;
+
+  /** Delay in milliseconds before showing the fallback/placeholder */
+  fallbackDelay?: number;
+
+  /** Placeholder shown while the icon is loading */
+  placeholder?: PlaceholderType;
+
+  /** Placeholder background color */
+  placeholderColor?: string;
+
+  /** Placeholder animation duration in milliseconds */
+  placeholderDuration?: number;
+
+  /** Called when the icon loads successfully */
+  onLoad?: () => void;
+
+  /** Called when the icon fails to load */
+  onError?: (error: Error) => void;
+
+  /** Accessibility label for screen readers */
+  accessibilityLabel?: string;
+
+  /** Test ID for testing purposes */
+  testID?: string;
+
+  /** Animation to apply to the icon */
+  animate?: AnimationType;
+
+  /** Animation duration in milliseconds (overrides preset default) */
+  animationDuration?: number;
+
+  /** Whether the animation should loop */
+  animationLoop?: boolean;
+
+  /** Animation easing function */
+  animationEasing?: AnimationEasing;
+
+  /** Delay before animation starts (ms) */
+  animationDelay?: number;
+
+  /** Whether to start animation automatically */
+  autoPlay?: boolean;
+
+  /** Callback when animation completes (for non-looping animations) */
+  onAnimationComplete?: () => void;
+}
+```
+
+### MdiProps
+
+Props for the Mdi component.
+
+```tsx
+import { type MdiProps } from 'rn-iconify';
+
+interface MdiProps extends IconProps {
+  name: MdiIconName;
+}
+```
+
+### HeroiconsProps
+
+```tsx
+import { type HeroiconsProps } from 'rn-iconify';
+
+interface HeroiconsProps extends IconProps {
+  name: HeroiconsIconName;
+}
+```
+
+Each icon component has its own Props type following the same pattern.
+
+---
+
+## Theme Types
+
+### IconTheme
+
+Theme configuration object.
+
+```tsx
+import { type IconTheme } from 'rn-iconify';
+
+const theme: IconTheme = {
+  size: 24,
+  color: '#333333',
+  placeholder: 'shimmer',
+};
+```
+
+```tsx
+interface IconTheme {
+  /** Default icon size */
+  size?: number;
+
+  /** Default icon color */
+  color?: string;
+
+  /** Default placeholder type */
+  placeholder?: PlaceholderType;
+
+  /** Default placeholder color */
+  placeholderColor?: string;
+
+  /** Default placeholder animation duration (ms) */
+  placeholderDuration?: number;
+
+  /** Default rotation (0 | 90 | 180 | 270) */
+  rotate?: IconRotation;
+
+  /** Default flip direction */
+  flip?: IconFlip;
+
+  /** Delay before showing fallback (ms) */
+  fallbackDelay?: number;
+}
+```
+
+### IconThemeProviderProps
+
+```tsx
+import { type IconThemeProviderProps } from 'rn-iconify';
+
+interface IconThemeProviderProps {
+  theme: IconTheme;
+  children: ReactNode;
+}
+```
+
+---
+
+## Animation Types
+
+### AnimationType
+
+Animation type - can be a preset string or custom configuration.
+
+```tsx
+import { type AnimationType } from 'rn-iconify';
+
+/**
+ * Animation prop type - can be a preset string or custom config
+ */
+type AnimationType = AnimationPreset | AnimationConfig;
+
+// AnimationPreset options:
+// 'spin'    - Continuous rotation (rotate 360°)
+// 'pulse'   - Opacity fade (opacity 1 → 0.4)
+// 'bounce'  - Scale bounce (scale 1 → 1.2)
+// 'shake'   - Horizontal shake (translate)
+// 'ping'    - Scale expand (scale 1 → 1.5)
+// 'wiggle'  - Rotate wiggle (rotate ±15°)
+
+// Or use AnimationConfig for custom animations
+```
+
+---
+
+## Placeholder Types
+
+### PlaceholderType
+
+Placeholder options.
+
+```tsx
+import { type PlaceholderType } from 'rn-iconify';
+
+type PlaceholderType =
+  | 'skeleton'  // Gray box
+  | 'pulse'     // Fading animation
+  | 'shimmer'   // Gradient sweep
+  | ReactNode;  // Custom component
+```
+
+---
+
+## Data Types
+
+### IconifyIconData
+
+Icon SVG data structure from Iconify API.
+
+```tsx
+import { type IconifyIconData } from 'rn-iconify';
+
+interface IconifyIconData {
+  /** SVG body content */
+  body: string;
+
+  /** Icon width */
+  width?: number;
+
+  /** Icon height */
+  height?: number;
+
+  /** Left offset */
+  left?: number;
+
+  /** Top offset */
+  top?: number;
+
+  /** Rotation (0, 1, 2, 3 = 0°, 90°, 180°, 270°) */
+  rotate?: number;
+
+  /** Horizontal flip */
+  hFlip?: boolean;
+
+  /** Vertical flip */
+  vFlip?: boolean;
+}
+```
+
+### IconBundle
+
+Offline bundle structure.
+
+```tsx
+import { type IconBundle } from 'rn-iconify';
+
+interface IconBundle {
+  /** Bundle format version (e.g., "1.0.0") */
+  version: string;
+
+  /** Generation timestamp */
+  generatedAt: string;
+
+  /** Icon data keyed by full name (prefix:name) */
+  icons: Record<string, {
+    svg: string;
+    width: number;
+    height: number;
+  }>;
+
+  /** Total icon count */
+  count: number;
+}
+```
+
+### BundleLoadResult
+
+Result returned from loadOfflineBundle and loadOfflineBundleAsync.
+
+```tsx
+import { type BundleLoadResult } from 'rn-iconify';
+
+interface BundleLoadResult {
+  /** Number of icons loaded */
+  loaded: number;
+
+  /** Number of icons skipped (already cached) */
+  skipped: number;
+
+  /** Total icons in bundle */
+  total: number;
+
+  /** Bundle version */
+  version: string;
+
+  /** Load time in milliseconds */
+  loadTimeMs: number;
+}
+```
+
+---
+
+## Configuration Types
+
+### IconifyConfig
+
+Global configuration options.
+
+```tsx
+import { type IconifyConfig } from 'rn-iconify';
+
+interface IconifyConfig {
+  /** API configuration */
+  api?: IconifyAPIConfig;
+
+  /** Cache configuration */
+  cache?: CacheConfig;
+
+  /** Performance monitoring configuration */
+  performance?: PerformanceConfig;
+}
+
+interface IconifyAPIConfig {
+  /** Iconify API server URL @default 'https://api.iconify.design' */
+  apiUrl?: string;
+
+  /** Request timeout in milliseconds @default 30000 */
+  timeout?: number;
+
+  /** Number of retries on failure @default 2 */
+  retries?: number;
+
+  /** Delay between retries in milliseconds @default 1000 */
+  retryDelay?: number;
+
+  /** Custom HTTP headers */
+  headers?: Record<string, string>;
+
+  /** Enable request logging @default false */
+  logging?: boolean;
+}
+
+interface PerformanceConfig {
+  /** Enable performance monitoring @default false */
+  enabled?: boolean;
+
+  /** Track individual icon load times @default true */
+  trackLoadTimes?: boolean;
+
+  /** Track cache hit/miss rates @default true */
+  trackCacheStats?: boolean;
+
+  /** Maximum number of entries to keep in history @default 1000 */
+  maxHistorySize?: number;
+}
+```
+
+### CacheConfig
+
+Cache configuration options.
+
+```tsx
+import { type CacheConfig } from 'rn-iconify';
+
+interface CacheConfig {
+  /** Maximum number of icons in memory cache @default 500 */
+  maxMemoryItems?: number;
+
+  /** Enable disk cache (MMKV) @default true */
+  enableDiskCache?: boolean;
+
+  /** Disk cache key prefix @default 'rn-iconify:' */
+  diskCachePrefix?: string;
+}
+```
+
+### ResolvedConfig
+
+Resolved configuration with all defaults applied. This is the type returned by `ConfigManager.getConfig()`.
+
+```tsx
+import { type ResolvedConfig } from 'rn-iconify';
+
+interface ResolvedConfig {
+  /** API configuration with all defaults applied */
+  api: Required<IconifyAPIConfig>;
+
+  /** Cache configuration with all defaults applied */
+  cache: Required<CacheConfig>;
+
+  /** Performance configuration with all defaults applied */
+  performance: Required<PerformanceConfig>;
+}
+```
+
+**Usage:**
+
+```tsx
+import { ConfigManager, type ResolvedConfig } from 'rn-iconify';
+
+// Get the fully resolved configuration
+const config: ResolvedConfig = ConfigManager.getConfig();
+
+// All properties are guaranteed to be defined
+console.log(config.api.apiUrl);        // 'https://api.iconify.design'
+console.log(config.api.timeout);       // 30000
+console.log(config.cache.maxMemoryItems); // 500
+console.log(config.performance.enabled);  // false
+```
+
+---
+
+## Navigation Types
+
+### TabBarIconConfig
+
+Configuration for createTabBarIcon.
+
+```tsx
+import { type TabBarIconConfig } from 'rn-iconify';
+
+interface TabBarIconConfig {
+  /** Icon to show when tab is focused */
+  focused: string;
+
+  /** Icon to show when tab is not focused */
+  unfocused?: string;
+
+  /** Custom size override */
+  size?: number;
+
+  /** Custom color for focused state */
+  focusedColor?: string;
+
+  /** Custom color for unfocused state */
+  unfocusedColor?: string;
+
+  /** Additional style for the icon container */
+  style?: StyleProp<ViewStyle>;
+
+  /** Accessibility label */
+  accessibilityLabel?: string;
+}
+```
+
+### HeaderIconConfig
+
+Configuration for createHeaderIcon.
+
+```tsx
+import { type HeaderIconConfig } from 'rn-iconify';
+
+interface HeaderIconConfig {
+  /** Icon name */
+  icon: string;
+
+  /** Press handler */
+  onPress?: () => void;
+
+  /** Icon size */
+  size?: number;
+
+  /** Icon color */
+  color?: string;
+
+  /** Accessibility label */
+  accessibilityLabel?: string;
+
+  /** Container style */
+  style?: StyleProp<ViewStyle>;
+
+  /** Hit slop */
+  hitSlop?: {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+  };
+}
+```
+
+### DrawerIconConfig
+
+Configuration for createDrawerIcon.
+
+```tsx
+import { type DrawerIconConfig } from 'rn-iconify';
+
+interface DrawerIconConfig {
+  /** Icon name */
+  icon: string;
+
+  /** Icon when focused (optional) */
+  focusedIcon?: string;
+
+  /** Override size */
+  size?: number;
+
+  /** Additional style */
+  style?: StyleProp<ViewStyle>;
+}
+```
+
+### TabBarIconProps
+
+Props passed to tab bar icon functions.
+
+```tsx
+import { type TabBarIconProps } from 'rn-iconify';
+
+interface TabBarIconProps {
+  focused: boolean;
+  color: string;
+  size: number;
+}
+```
+
+### DrawerIconProps
+
+Props passed to drawer icon functions.
+
+```tsx
+import { type DrawerIconProps } from 'rn-iconify';
+
+interface DrawerIconProps {
+  focused: boolean;
+  color: string;
+  size: number;
+}
+```
+
+### HeaderIconProps
+
+Props passed to header icon functions.
+
+```tsx
+import { type HeaderIconProps } from 'rn-iconify';
+
+interface HeaderIconProps {
+  tintColor?: string;
+  pressColor?: string;
+  pressOpacity?: number;
+}
+```
+
+### IconSpec
+
+Type alias for icon name strings.
+
+```tsx
+import { type IconSpec } from 'rn-iconify';
+
+/**
+ * Icon specification - can be a full name or alias
+ * @example 'mdi:home' or 'home' (if alias is registered)
+ */
+type IconSpec = string;
+```
+
+### SimpleTabBarIconConfig
+
+Simple configuration for tab bar icons.
+
+```tsx
+import { type SimpleTabBarIconConfig } from 'rn-iconify';
+
+/**
+ * Simple config - just icon names
+ * Can be a single icon (same for both states) or tuple [focused, unfocused]
+ */
+type SimpleTabBarIconConfig = IconSpec | [IconSpec, IconSpec];
+
+// Examples:
+// 'mdi:home'                    - Same icon for both states
+// ['mdi:home', 'mdi:home-outline'] - Different icons for focused/unfocused
+```
+
+### TabBarIconFunction
+
+Return type for createTabBarIcon.
+
+```tsx
+import { type TabBarIconFunction, type TabBarIconProps } from 'rn-iconify';
+
+type TabBarIconFunction = (props: TabBarIconProps) => ReactNode;
+```
+
+### DrawerIconFunction
+
+Return type for createDrawerIcon.
+
+```tsx
+import { type DrawerIconFunction, type DrawerIconProps } from 'rn-iconify';
+
+type DrawerIconFunction = (props: DrawerIconProps) => ReactNode;
+```
+
+### HeaderIconFunction
+
+Return type for createHeaderIcon.
+
+```tsx
+import { type HeaderIconFunction, type HeaderIconProps } from 'rn-iconify';
+
+type HeaderIconFunction = (props: HeaderIconProps) => ReactNode;
+```
+
+### NavigationIconPreset
+
+Common icon patterns for navigation.
+
+```tsx
+import { type NavigationIconPreset } from 'rn-iconify';
+
+interface NavigationIconPreset {
+  home: { focused: IconSpec; unfocused: IconSpec };
+  search: { focused: IconSpec; unfocused: IconSpec };
+  profile: { focused: IconSpec; unfocused: IconSpec };
+  settings: { focused: IconSpec; unfocused: IconSpec };
+  notifications: { focused: IconSpec; unfocused: IconSpec };
+  messages: { focused: IconSpec; unfocused: IconSpec };
+  favorites: { focused: IconSpec; unfocused: IconSpec };
+  cart: { focused: IconSpec; unfocused: IconSpec };
+}
+```
+
+### DEFAULT_NAVIGATION_PRESETS
+
+Pre-configured navigation icon presets using MDI icons.
+
+```tsx
+import { DEFAULT_NAVIGATION_PRESETS } from 'rn-iconify';
+
+const DEFAULT_NAVIGATION_PRESETS: NavigationIconPreset = {
+  home: { focused: 'mdi:home', unfocused: 'mdi:home-outline' },
+  search: { focused: 'mdi:magnify', unfocused: 'mdi:magnify' },
+  profile: { focused: 'mdi:account', unfocused: 'mdi:account-outline' },
+  settings: { focused: 'mdi:cog', unfocused: 'mdi:cog-outline' },
+  notifications: { focused: 'mdi:bell', unfocused: 'mdi:bell-outline' },
+  messages: { focused: 'mdi:message', unfocused: 'mdi:message-outline' },
+  favorites: { focused: 'mdi:heart', unfocused: 'mdi:heart-outline' },
+  cart: { focused: 'mdi:cart', unfocused: 'mdi:cart-outline' },
+};
+
+// Usage with createTabBarIcon
+tabBarIcon: createTabBarIcon(DEFAULT_NAVIGATION_PRESETS.home)
+```
+
+### UseNavigationIconOptions
+
+Options for the useNavigationIcon hook.
+
+```tsx
+import { type UseNavigationIconOptions } from 'rn-iconify';
+
+interface UseNavigationIconOptions {
+  /** Default size for icons @default 24 */
+  defaultSize?: number;
+
+  /** Suffix for unfocused icon variants @default '-outline' */
+  outlineSuffix?: string;
+}
+```
+
+### UseNavigationIconReturn
+
+Return type for the useNavigationIcon hook.
+
+```tsx
+import { type UseNavigationIconReturn } from 'rn-iconify';
+
+interface UseNavigationIconReturn {
+  /** Create a tab bar icon function */
+  tabBarIcon: (focused: string, unfocused?: string) => TabBarIconFunction;
+
+  /** Create a drawer icon function */
+  drawerIcon: (icon: string, focusedIcon?: string) => DrawerIconFunction;
+
+  /** Create an auto-outline tab bar icon (uses {name} and {name}-outline) */
+  autoTabBarIcon: (prefix: string, name: string) => TabBarIconFunction;
+
+  /** Render an icon directly with navigation props */
+  renderIcon: (name: string, props: { color: string; size: number }) => React.ReactElement;
+}
+```
+
+---
+
+## Alias Types
+
+### CreateIconAliasesConfig
+
+Configuration for createIconAliases.
+
+```tsx
+import { type CreateIconAliasesConfig } from 'rn-iconify';
+
+interface CreateIconAliasesConfig<T extends IconAliasMap> {
+  /** Alias definitions */
+  aliases: T;
+
+  /** Validate icon names at creation time (dev only) @default true */
+  validate?: boolean;
+}
+```
+
+### IconAliasResult
+
+Result from createIconAliases.
+
+```tsx
+import { type IconAliasResult } from 'rn-iconify';
+
+interface IconAliasResult<T extends IconAliasMap> {
+  /** The alias map */
+  aliases: IconAliases<T>;
+
+  /** Type-safe Icon component with alias support */
+  Icon: React.ComponentType<GenericIconProps<AliasName<T>>>;
+
+  /** Provider component for alias context */
+  Provider: React.ComponentType<{ children: React.ReactNode }>;
+
+  /** Resolve an alias to full icon name */
+  resolve: (name: AliasName<T> | string) => string;
+
+  /** Type helper for alias names */
+  AliasName: AliasName<T>;
+}
+```
+
+---
+
+## Context Types
+
+### IconThemeContext
+
+Raw React Context for the icon theme system.
+
+```tsx
+import { IconThemeContext } from 'rn-iconify';
+
+// Access context directly (prefer useIconTheme hook)
+const themeContext = useContext(IconThemeContext);
+```
+
+```tsx
+const IconThemeContext: React.Context<IconThemeContextValue | null>;
+
+interface IconThemeContextValue {
+  /** Current theme values */
+  theme: IconTheme;
+
+  /** Update theme */
+  setTheme: (theme: IconTheme | ((prev: IconTheme) => IconTheme)) => void;
+}
+```
+
+### IconAliasContext
+
+Raw React Context for the icon alias system.
+
+```tsx
+import { IconAliasContext } from 'rn-iconify';
+
+// Access context directly (prefer useIconAliasContext hook)
+const aliasContext = useContext(IconAliasContext);
+```
+
+```tsx
+const IconAliasContext: React.Context<IconAliasContextValue | null>;
+
+interface IconAliasContextValue {
+  /** Alias mappings */
+  aliases: Record<string, string>;
+
+  /** Resolve an alias to full icon name */
+  resolveIcon: (name: string) => string;
+
+  /** Check if an alias exists */
+  isAlias: (name: string) => boolean;
+
+  /** Register new aliases dynamically */
+  registerAliases: (newAliases: Record<string, string>) => void;
+}
+```
+
+### ExplorerContext
+
+Raw React Context for the Icon Explorer.
+
+```tsx
+import { ExplorerContext } from 'rn-iconify';
+
+// Access context directly (prefer useExplorerContext hook)
+const explorerContext = useContext(ExplorerContext);
+```
+
+```tsx
+const ExplorerContext: React.Context<ExplorerContextValue | null>;
+
+interface ExplorerContextValue {
+  // === State Properties (from ExplorerState) ===
+  /** Current search query */
+  query: string;
+
+  /** Search results */
+  results: SearchResult[];
+
+  /** Currently selected icon */
+  selectedIcon: string | null;
+
+  /** Active icon set filter */
+  activeIconSet: string | null;
+
+  /** Loading state */
+  isLoading: boolean;
+
+  /** Error message if any */
+  error: string | null;
+
+  /** Current preview size */
+  previewSize: number;
+
+  /** Current preview color */
+  previewColor: string;
+
+  // === Context-Specific Properties ===
+  /** Explorer configuration */
+  config: ResolvedExplorerConfig;
+
+  /** Available icon sets */
+  iconSets: IconSetInfo[];
+
+  /** Total icons available */
+  totalIcons: number;
+
+  /** Whether collections have loaded */
+  collectionsLoaded: boolean;
+
+  // === Action Methods (from ExplorerActions) ===
+  /** Update search query */
+  setQuery: (query: string) => void;
+
+  /** Select an icon */
+  selectIcon: (iconName: string | null) => void;
+
+  /** Filter by icon set */
+  filterByIconSet: (prefix: string | null) => void;
+
+  /** Change preview size */
+  setPreviewSize: (size: number) => void;
+
+  /** Change preview color */
+  setPreviewColor: (color: string) => void;
+
+  /** Copy icon code to clipboard */
+  copyIconCode: (iconName: string, format?: 'jsx' | 'import') => void;
+
+  /** Reset explorer state */
+  reset: () => void;
+}
+```
+
+---
+
+## Manager Objects
+
+### ConfigManager
+
+Singleton object for managing configuration.
+
+```tsx
+import { ConfigManager } from 'rn-iconify';
+
+// Get current API configuration
+const apiConfig = ConfigManager.getAPIConfig();
+
+// Subscribe to config changes
+const unsubscribe = ConfigManager.onConfigChange((config) => {
+  console.log('Config changed:', config);
+});
+```
+
+```tsx
+interface ConfigManagerAPI {
+  /** Get current full configuration */
+  getConfig(): ResolvedConfig;
+
+  /** Get current API configuration */
+  getAPIConfig(): Required<IconifyAPIConfig>;
+
+  /** Get current cache configuration */
+  getCacheConfig(): Required<CacheConfig>;
+
+  /** Get current performance configuration */
+  getPerformanceConfig(): Required<PerformanceConfig>;
+
+  /** Update configuration */
+  setConfig(config: IconifyConfig): void;
+
+  /** Reset to defaults */
+  resetConfig(): void;
+
+  /** Subscribe to config changes */
+  onConfigChange(callback: (config: ResolvedConfig) => void): () => void;
+
+  /** Check if using a custom API server */
+  isCustomServer(): boolean;
+
+  /** Get the API base URL */
+  getAPIUrl(): string;
+}
+```
+
+### CacheManager
+
+Singleton object for managing icon cache.
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+// Check if icon is cached
+const isCached = CacheManager.has('mdi:home');
+
+// Get cache statistics
+const stats = CacheManager.getStats();
+```
+
+```tsx
+interface CacheManagerAPI {
+  /** Get icon SVG from cache (returns SVG string or null) */
+  get(iconName: string): string | null;
+
+  /** Store icon SVG in both memory and disk cache */
+  set(iconName: string, svg: string): void;
+
+  /** Check if icon exists in any cache */
+  has(iconName: string): boolean;
+
+  /** Remove icon from all caches */
+  delete(iconName: string): void;
+
+  /** Prefetch icons into cache */
+  prefetch(
+    iconNames: string[],
+    fetchFn: (iconName: string) => Promise<string>
+  ): Promise<{ success: string[]; failed: string[] }>;
+
+  /** Load offline bundle into cache (returns count of icons loaded) */
+  loadBundle(bundle: IconBundle): number;
+
+  /** Get cache statistics */
+  getStats(): {
+    memoryCount: number;
+    bundledCount: number;
+    diskCount: number;
+    diskSizeBytes: number;
+  };
+
+  /** Clear all caches (synchronous) */
+  clear(): void;
+
+  /** Clear memory cache only */
+  clearMemory(): void;
+
+  /** Check if icon is in bundled cache */
+  hasBundled(iconName: string): boolean;
+
+  /** Get bundled icons count */
+  getBundledCount(): number;
+
+  /** Check if native module is available for prefetching */
+  isNativeAvailable(): boolean;
+
+  /** Get native module cache stats (if available) */
+  getNativeStats(): Promise<{
+    diskCount: number;
+    diskSizeBytes: number;
+    hitRate: number;
+  } | null>;
+
+  /** Clear native module cache (if available) */
+  clearNative(): Promise<void>;
+}
+```
+
+### PerformanceMonitor
+
+Singleton object for performance monitoring.
+
+```tsx
+import { PerformanceMonitor } from 'rn-iconify';
+
+// Enable monitoring
+PerformanceMonitor.enable();
+
+// Subscribe to events
+const unsubscribe = PerformanceMonitor.subscribe((event) => {
+  console.log(`${event.iconName} loaded in ${event.duration}ms`);
+});
+
+// Get performance summary
+const summary = PerformanceMonitor.getSummary();
+```
+
+```tsx
+interface PerformanceMonitorAPI {
+  /** Enable performance monitoring */
+  enable(): void;
+
+  /** Disable performance monitoring */
+  disable(): void;
+
+  /** Check if monitoring is enabled */
+  isEnabled(): boolean;
+
+  /** Subscribe to load events */
+  subscribe(callback: (event: IconLoadEvent) => void): () => void;
+
+  /** Get all recorded events */
+  getEvents(): IconLoadEvent[];
+
+  /** Get performance summary with percentiles */
+  getSummary(): PerformanceSummary;
+
+  /** Get cache-specific statistics */
+  getCacheStats(): CacheStatistics;
+
+  /** Get full performance report */
+  getReport(): PerformanceReport;
+
+  /** Format report as string (for console output) */
+  formatReport(): string;
+
+  /** Reset all collected data */
+  reset(): void;
+}
+
+interface IconLoadEvent {
+  /** Icon name (e.g., "mdi:home") */
+  iconName: string;
+
+  /** Event type indicating cache layer */
+  type: LoadEventType;
+
+  /** Load time in milliseconds */
+  duration: number;
+
+  /** Timestamp of the event */
+  timestamp: number;
+
+  /** Error message if type is 'error' */
+  error?: string;
+}
+
+interface PerformanceSummary {
+  /** Average load time in milliseconds */
+  avgLoadTime: number;
+
+  /** Minimum load time in milliseconds */
+  minLoadTime: number;
+
+  /** Maximum load time in milliseconds */
+  maxLoadTime: number;
+
+  /** 50th percentile (median) load time */
+  p50LoadTime: number;
+
+  /** 90th percentile load time */
+  p90LoadTime: number;
+
+  /** 99th percentile load time */
+  p99LoadTime: number;
+
+  /** Total icons loaded */
+  totalLoads: number;
+
+  /** Total errors */
+  totalErrors: number;
+
+  /** Uptime since monitoring started (ms) */
+  uptime: number;
+}
+
+```
+
+---
+
+## Core Types
+
+### IconRotation
+
+Valid rotation values for icons.
+
+```tsx
+import { type IconRotation } from 'rn-iconify';
+
+type IconRotation = 0 | 90 | 180 | 270;
+
+// Usage
+<Mdi name="arrow-right" rotate={90} />
+```
+
+### IconFlip
+
+Valid flip directions for icons.
+
+```tsx
+import { type IconFlip } from 'rn-iconify';
+
+type IconFlip = 'horizontal' | 'vertical' | 'both';
+
+// Usage
+<Mdi name="arrow-right" flip="horizontal" />
+```
+
+### IconLoadingState
+
+Possible loading states for an icon.
+
+```tsx
+import { type IconLoadingState } from 'rn-iconify';
+
+type IconLoadingState = 'idle' | 'loading' | 'loaded' | 'error';
+```
+
+### IconifyIconData
+
+Raw icon data structure from Iconify API.
+
+```tsx
+import { type IconifyIconData } from 'rn-iconify';
+
+interface IconifyIconData {
+  /** SVG body content */
+  body: string;
+  /** Icon width */
+  width?: number;
+  /** Icon height */
+  height?: number;
+  /** Left offset */
+  left?: number;
+  /** Top offset */
+  top?: number;
+  /** Rotation (0, 1, 2, 3 = 0°, 90°, 180°, 270°) */
+  rotate?: number;
+  /** Horizontal flip */
+  hFlip?: boolean;
+  /** Vertical flip */
+  vFlip?: boolean;
+}
+```
+
+### IconifyAPIResponse
+
+API response structure from Iconify.
+
+```tsx
+import { type IconifyAPIResponse } from 'rn-iconify';
+
+interface IconifyAPIResponse {
+  /** Icon set prefix */
+  prefix: string;
+  /** Map of icon names to their data */
+  icons: Record<string, IconifyIconData>;
+  /** Default width for icons without explicit width */
+  width?: number;
+  /** Default height for icons without explicit height */
+  height?: number;
+  /** Last modification timestamp */
+  lastModified?: number;
+  /** Array of icon names that were not found */
+  not_found?: string[];
+}
+```
+
+### IconifyCollectionInfo
+
+Icon collection metadata from Iconify API.
+
+```tsx
+import { type IconifyCollectionInfo } from 'rn-iconify';
+
+interface IconifyCollectionInfo {
+  /** Icon set prefix */
+  prefix: string;
+  /** Total number of icons */
+  total: number;
+  /** Icon set display name */
+  title?: string;
+  /** Array of icon names */
+  icons: string[];
+  /** Icon aliases */
+  aliases?: Record<string, string>;
+  /** Icon categories */
+  categories?: Record<string, string[]>;
+}
+```
+
+---
+
+## Alias Types
+
+### IconAliasProviderProps
+
+Props for IconAliasProvider component.
+
+```tsx
+import { type IconAliasProviderProps } from 'rn-iconify';
+
+interface IconAliasProviderProps {
+  /** Icon alias definitions */
+  aliases: IconAliasMap;
+
+  /** Allow extending parent aliases @default true */
+  extend?: boolean;
+
+  /** Children components */
+  children: React.ReactNode;
+}
+```
+
+### IconAliasMap
+
+Type for alias mapping object.
+
+```tsx
+import { type IconAliasMap } from 'rn-iconify';
+
+type IconAliasMap = Record<string, string>;
+
+const aliases: IconAliasMap = {
+  home: 'mdi:home',
+  user: 'heroicons:user',
+};
+```
+
+### IconAliases
+
+Generic type for strongly-typed aliases with readonly properties.
+
+```tsx
+import { type IconAliases } from 'rn-iconify';
+
+type IconAliases<T extends IconAliasMap> = {
+  readonly [K in keyof T]: T[K];
+};
+```
+
+### AliasName
+
+Extract alias names from an alias map.
+
+```tsx
+import { type AliasName } from 'rn-iconify';
+
+const aliases = { home: 'mdi:home', user: 'heroicons:user' } as const;
+type MyAliasName = AliasName<typeof aliases>;
+// 'home' | 'user'
+```
+
+### GenericIconProps
+
+Props for the generic Icon component that accepts either a full icon name or an alias.
+
+```tsx
+import { type GenericIconProps } from 'rn-iconify';
+
+interface GenericIconProps<TAlias extends string = string>
+  extends Omit<IconProps<TAlias>, 'name'> {
+  /**
+   * Icon name - can be:
+   * - Full icon name: "mdi:home", "heroicons:user"
+   * - Alias name: "back", "menu" (if aliases are configured)
+   */
+  name: TAlias | string;
+}
+```
+
+**Usage:**
+
+```tsx
+import { type GenericIconProps, type AliasName } from 'rn-iconify';
+
+// Use with createIconAliases result
+const { Icon } = createIconAliases({
+  aliases: { home: 'mdi:home', user: 'heroicons:user' } as const,
+});
+
+// Icon accepts GenericIconProps<AliasName<typeof aliases>>
+// which provides autocomplete for 'home' | 'user' plus any string
+```
+
+---
+
+## Placeholder Types
+
+### PlaceholderPreset
+
+Built-in placeholder presets.
+
+```tsx
+import { type PlaceholderPreset } from 'rn-iconify';
+
+type PlaceholderPreset = 'skeleton' | 'pulse' | 'shimmer';
+```
+
+### PlaceholderConfig
+
+Configuration for custom placeholders.
+
+```tsx
+import { type PlaceholderConfig } from 'rn-iconify';
+
+interface PlaceholderConfig {
+  /** Placeholder background color @default '#E1E1E1' */
+  color?: string;
+  /** Secondary color for shimmer gradient @default '#F5F5F5' */
+  highlightColor?: string;
+  /** Animation duration in milliseconds @default 1000 */
+  duration?: number;
+  /** Border radius of the placeholder @default 4 */
+  borderRadius?: number;
+}
+```
+
+### PlaceholderProps
+
+Props for individual placeholder components (Skeleton, Pulse, Shimmer).
+
+```tsx
+import { type PlaceholderProps } from 'rn-iconify';
+
+interface PlaceholderProps extends PlaceholderConfig {
+  /** Width of the placeholder */
+  width: number;
+
+  /** Height of the placeholder */
+  height: number;
+
+  /** Test ID for testing */
+  testID?: string;
+}
+```
+
+### PlaceholderFactoryProps
+
+Props for PlaceholderFactory component.
+
+```tsx
+import { type PlaceholderFactoryProps } from 'rn-iconify';
+
+interface PlaceholderFactoryProps extends PlaceholderConfig {
+  /** Type of placeholder to render */
+  type: PlaceholderType;
+
+  /** Width of the placeholder */
+  width: number;
+
+  /** Height of the placeholder */
+  height: number;
+
+  /** Test ID for testing */
+  testID?: string;
+}
+```
+
+---
+
+## Animation Types
+
+### AnimationPreset
+
+Built-in animation presets.
+
+```tsx
+import { type AnimationPreset } from 'rn-iconify';
+
+type AnimationPreset = 'spin' | 'pulse' | 'bounce' | 'shake' | 'ping' | 'wiggle';
+```
+
+### AnimationDirection
+
+Animation direction for reversible animations.
+
+```tsx
+import { type AnimationDirection } from 'rn-iconify';
+
+type AnimationDirection = 'normal' | 'reverse' | 'alternate' | 'alternate-reverse';
+```
+
+### AnimationConfig
+
+Configuration for custom animations.
+
+```tsx
+import { type AnimationConfig } from 'rn-iconify';
+
+interface AnimationConfig {
+  /** Animation type */
+  type: 'rotate' | 'scale' | 'opacity' | 'translate' | 'sequence';
+  /** Duration in ms @default 1000 */
+  duration?: number;
+  /** Whether to loop the animation @default true for rotate/scale/opacity, false for others */
+  loop?: boolean;
+  /** Number of iterations (-1 for infinite) @default -1 */
+  iterations?: number;
+  /** Easing function @default 'linear' for rotate, 'ease-in-out' for others */
+  easing?: AnimationEasing;
+  /** Animation direction @default 'normal' */
+  direction?: AnimationDirection;
+  /** Delay before starting (ms) @default 0 */
+  delay?: number;
+  /**
+   * Start value for animation
+   * - rotate: degrees (default: 0)
+   * - scale: scale factor (default: 1)
+   * - opacity: opacity value 0-1 (default: 1)
+   * - translate: { x?: number; y?: number } in pixels (default: { x: 0, y: 0 })
+   */
+  from?: number | { x?: number; y?: number };
+  /**
+   * End value for animation
+   * - rotate: degrees (default: 360)
+   * - scale: scale factor (default: 1.2)
+   * - opacity: opacity value 0-1 (default: 0.4)
+   * - translate: { x?: number; y?: number } in pixels (default: { x: 10, y: 0 })
+   */
+  to?: number | { x?: number; y?: number };
+}
+```
+
+### ResolvedAnimationConfig
+
+Fully resolved animation configuration with all defaults applied. Used internally by the animation system.
+
+```tsx
+import { type ResolvedAnimationConfig } from 'rn-iconify';
+
+interface ResolvedAnimationConfig {
+  /** Animation type */
+  type: AnimationConfig['type'];
+  /** Duration in milliseconds */
+  duration: number;
+  /** Whether animation loops */
+  loop: boolean;
+  /** Number of iterations */
+  iterations: number;
+  /** Easing function */
+  easing: AnimationEasing;
+  /** Animation direction */
+  direction: AnimationDirection;
+  /** Delay before starting (ms) */
+  delay: number;
+  /** Start value (normalized) */
+  from: number | { x: number; y: number };
+  /** End value (normalized) */
+  to: number | { x: number; y: number };
+}
+```
+
+### AnimationEasing
+
+Available easing functions.
+
+```tsx
+import { type AnimationEasing } from 'rn-iconify';
+
+type AnimationEasing =
+  | 'linear'
+  | 'ease'
+  | 'ease-in'
+  | 'ease-out'
+  | 'ease-in-out'
+  | 'bounce'
+  | EasingFunction;
+```
+
+### AnimationControls
+
+Animation control interface (exposed via AnimatedIcon ref).
+
+```tsx
+import { type AnimationControls } from 'rn-iconify';
+
+interface AnimationControls {
+  /** Start the animation */
+  start: () => void;
+  /** Stop the animation */
+  stop: () => void;
+  /** Pause the animation */
+  pause: () => void;
+  /** Resume a paused animation */
+  resume: () => void;
+  /** Reset animation to initial state */
+  reset: () => void;
+  /** Current animation state */
+  state: AnimationState;
+  /** Whether animation is currently running */
+  isAnimating: boolean;
+}
+```
+
+:::info
+Note: `animatedStyle` and `hasAnimation` are returned by the `useIconAnimation` hook but are NOT part of the `AnimationControls` ref interface. The ref only exposes control methods and state.
+:::
+
+### AnimatedIconProps
+
+Props for the AnimatedIcon wrapper component.
+
+```tsx
+import { type AnimatedIconProps } from 'rn-iconify';
+
+interface AnimatedIconProps {
+  /** Icon element to animate (required) */
+  children: ReactNode;
+
+  /** Animation preset or custom config */
+  animate?: AnimationType;
+
+  /** Animation duration override (ms) */
+  animationDuration?: number;
+
+  /** Whether animation should loop */
+  animationLoop?: boolean;
+
+  /** Animation easing function */
+  animationEasing?: AnimationEasing;
+
+  /** Delay before animation starts (ms) */
+  animationDelay?: number;
+
+  /** Whether to start animation immediately (default: true) */
+  autoPlay?: boolean;
+
+  /** Callback when animation completes (non-looping) */
+  onAnimationComplete?: () => void;
+
+  /** Container width */
+  width?: number;
+
+  /** Container height */
+  height?: number;
+
+  /** Test ID for testing */
+  testID?: string;
+}
+```
+
+### AnimationState
+
+Animation state as a string literal union.
+
+```tsx
+import { type AnimationState } from 'rn-iconify';
+
+type AnimationState = 'idle' | 'running' | 'paused' | 'completed';
+```
+
+| Value | Description |
+|-------|-------------|
+| `'idle'` | Animation not started or reset |
+| `'running'` | Animation currently playing |
+| `'paused'` | Animation paused mid-play |
+| `'completed'` | Animation finished (non-looping) |
+
+---
+
+## Performance Types
+
+### LoadEventType
+
+Types of load events based on cache layer source.
+
+```tsx
+import { type LoadEventType } from 'rn-iconify';
+
+type LoadEventType = 'memory_hit' | 'bundled_hit' | 'disk_hit' | 'network_fetch' | 'error';
+```
+
+| Value | Description |
+|-------|-------------|
+| `'memory_hit'` | Icon loaded from in-memory LRU cache |
+| `'bundled_hit'` | Icon loaded from offline bundle |
+| `'disk_hit'` | Icon loaded from MMKV disk cache |
+| `'network_fetch'` | Icon fetched from Iconify API |
+| `'error'` | Load failed with error |
+
+### CacheStatistics
+
+Statistics about cache performance during monitoring.
+
+```tsx
+import { type CacheStatistics } from 'rn-iconify';
+
+interface CacheStatistics {
+  /** Number of memory cache hits */
+  memoryHits: number;
+  /** Number of bundled icon hits */
+  bundledHits: number;
+  /** Number of disk cache hits */
+  diskHits: number;
+  /** Number of network fetches */
+  networkFetches: number;
+  /** Number of errors */
+  errors: number;
+  /** Total requests */
+  totalRequests: number;
+  /** Cache hit rate (0-1) */
+  hitRate: number;
+}
+```
+
+### IconLoadEvent
+
+Single icon load event for performance monitoring.
+
+```tsx
+import { type IconLoadEvent } from 'rn-iconify';
+
+interface IconLoadEvent {
+  /** Icon name (e.g., "mdi:home") */
+  iconName: string;
+  /** Event type */
+  type: LoadEventType;
+  /** Load time in milliseconds */
+  duration: number;
+  /** Timestamp of the event */
+  timestamp: number;
+  /** Error message if type is 'error' */
+  error?: string;
+}
+```
+
+### PerformanceSummary
+
+Performance metrics summary.
+
+```tsx
+import { type PerformanceSummary } from 'rn-iconify';
+
+interface PerformanceSummary {
+  /** Average load time in milliseconds */
+  avgLoadTime: number;
+  /** Minimum load time in milliseconds */
+  minLoadTime: number;
+  /** Maximum load time in milliseconds */
+  maxLoadTime: number;
+  /** 50th percentile (median) load time */
+  p50LoadTime: number;
+  /** 90th percentile load time */
+  p90LoadTime: number;
+  /** 99th percentile load time */
+  p99LoadTime: number;
+  /** Total icons loaded */
+  totalLoads: number;
+  /** Total errors */
+  totalErrors: number;
+  /** Uptime since monitoring started (ms) */
+  uptime: number;
+}
+```
+
+### PerformanceReport
+
+Complete performance report from PerformanceMonitor.getReport().
+
+```tsx
+import { type PerformanceReport } from 'rn-iconify';
+
+interface PerformanceReport {
+  /** Performance summary metrics */
+  summary: PerformanceSummary;
+  /** Cache statistics */
+  cacheStats: CacheStatistics;
+  /** Load time breakdown by cache layer (ms) */
+  loadTimesByType: {
+    memory: number;
+    bundled: number;
+    disk: number;
+    network: number;
+  };
+  /** Top slowest icons */
+  slowestIcons: Array<{
+    iconName: string;
+    avgDuration: number;
+    count: number;
+  }>;
+  /** Most frequently loaded icons */
+  mostUsedIcons: Array<{
+    iconName: string;
+    count: number;
+  }>;
+  /** Recent load events */
+  recentEvents: IconLoadEvent[];
+  /** Report generation timestamp */
+  generatedAt: number;
+}
+```
+
+### PerformanceListener
+
+Listener for performance events.
+
+```tsx
+import { type PerformanceListener } from 'rn-iconify';
+
+type PerformanceListener = (event: IconLoadEvent) => void;
+
+// Usage
+const unsubscribe = PerformanceMonitor.subscribe((event) => {
+  console.log(`${event.iconName} loaded in ${event.duration}ms`);
+});
+```
+
+---
+
+## Accessibility Types
+
+### AccessibilityProviderProps
+
+Props for AccessibilityProvider component.
+
+```tsx
+import { type AccessibilityProviderProps } from 'rn-iconify';
+
+interface AccessibilityProviderProps {
+  /** Accessibility configuration (see AccessibilityConfig) */
+  config?: AccessibilityConfig;
+  /** Children components */
+  children: ReactNode;
+}
+```
+
+Usage example:
+
+```tsx
+<AccessibilityProvider config={{ autoLabels: true, highContrast: false }}>
+  <App />
+</AccessibilityProvider>
+```
+
+### AccessibilityConfig
+
+Accessibility configuration options.
+
+```tsx
+import { type AccessibilityConfig } from 'rn-iconify';
+
+interface AccessibilityConfig {
+  /** Enable auto-generated accessibility labels @default true */
+  autoLabels?: boolean;
+  /** Custom label generator function */
+  labelGenerator?: (iconName: string) => string;
+  /** Enable high contrast mode @default false (auto-detect from system) */
+  highContrast?: boolean;
+  /** Respect reduced motion preference @default true */
+  respectReducedMotion?: boolean;
+  /** Default accessibility role for icons @default 'image' */
+  defaultRole?: AccessibilityRole;
+  /** Enable focus indicators @default true */
+  showFocusIndicators?: boolean;
+  /** Minimum touch target size (for pressable icons) @default 44 */
+  minTouchTargetSize?: number;
+}
+```
+
+### ResolvedAccessibilityConfig
+
+Resolved accessibility configuration with all defaults applied. Returned by the accessibility context.
+
+```tsx
+import { type ResolvedAccessibilityConfig } from 'rn-iconify';
+
+interface ResolvedAccessibilityConfig {
+  /** Auto-generate labels from icon names */
+  autoLabels: boolean;
+  /** Label generator function */
+  labelGenerator: (iconName: string) => string;
+  /** High contrast mode enabled */
+  highContrast: boolean;
+  /** Respect system reduced motion preference */
+  respectReducedMotion: boolean;
+  /** Default accessibility role for icons */
+  defaultRole: AccessibilityRole;
+  /** Show focus indicators on interactive icons */
+  showFocusIndicators: boolean;
+  /** Minimum touch target size in pixels */
+  minTouchTargetSize: number;
+}
+```
+
+### AccessibleIconProps
+
+Props for accessibility-enhanced icons. Used with `withAccessibility` and `useAccessibleIcon`.
+
+```tsx
+import { type AccessibleIconProps } from 'rn-iconify';
+
+interface AccessibleIconProps {
+  /** Accessibility label (auto-generated if not provided) */
+  accessibilityLabel?: string;
+  /** Accessibility hint */
+  accessibilityHint?: string;
+  /** Accessibility role @default 'image' */
+  accessibilityRole?: AccessibilityRole;
+  /** Accessibility state for interactive icons */
+  accessibilityState?: {
+    disabled?: boolean;
+    selected?: boolean;
+    checked?: boolean | 'mixed';
+    busy?: boolean;
+    expanded?: boolean;
+  };
+  /** Override high contrast mode for this icon */
+  highContrast?: boolean;
+  /** Hide from screen readers (for decorative icons) */
+  accessibilityElementsHidden?: boolean;
+  /** Android accessibility importance */
+  importantForAccessibility?: 'auto' | 'yes' | 'no' | 'no-hide-descendants';
+}
+```
+
+#### Example
+
+```tsx
+import { Mdi, type AccessibleIconProps } from 'rn-iconify';
+
+// Type your icon props with accessibility support
+interface MyIconProps extends AccessibleIconProps {
+  name: string;
+  size?: number;
+  color?: string;
+}
+
+function MyIcon({ name, size = 24, color, ...accessibilityProps }: MyIconProps) {
+  return (
+    <Mdi
+      name={name}
+      size={size}
+      color={color}
+      {...accessibilityProps}
+    />
+  );
+}
+```
+
+### AccessibilityContextValue
+
+Context value provided by AccessibilityProvider.
+
+```tsx
+import { type AccessibilityContextValue } from 'rn-iconify';
+
+interface AccessibilityContextValue {
+  /** Current accessibility configuration */
+  config: ResolvedAccessibilityConfig;
+
+  /** System prefers reduced motion */
+  prefersReducedMotion: boolean;
+
+  /** System high contrast mode enabled */
+  isHighContrast: boolean;
+
+  /** Update accessibility configuration */
+  setConfig: (config: Partial<AccessibilityConfig>) => void;
+
+  /** Generate label for icon */
+  getLabel: (iconName: string, customLabel?: string) => string | undefined;
+
+  /** Get color adjusted for high contrast */
+  getContrastColor: (color: string) => string;
+
+  /** Check if animations should be disabled */
+  shouldDisableAnimations: () => boolean;
+}
+```
+
+### UseAccessibleIconInput
+
+Input props for the `useAccessibleIcon` hook.
+
+```tsx
+import { type UseAccessibleIconInput } from 'rn-iconify';
+
+interface UseAccessibleIconInput {
+  /** Icon name for auto-label generation */
+  iconName: string;
+
+  /** Icon size for touch target calculation */
+  size?: number;
+
+  /** Custom accessibility label */
+  accessibilityLabel?: string;
+
+  /** Custom accessibility hint */
+  accessibilityHint?: string;
+
+  /** Custom accessibility role */
+  accessibilityRole?: AccessibilityRole;
+
+  /** Override high contrast for this icon */
+  highContrast?: boolean;
+
+  /** Hide from screen readers (decorative icon) */
+  accessibilityElementsHidden?: boolean;
+
+  /** Android importantForAccessibility */
+  importantForAccessibility?: 'auto' | 'yes' | 'no' | 'no-hide-descendants';
+
+  /** Icon color for contrast adjustment */
+  color?: string;
+
+  /** Whether the icon is interactive (button, etc.) */
+  isInteractive?: boolean;
+}
+```
+
+### UseAccessibleIconOutput
+
+Output props from the `useAccessibleIcon` hook.
+
+```tsx
+import { type UseAccessibleIconOutput } from 'rn-iconify';
+
+interface UseAccessibleIconOutput {
+  /** Props to spread on the icon component */
+  accessibilityProps: {
+    accessible: boolean;
+    accessibilityLabel?: string;
+    accessibilityHint?: string;
+    accessibilityRole: AccessibilityRole;
+    accessibilityElementsHidden?: boolean;
+    importantForAccessibility?: 'auto' | 'yes' | 'no' | 'no-hide-descendants';
+  };
+
+  /** Adjusted color for high contrast */
+  adjustedColor?: string;
+
+  /** Padding needed to meet minimum touch target */
+  touchTargetPadding: number;
+
+  /** Whether animations should be disabled */
+  shouldDisableAnimations: boolean;
+
+  /** Whether high contrast mode is active */
+  isHighContrast: boolean;
+}
+```
+
+**Usage:**
+
+```tsx
+import { useAccessibleIcon } from 'rn-iconify';
+
+function MyIcon({ name, size, color }) {
+  const { accessibilityProps, adjustedColor, touchTargetPadding } = useAccessibleIcon({
+    iconName: name,
+    size,
+    color,
+  });
+
+  return (
+    <View style={{ padding: touchTargetPadding }} {...accessibilityProps}>
+      <Icon name={name} size={size} color={adjustedColor} />
+    </View>
+  );
+}
+```
+
+---
+
+## Explorer Types
+
+### IconSetInfo
+
+Metadata about an icon set.
+
+```tsx
+import { type IconSetInfo } from 'rn-iconify';
+
+interface IconSetInfo {
+  /** Icon set prefix (e.g., "mdi", "heroicons") */
+  prefix: string;
+  /** Human-readable name */
+  name: string;
+  /** Number of icons in the set */
+  total: number;
+  /** Icon set author */
+  author?: string;
+  /** Icon set license */
+  license?: string;
+  /** Sample icon names */
+  samples?: string[];
+  /** Icon set category */
+  category?: 'general' | 'brand' | 'emoji' | 'flags' | 'weather' | 'other';
+}
+```
+
+### SearchResult
+
+Search result item from explorer search.
+
+```tsx
+import { type SearchResult } from 'rn-iconify';
+
+interface SearchResult {
+  /** Full icon name (prefix:name) */
+  fullName: string;
+  /** Icon set prefix */
+  prefix: string;
+  /** Icon name without prefix */
+  name: string;
+  /** Search relevance score (0-1) */
+  score: number;
+}
+```
+
+### PreviewConfig
+
+Configuration for icon preview display.
+
+```tsx
+import { type PreviewConfig } from 'rn-iconify';
+
+interface PreviewConfig {
+  /** Preview sizes to show */
+  sizes: number[];
+  /** Preview colors to show */
+  colors: string[];
+  /** Show icon name */
+  showName: boolean;
+  /** Show icon code snippet */
+  showCode: boolean;
+  /** Background color for preview */
+  backgroundColor: string;
+}
+```
+
+### ExplorerConfig
+
+Configuration for the Icon Explorer.
+
+```tsx
+import { type ExplorerConfig } from 'rn-iconify';
+
+interface ExplorerConfig {
+  /** Icon sets to include. If empty, includes all available sets */
+  iconSets?: string[];
+  /** Initial search query */
+  initialQuery?: string;
+  /** Maximum results to show @default 100 */
+  maxResults?: number;
+  /** Preview configuration */
+  preview?: Partial<PreviewConfig>;
+  /** Callback when icon is selected */
+  onIconSelect?: (iconName: string) => void;
+  /** Callback when icon code is copied */
+  onCopyCode?: (code: string) => void;
+  /** Enable keyboard shortcuts @default true */
+  keyboardShortcuts?: boolean;
+}
+```
+
+### ResolvedExplorerConfig
+
+Resolved configuration with all defaults applied. Returned by `useExplorer` hook.
+
+```tsx
+import { type ResolvedExplorerConfig } from 'rn-iconify';
+
+interface ResolvedExplorerConfig {
+  /** Icon sets to include */
+  iconSets: string[];
+  /** Initial search query */
+  initialQuery: string;
+  /** Maximum results to show */
+  maxResults: number;
+  /** Preview configuration with all defaults */
+  preview: PreviewConfig;
+  /** Callback when icon is selected */
+  onIconSelect?: (iconName: string) => void;
+  /** Callback when icon code is copied */
+  onCopyCode?: (code: string) => void;
+  /** Enable keyboard shortcuts */
+  keyboardShortcuts: boolean;
+}
+```
+
+### ExplorerState
+
+Current state of the Icon Explorer.
+
+```tsx
+import { type ExplorerState } from 'rn-iconify';
+
+interface ExplorerState {
+  /** Current search query */
+  query: string;
+  /** Search results */
+  results: SearchResult[];
+  /** Currently selected icon */
+  selectedIcon: string | null;
+  /** Currently active icon set filter */
+  activeIconSet: string | null;
+  /** Loading state */
+  isLoading: boolean;
+  /** Error message if any */
+  error: string | null;
+  /** Current preview size */
+  previewSize: number;
+  /** Current preview color */
+  previewColor: string;
+}
+```
+
+### ExplorerActions
+
+Actions available in the Icon Explorer context.
+
+```tsx
+import { type ExplorerActions } from 'rn-iconify';
+
+interface ExplorerActions {
+  /** Update search query */
+  setQuery: (query: string) => void;
+  /** Select an icon */
+  selectIcon: (iconName: string | null) => void;
+  /** Filter by icon set */
+  filterByIconSet: (prefix: string | null) => void;
+  /** Change preview size */
+  setPreviewSize: (size: number) => void;
+  /** Change preview color */
+  setPreviewColor: (color: string) => void;
+  /** Copy icon code to clipboard */
+  copyIconCode: (iconName: string, format?: 'jsx' | 'import') => void;
+  /** Reset explorer state */
+  reset: () => void;
+}
+```
+
+### IconPreviewProps
+
+Props for icon preview component in explorer.
+
+```tsx
+import { type IconPreviewProps } from 'rn-iconify';
+
+interface IconPreviewProps {
+  /** Icon name to preview (e.g., "mdi:home") */
+  iconName: string;
+  /** Preview configuration */
+  config?: Partial<PreviewConfig>;
+  /** Additional icon props */
+  iconProps?: Partial<IconProps>;
+  /** Callback when code is copied */
+  onCopyCode?: (code: string) => void;
+}
+```
+
+### SearchBarProps
+
+Props for explorer search bar.
+
+```tsx
+import { type SearchBarProps } from 'rn-iconify';
+
+interface SearchBarProps {
+  /** Current query */
+  value: string;
+  /** On change callback */
+  onChangeText: (text: string) => void;
+  /** Placeholder text */
+  placeholder?: string;
+  /** Auto focus */
+  autoFocus?: boolean;
+}
+```
+
+### IconSetFilterProps
+
+Props for icon set filter component.
+
+```tsx
+import { type IconSetFilterProps } from 'rn-iconify';
+
+interface IconSetFilterProps {
+  /** Available icon sets */
+  iconSets: IconSetInfo[];
+  /** Currently selected */
+  selected: string | null;
+  /** On select callback */
+  onSelect: (prefix: string | null) => void;
+}
+```
+
+### IconGridProps
+
+Props for icon grid component.
+
+```tsx
+import { type IconGridProps } from 'rn-iconify';
+
+interface IconGridProps {
+  /** Icons to display (search results) */
+  icons: SearchResult[];
+  /** Currently selected icon */
+  selectedIcon?: string | null;
+  /** Preview size */
+  size?: number;
+  /** Preview color */
+  color?: string;
+  /** Callback when icon is pressed */
+  onIconPress?: (iconName: string) => void;
+  /** Number of columns */
+  columns?: number;
+}
+```
+
+### IconExplorerProps
+
+Props for the main IconExplorer component.
+
+```tsx
+import { type IconExplorerProps } from 'rn-iconify';
+
+interface IconExplorerProps extends ExplorerConfig {
+  /** Whether the explorer is visible @default true */
+  visible?: boolean;
+
+  /** Callback when explorer is closed */
+  onClose?: () => void;
+
+  /** Custom styles */
+  style?: object;
+}
+```
+
+Usage example:
+
+```tsx
+import { IconExplorer } from 'rn-iconify';
+
+<IconExplorer
+  visible={showExplorer}
+  onClose={() => setShowExplorer(false)}
+  iconSets={['mdi', 'heroicons']}
+  maxResults={100}
+  onIconSelect={(iconName) => console.log('Selected:', iconName)}
+  onCopyCode={(code) => Clipboard.setString(code)}
+/>
+```
+
+---
+
+## Network Types
+
+### BatchFetchResult
+
+Result of batch icon fetching operations.
+
+```tsx
+import { type BatchFetchResult } from 'rn-iconify';
+
+interface BatchFetchResult {
+  /** Successfully fetched icons (iconName -> SVG string) */
+  success: Map<string, string>;
+  /** Failed icon fetches with error details */
+  failed: Array<{ iconName: string; error: string }>;
+}
+```
+
+**Usage:**
+
+```tsx
+import { IconifyAPI, type BatchFetchResult } from 'rn-iconify';
+
+const result: BatchFetchResult = await IconifyAPI.fetchBatch(['mdi:home', 'mdi:user']);
+
+console.log(`Loaded ${result.success.size} icons`);
+result.failed.forEach(({ iconName, error }) => {
+  console.warn(`Failed to load ${iconName}: ${error}`);
+});
+```
+
+---
+
+## Native Module Types
+
+Types for the optional native module that provides enhanced caching and performance.
+
+### PrefetchResult
+
+Result from native module prefetch operations.
+
+```tsx
+import { type PrefetchResult } from 'rn-iconify';
+
+interface PrefetchResult {
+  /** Icons that were successfully prefetched */
+  success: string[];
+  /** Icons that failed to prefetch */
+  failed: string[];
+}
+```
+
+**Usage:**
+
+```tsx
+import { NativeIconify, type PrefetchResult } from 'rn-iconify';
+
+if (NativeIconify.isAvailable) {
+  const result: PrefetchResult = await NativeIconify.prefetchIcons([
+    'mdi:home',
+    'mdi:user',
+    'mdi:settings',
+  ]);
+  console.log(`Prefetched: ${result.success.length}, Failed: ${result.failed.length}`);
+}
+```
+
+### CacheStats
+
+Statistics about the native module cache.
+
+```tsx
+import { type CacheStats } from 'rn-iconify';
+
+interface CacheStats {
+  /** Number of icons in memory cache */
+  memoryCount: number;
+  /** Number of icons in disk cache */
+  diskCount: number;
+  /** Total disk cache size in bytes */
+  diskSizeBytes: number;
+  /** Cache hit rate (0-1) */
+  hitRate: number;
+}
+```
+
+**Usage:**
+
+```tsx
+import { NativeIconify, type CacheStats } from 'rn-iconify';
+
+if (NativeIconify.isAvailable) {
+  const stats: CacheStats = await NativeIconify.getCacheStats();
+  console.log(`Memory: ${stats.memoryCount} icons`);
+  console.log(`Disk: ${stats.diskCount} icons (${(stats.diskSizeBytes / 1024).toFixed(1)} KB)`);
+  console.log(`Hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+}
+```
+
+### ModuleConstants
+
+Constants provided by the native module.
+
+```tsx
+import { type ModuleConstants } from 'rn-iconify';
+
+interface ModuleConstants {
+  /** Directory path for cache storage */
+  cacheDirectory: string;
+  /** Maximum cache size in bytes */
+  maxCacheSize: number;
+  /** Native module version */
+  version: string;
+}
+```
+
+**Usage:**
+
+```tsx
+import { NativeIconify, type ModuleConstants } from 'rn-iconify';
+
+if (NativeIconify.isAvailable) {
+  const constants: ModuleConstants = NativeIconify.getConstants();
+  console.log(`Cache dir: ${constants.cacheDirectory}`);
+  console.log(`Max size: ${(constants.maxCacheSize / 1024 / 1024).toFixed(1)} MB`);
+  console.log(`Version: ${constants.version}`);
+}
+```
+
+### NativeIconifyInterface
+
+Interface for the native module. Available via `NativeIconify` when the native module is installed.
+
+```tsx
+import { type NativeIconifyInterface } from 'rn-iconify';
+
+interface NativeIconifyInterface {
+  /** Prefetch icons into native cache */
+  prefetchIcons(icons: string[]): Promise<PrefetchResult>;
+
+  /** Get cache statistics */
+  getCacheStats(): Promise<CacheStats>;
+
+  /** Clear all native caches */
+  clearCache(): Promise<void>;
+
+  /** Check if an icon is cached in native module */
+  isCached(iconName: string): boolean;
+
+  /** Get module constants */
+  getConstants(): ModuleConstants;
+
+  /** Whether the native module is available */
+  isAvailable: boolean;
+}
+```
+
+**Usage:**
+
+```tsx
+import { NativeIconify } from 'rn-iconify';
+
+// Check availability before using
+if (NativeIconify.isAvailable) {
+  // Prefetch critical icons on app start
+  await NativeIconify.prefetchIcons(['mdi:home', 'mdi:menu', 'mdi:close']);
+
+  // Check cache status
+  const isCached = NativeIconify.isCached('mdi:home');
+
+  // Get stats
+  const stats = await NativeIconify.getCacheStats();
+
+  // Clear cache when needed
+  await NativeIconify.clearCache();
+}
+```
+
+:::info
+The native module is optional. If not installed, `NativeIconify.isAvailable` will be `false` and the library will use JavaScript-based caching instead.
+:::

@@ -1,0 +1,260 @@
+/* Global styles for rn-iconify documentation */
+
+:root {
+  --primary-hue: 210;
+  --primary-color: hsl(var(--primary-hue), 100%, 50%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Code blocks */
+pre {
+  border-radius: 8px !important;
+}
+
+code {
+  font-family: 'SF Mono', 'Fira Code', 'Monaco', 'Inconsolata', monospace;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.75rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dark th {
+  border-bottom-color: #374151;
+}
+
+.dark td {
+  border-bottom-color: #374151;
+}
+
+/* Cards grid */
+.nx-cards {
+  margin-top: 1.5rem;
+}
+
+/* Callouts */
+.nx-callout {
+  margin: 1.5rem 0;
+}
+
+/* Home page styles */
+.home-content h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #0070f3 0%, #00a6ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.home-content p {
+  line-height: 1.7;
+}
+
+/* Feature cards on home */
+.home-content .nx-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.home-content .nx-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* API reference styles */
+.api-reference h2 {
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+  margin-top: 3rem;
+}
+
+.dark .api-reference h2 {
+  border-bottom-color: #374151;
+}
+
+/* Icon browser overrides */
+.icon-browser {
+  background: #fafafa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+}
+
+.dark .icon-browser {
+  background: #111827;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .home-content h1 {
+    font-size: 2rem;
+  }
+
+  table {
+    font-size: 0.875rem;
+  }
+
+  th, td {
+    padding: 0.5rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  nav, footer, .nx-sidebar {
+    display: none !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+}
+
+/* Syntax highlighting enhancements */
+.nextra-code-block {
+  position: relative;
+}
+
+.nextra-code-block button {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.nextra-code-block:hover button {
+  opacity: 1;
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.badge-blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-yellow {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.dark .badge {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+.dark .badge-blue {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+
+.dark .badge-green {
+  background: #14532d;
+  color: #86efac;
+}
+
+.dark .badge-yellow {
+  background: #451a03;
+  color: #fcd34d;
+}
+
+/* Copy button animation */
+.copy-success {
+  animation: copySuccess 0.3s ease-out;
+}
+
+@keyframes copySuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Focus styles for accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}

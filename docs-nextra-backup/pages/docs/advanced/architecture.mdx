@@ -1,0 +1,417 @@
+# Architecture
+
+Understanding how rn-iconify works under the hood.
+
+## Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Your React Native App                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   <Mdi name="home" />                                       │
+│         │                                                    │
+│         ▼                                                    │
+│   ┌─────────────┐                                           │
+│   │ Icon Cache  │ ◄── 1. Check memory cache                 │
+│   │  (Memory)   │                                           │
+│   └──────┬──────┘                                           │
+│          │ miss                                              │
+│          ▼                                                    │
+│   ┌─────────────┐                                           │
+│   │ MMKV Cache  │ ◄── 2. Check persistent cache (JSI)       │
+│   │  (Native)   │                                           │
+│   └──────┬──────┘                                           │
+│          │ miss                                              │
+│          ▼                                                    │
+│   ┌─────────────┐      ┌─────────────┐                      │
+│   │   Bundled   │ ◄─── │ Babel Plugin│ (build-time)         │
+│   │    Icons    │      └─────────────┘                      │
+│   └──────┬──────┘                                           │
+│          │ miss                                              │
+│          ▼                                                    │
+│   ┌─────────────┐                                           │
+│   │  Iconify    │ ◄── 3. Fetch from API                     │
+│   │    API      │                                           │
+│   └─────────────┘                                           │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Loading Pipeline
+
+### 1. Memory Cache
+
+First, check in-memory cache for instant access:
+
+```tsx
+// Internal implementation
+const memoryCache = new Map<string, IconData>();
+
+function getIcon(name: string): IconData | null {
+  return memoryCache.get(name) || null;
+}
+```
+
+- **Speed**: ~0.01ms
+- **Capacity**: Limited by app memory
+- **Persistence**: Lost on app close
+
+### 2. MMKV Native Cache
+
+If not in memory, check native storage:
+
+```tsx
+// Uses react-native-mmkv via JSI
+const storage = new MMKV({ id: 'rn-iconify-cache' });
+
+function getCachedIcon(name: string): IconData | null {
+  const data = storage.getString(name);
+  return data ? JSON.parse(data) : null;
+}
+```
+
+- **Speed**: ~0.1ms (via JSI, no bridge overhead)
+- **Capacity**: Configurable (default 10MB)
+- **Persistence**: Survives app restarts
+
+### 3. Bundled Icons (Babel Plugin)
+
+Check build-time bundled icons:
+
+```tsx
+// Generated at build time
+import { bundledIcons } from './__generated__/icons';
+
+function getBundledIcon(name: string): IconData | null {
+  return bundledIcons[name] || null;
+}
+```
+
+- **Speed**: 0ms (compiled into bundle)
+- **Capacity**: As configured
+- **Persistence**: Part of app binary
+
+### 4. Iconify API
+
+Finally, fetch from network:
+
+```tsx
+async function fetchIcon(name: string): Promise<IconData> {
+  const [prefix, iconName] = name.split(':');
+  const response = await fetch(
+    `https://api.iconify.design/${prefix}.json?icons=${iconName}`
+  );
+  return response.json();
+}
+```
+
+- **Speed**: 100-500ms
+- **Capacity**: Unlimited (268,000+ icons)
+- **Persistence**: Cached after first fetch
+
+## Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    IconComponent                         │
+│                    (e.g., <Mdi />)                       │
+├─────────────────────────────────────────────────────────┤
+│                         │                                │
+│                         ▼                                │
+│              ┌──────────────────┐                       │
+│              │  useIconLoader   │                       │
+│              │     (Hook)       │                       │
+│              └────────┬─────────┘                       │
+│                       │                                  │
+│          ┌────────────┼────────────┐                    │
+│          ▼            ▼            ▼                    │
+│    ┌──────────┐ ┌──────────┐ ┌──────────┐             │
+│    │ Loading  │ │   SVG    │ │  Error   │             │
+│    │  State   │ │  Render  │ │  State   │             │
+│    └──────────┘ └──────────┘ └──────────┘             │
+│                       │                                  │
+│                       ▼                                  │
+│              ┌──────────────────┐                       │
+│              │ react-native-svg │                       │
+│              │    <Svg />       │                       │
+│              └──────────────────┘                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Icon Data Flow
+
+```tsx
+// 1. User renders icon
+<Mdi name="home" size={24} color="blue" />
+
+// 2. Component extracts props
+const { name, size, color, ...rest } = props;
+
+// 3. Hook manages loading state
+const { data, loading, error } = useIconLoader('mdi:home');
+
+// 4. Render based on state
+if (loading) return <Placeholder />;
+if (error) return <ErrorView />;
+
+// 5. Transform SVG data
+const svgProps = transformIcon(data, { size, color, ...rest });
+
+// 6. Render with react-native-svg
+return <Svg {...svgProps} />;
+```
+
+## Type System
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Type Generation                        │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  Iconify API                                            │
+│       │                                                  │
+│       ▼                                                  │
+│  ┌──────────────────┐                                   │
+│  │  Build Script    │  (postinstall)                    │
+│  │  generates types │                                   │
+│  └────────┬─────────┘                                   │
+│           │                                              │
+│           ▼                                              │
+│  ┌──────────────────────────────────────────────┐       │
+│  │  src/types/                                  │       │
+│  │    mdi.d.ts      → type MdiIconName          │       │
+│  │    heroicons.d.ts → type HeroiconsIconName   │       │
+│  │    lucide.d.ts   → type LucideIconName       │       │
+│  │    ...                                       │       │
+│  └──────────────────────────────────────────────┘       │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+Each icon set has its own type:
+
+```tsx
+// Generated type (example)
+export type MdiIconName =
+  | 'home'
+  | 'home-outline'
+  | 'home-variant'
+  | 'settings'
+  | 'account'
+  // ... 7,447 icons
+  ;
+
+// Component uses this type
+interface MdiProps {
+  name: MdiIconName;  // Only valid MDI icon names
+  size?: number;
+  color?: string;
+}
+```
+
+## Why Per-Component Types?
+
+```
+Single Union Type (Bad)                Per-Component Types (Good)
+─────────────────────                  ─────────────────────────
+
+type IconName =                        type MdiIconName = ...     (~7K)
+  | MdiIcons     (~7K)                type HeroiconsIconName = ... (~1K)
+  | Heroicons    (~1K)                type LucideIconName = ...   (~1K)
+  | Lucide       (~1K)
+  | ...          (268K total)         Each component: ~7K max
+
+❌ IDE crashes with 268K union         ✅ IDE stays fast
+❌ TypeScript OOM                      ✅ TypeScript works
+❌ Autocomplete takes 30s+             ✅ Autocomplete instant
+```
+
+## MMKV Cache Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    MMKV Storage                          │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │                   JavaScript                      │   │
+│  │                                                   │   │
+│  │   import { MMKV } from 'react-native-mmkv';      │   │
+│  │   const storage = new MMKV();                    │   │
+│  │                                                   │   │
+│  └─────────────────────┬────────────────────────────┘   │
+│                        │                                 │
+│                        │  JSI (no bridge)               │
+│                        │                                 │
+│  ┌─────────────────────▼────────────────────────────┐   │
+│  │                   C++ Core                        │   │
+│  │                                                   │   │
+│  │   • Memory-mapped file I/O                       │   │
+│  │   • ~30x faster than AsyncStorage                │   │
+│  │   • Synchronous API                              │   │
+│  │                                                   │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Performance Comparison
+
+| Operation | AsyncStorage | MMKV |
+|-----------|-------------|------|
+| Read 1KB | ~5ms | ~0.01ms |
+| Write 1KB | ~10ms | ~0.02ms |
+| Bridge calls | Yes | No (JSI) |
+| Sync API | No | Yes |
+
+## Babel Plugin Pipeline
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                 Build Time (Babel)                       │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  Source Code                                            │
+│  ─────────────                                          │
+│  <Mdi name="home" />                                    │
+│       │                                                  │
+│       ▼                                                  │
+│  ┌──────────────────┐                                   │
+│  │  Babel Plugin    │                                   │
+│  │  Detects icons   │                                   │
+│  └────────┬─────────┘                                   │
+│           │                                              │
+│           ▼                                              │
+│  ┌──────────────────┐                                   │
+│  │  Fetch from      │                                   │
+│  │  Iconify API     │                                   │
+│  └────────┬─────────┘                                   │
+│           │                                              │
+│           ▼                                              │
+│  ┌──────────────────┐                                   │
+│  │  Generate Bundle │                                   │
+│  │  __icons__.js    │                                   │
+│  └────────┬─────────┘                                   │
+│           │                                              │
+│           ▼                                              │
+│  Transformed Code                                       │
+│  ─────────────────                                      │
+│  <Mdi name="home" __bundled />                          │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Animation System
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Animation Flow                         │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  <Mdi name="loading" animation="spin" />                │
+│       │                                                  │
+│       ▼                                                  │
+│  ┌──────────────────┐                                   │
+│  │ useAnimation     │                                   │
+│  │ Hook             │                                   │
+│  └────────┬─────────┘                                   │
+│           │                                              │
+│           ▼                                              │
+│  ┌──────────────────┐                                   │
+│  │ Animated.Value   │ ← Native driver                   │
+│  │ (Native Thread)  │                                   │
+│  └────────┬─────────┘                                   │
+│           │                                              │
+│           ▼                                              │
+│  ┌──────────────────┐                                   │
+│  │ Animated.View    │                                   │
+│  │ transform        │                                   │
+│  └──────────────────┘                                   │
+│                                                          │
+│  Presets:                                               │
+│  • spin:   rotate 0° → 360° (loop)                      │
+│  • pulse:  scale 1 → 1.2 → 1 (loop)                     │
+│  • bounce: translateY 0 → -10 → 0 (loop)                │
+│  • shake:  translateX -5 → 5 → -5 (loop)                │
+│  • ping:   scale 1 → 1.5 + opacity 1 → 0 (loop)         │
+│  • wiggle: rotate -15° → 15° → -15° (loop)              │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+## File Structure
+
+```
+rn-iconify/
+├── src/
+│   ├── components/          # Icon components
+│   │   ├── Mdi.tsx
+│   │   ├── Heroicons.tsx
+│   │   └── ...
+│   │
+│   ├── hooks/               # React hooks
+│   │   ├── useIconLoader.ts
+│   │   ├── useAnimation.ts
+│   │   └── useIconTheme.ts
+│   │
+│   ├── cache/               # Caching layer
+│   │   ├── memory.ts
+│   │   └── mmkv.ts
+│   │
+│   ├── api/                 # Iconify API client
+│   │   └── iconify.ts
+│   │
+│   ├── types/               # Generated types
+│   │   ├── mdi.d.ts
+│   │   └── ...
+│   │
+│   └── index.ts             # Public exports
+│
+├── babel/                   # Babel plugin
+│   └── index.js
+│
+├── cli/                     # CLI tools
+│   └── index.js
+│
+└── native/                  # Native modules
+    ├── ios/
+    └── android/
+```
+
+## Performance Optimizations
+
+### 1. Deduplication
+
+```tsx
+// Multiple icons with same name share data
+<Mdi name="home" />
+<Mdi name="home" />  // Reuses cached data
+<Mdi name="home" />  // Reuses cached data
+```
+
+### 2. Batched Requests
+
+```tsx
+// Icons requested together are batched
+<>
+  <Mdi name="home" />     // ─┐
+  <Mdi name="settings" /> // ─┼─ Single API request
+  <Mdi name="account" />  // ─┘
+</>
+```
+
+### 3. SVG Optimization
+
+```tsx
+// SVG paths are optimized
+const original = "M10.5 20.5v-6h4v6h5v-8h3L12 3 2 12h3v8z";
+const optimized = "M10.5 20.5v-6h4v6h5v-8h3L12 3 2 12h3v8z";
+// Paths are already optimized by Iconify
+```
+
+## Next Steps
+
+- [Babel Plugin](/advanced/babel-plugin) - Build-time bundling
+- [CLI Tools](/advanced/cli-tools) - Command-line utilities
+- [API Reference](/api-reference/types) - Type definitions

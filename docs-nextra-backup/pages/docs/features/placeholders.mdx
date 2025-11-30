@@ -1,0 +1,152 @@
+# Placeholders
+
+Show loading states while icons are being fetched from the Iconify API.
+
+## Built-in Presets
+
+rn-iconify includes three built-in placeholder presets:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+
+// Skeleton - Simple gray box
+<Mdi name="home" placeholder="skeleton" />
+
+// Pulse - Fading animation
+<Mdi name="home" placeholder="pulse" />
+
+// Shimmer - Gradient sweep effect
+<Mdi name="home" placeholder="shimmer" />
+```
+
+## Preset Comparison
+
+| Preset | Animation | Use Case |
+|--------|-----------|----------|
+| `skeleton` | None | Simple, minimal UI |
+| `pulse` | Fade in/out | Subtle loading indicator |
+| `shimmer` | Gradient sweep | Premium feel, content loading |
+
+## Custom Placeholders
+
+Use any React Native component as a placeholder:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { ActivityIndicator, View, Text } from 'react-native';
+
+// Activity Indicator
+<Mdi
+  name="home"
+  size={24}
+  placeholder={<ActivityIndicator size="small" color="blue" />}
+/>
+
+// Custom View
+<Mdi
+  name="home"
+  size={48}
+  placeholder={
+    <View style={{ width: 48, height: 48, backgroundColor: '#e0e0e0', borderRadius: 8 }} />
+  }
+/>
+
+// Text placeholder
+<Mdi
+  name="home"
+  size={24}
+  placeholder={<Text>...</Text>}
+/>
+```
+
+## Global Placeholder with Theme Provider
+
+Set a default placeholder for all icons:
+
+```tsx copy
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+
+function App() {
+  return (
+    <IconThemeProvider
+      theme={{
+        placeholder: 'shimmer',
+      }}
+    >
+      {/* All icons will use shimmer placeholder */}
+      <Mdi name="home" />
+      <Mdi name="settings" />
+    </IconThemeProvider>
+  );
+}
+```
+
+## Custom Global Placeholder
+
+```tsx copy
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+import { ActivityIndicator } from 'react-native';
+
+function App() {
+  return (
+    <IconThemeProvider
+      theme={{
+        placeholder: <ActivityIndicator size="small" />,
+      }}
+    >
+      <Mdi name="home" />
+    </IconThemeProvider>
+  );
+}
+```
+
+## Placeholder Sizing
+
+Placeholders automatically inherit the icon's size:
+
+```tsx copy
+// Placeholder will be 48x48
+<Mdi name="home" size={48} placeholder="skeleton" />
+
+// Placeholder will be 24x24 (default)
+<Mdi name="home" placeholder="skeleton" />
+```
+
+## Conditional Placeholders
+
+Show different placeholders based on context:
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+import { Platform } from 'react-native';
+
+function Icon({ name }: { name: string }) {
+  const placeholder = Platform.OS === 'ios' ? 'shimmer' : 'skeleton';
+
+  return <Mdi name={name} placeholder={placeholder} />;
+}
+```
+
+## Performance Considerations
+
+- **First render**: Placeholder shows while icon fetches from API
+- **Cached icons**: No placeholder shown (instant render)
+- **Prefetched icons**: No placeholder shown
+
+To eliminate placeholders entirely, use:
+- [Prefetching](/docs/getting-started/quick-start#prefetching) - Load icons on app start
+- [Babel Plugin](/docs/advanced/babel-plugin) - Bundle icons at build time
+
+## Disable Placeholders
+
+To show nothing while loading:
+
+```tsx copy
+<Mdi name="home" placeholder={null} />
+```
+
+## Next Steps
+
+- [Theme Provider](/docs/features/theme-provider) - Global placeholder configuration
+- [Babel Plugin](/docs/advanced/babel-plugin) - Eliminate loading states entirely
+- [Prefetching](/docs/getting-started/quick-start#prefetching) - Preload icons

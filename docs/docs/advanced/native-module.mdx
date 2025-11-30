@@ -1,0 +1,300 @@
+---
+id: native-module
+title: Native Module
+sidebar_position: 6
+description: Native module for enhanced performance
+keywords: [native, turbomodule, jsi, performance, prefetch]
+---
+
+rn-iconify includes an optional native module for enhanced performance, supporting both New Architecture (TurboModules) and Old Architecture (Bridge).
+
+## Overview
+
+The native module provides:
+- **Background prefetching** using native networking (URLSession/OkHttp)
+- **Faster cache lookups** via JSI synchronous calls
+- **Native cache management** with memory and disk statistics
+- **Reduced JS thread overhead** for icon loading
+
+## Checking Availability
+
+```tsx
+import { isNativeModuleAvailable, getNativeIconify } from 'rn-iconify';
+
+// Check if native module is available
+if (isNativeModuleAvailable()) {
+  console.log('Native module available - enhanced performance enabled');
+} else {
+  console.log('Using JS fallback');
+}
+```
+
+## API Reference
+
+### getNativeIconify
+
+Get the native module instance:
+
+```tsx
+import { getNativeIconify } from 'rn-iconify';
+
+const nativeModule = getNativeIconify();
+
+// Check availability
+if (nativeModule.isAvailable) {
+  // Use native APIs
+  const stats = await nativeModule.getCacheStats();
+}
+```
+
+#### Returns
+
+```tsx
+interface NativeIconifyInterface {
+  /** Prefetch icons using native networking */
+  prefetchIcons(icons: string[]): Promise<PrefetchResult>;
+
+  /** Get cache statistics from native layer */
+  getCacheStats(): Promise<CacheStats>;
+
+  /** Clear all native caches */
+  clearCache(): Promise<void>;
+
+  /** Check if icon is cached (synchronous) */
+  isCached(iconName: string): boolean;
+
+  /** Get module constants */
+  getConstants(): ModuleConstants;
+
+  /** Whether native module is available */
+  isAvailable: boolean;
+}
+```
+
+### isNativeModuleAvailable
+
+Quick check for native module availability:
+
+```tsx
+import { isNativeModuleAvailable } from 'rn-iconify';
+
+const hasNative = isNativeModuleAvailable();
+```
+
+## Type Definitions
+
+### PrefetchResult
+
+```tsx
+interface PrefetchResult {
+  /** Successfully prefetched icon names */
+  success: string[];
+
+  /** Failed icon names */
+  failed: string[];
+}
+```
+
+### CacheStats
+
+```tsx
+interface CacheStats {
+  /** Icons in memory cache */
+  memoryCount: number;
+
+  /** Icons in disk cache */
+  diskCount: number;
+
+  /** Disk cache size in bytes */
+  diskSizeBytes: number;
+
+  /** Cache hit rate (0-1) */
+  hitRate: number;
+}
+```
+
+### ModuleConstants
+
+```tsx
+interface ModuleConstants {
+  /** Native cache directory path */
+  cacheDirectory: string;
+
+  /** Maximum cache size in bytes */
+  maxCacheSize: number;
+
+  /** Module version */
+  version: string;
+}
+```
+
+## Usage Examples
+
+### Native Prefetching
+
+Prefetch icons using native networking for faster background loading:
+
+```tsx
+import { getNativeIconify } from 'rn-iconify';
+
+async function prefetchCriticalIcons() {
+  const native = getNativeIconify();
+
+  if (native.isAvailable) {
+    const result = await native.prefetchIcons([
+      'mdi:home',
+      'mdi:settings',
+      'mdi:user',
+    ]);
+
+    console.log(`Prefetched: ${result.success.length}`);
+    console.log(`Failed: ${result.failed.length}`);
+  }
+}
+```
+
+### Cache Statistics
+
+Get detailed cache information from native layer:
+
+```tsx
+import { getNativeIconify } from 'rn-iconify';
+
+async function logCacheStats() {
+  const native = getNativeIconify();
+  const stats = await native.getCacheStats();
+
+  console.log({
+    memoryIcons: stats.memoryCount,
+    diskIcons: stats.diskCount,
+    diskSize: `${(stats.diskSizeBytes / 1024).toFixed(1)} KB`,
+    hitRate: `${(stats.hitRate * 100).toFixed(1)}%`,
+  });
+}
+```
+
+### Synchronous Cache Check
+
+Check if an icon is cached without async overhead:
+
+```tsx
+import { getNativeIconify } from 'rn-iconify';
+
+function isIconCached(iconName: string): boolean {
+  const native = getNativeIconify();
+  return native.isCached(iconName);
+}
+
+// Usage
+if (isIconCached('mdi:home')) {
+  // Icon is available immediately
+}
+```
+
+### Clear Native Cache
+
+Clear all caches managed by the native module:
+
+```tsx
+import { getNativeIconify } from 'rn-iconify';
+
+async function clearNativeCache() {
+  const native = getNativeIconify();
+  await native.clearCache();
+  console.log('Native cache cleared');
+}
+```
+
+## Architecture Support
+
+### New Architecture (TurboModules)
+
+On React Native 0.68+ with New Architecture enabled, the module uses TurboModules with JSI bindings:
+
+```tsx
+// Automatically uses TurboModule when available
+const native = getNativeIconify();
+```
+
+Benefits:
+- Synchronous method calls via JSI
+- Lower overhead than Bridge
+- Type-safe native interface
+
+### Old Architecture (Bridge)
+
+On React Native with Old Architecture, the module falls back to the Bridge:
+
+```tsx
+// Same API, works on both architectures
+const native = getNativeIconify();
+```
+
+### JS Fallback
+
+When native module is not available (e.g., Expo Go without custom dev client):
+
+```tsx
+import { isNativeModuleAvailable } from 'rn-iconify';
+
+if (!isNativeModuleAvailable()) {
+  // All APIs still work but use JS implementations
+  // No performance benefit from native layer
+}
+```
+
+## Performance Comparison
+
+| Operation | Native Module | JS Fallback |
+|-----------|--------------|-------------|
+| Prefetch 100 icons | ~500ms | ~2000ms |
+| Cache lookup | &lt;1ms (sync) | ~5ms (async) |
+| Memory usage | Lower | Higher |
+| Thread usage | Background threads | JS thread |
+
+## Conditional Configuration
+
+Adjust settings based on native module availability:
+
+```tsx
+import { isNativeModuleAvailable, configure } from 'rn-iconify';
+
+configure({
+  cache: {
+    // Use larger cache when native module handles memory efficiently
+    maxMemoryItems: isNativeModuleAvailable() ? 1000 : 200,
+    enableDiskCache: true,
+  },
+});
+```
+
+## Troubleshooting
+
+### Module Not Available
+
+If `isNativeModuleAvailable()` returns `false`:
+
+1. **Check native linking**: Ensure pod install / gradle sync completed
+2. **Rebuild native apps**: Clean build may be needed
+3. **Expo users**: Create a custom dev client
+4. **Check logs**: Look for linking warnings on startup
+
+### iOS
+
+```bash
+cd ios && pod install && cd ..
+npx react-native run-ios --configuration Release
+```
+
+### Android
+
+```bash
+cd android && ./gradlew clean && cd ..
+npx react-native run-android --variant=release
+```
+
+## Next Steps
+
+- [Cache Management](/docs/advanced/cache-management) - Detailed cache control
+- [Performance Monitoring](/docs/features/performance-monitoring) - Track icon loading
+- [Architecture](/docs/advanced/architecture) - System overview

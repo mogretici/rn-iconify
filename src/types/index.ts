@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ViewStyle, StyleProp } from 'react-native';
+import type { PlaceholderType } from '../placeholder/types';
+import type { AnimationType, AnimationEasing } from '../animated/types';
 
 /**
  * Icon transformation rotation values
@@ -61,14 +63,35 @@ export interface IconProps<T extends string = string> {
 
   /**
    * Fallback component shown while the icon is loading
+   * @deprecated Use `placeholder` instead for built-in animated placeholders
    */
   fallback?: ReactNode;
 
   /**
-   * Delay in milliseconds before showing the fallback
+   * Delay in milliseconds before showing the fallback/placeholder
    * @default 0
    */
   fallbackDelay?: number;
+
+  /**
+   * Placeholder shown while the icon is loading
+   * Can be a preset ('skeleton', 'pulse', 'shimmer') or a custom ReactNode
+   * @example 'shimmer'
+   * @example <ActivityIndicator size="small" />
+   */
+  placeholder?: PlaceholderType;
+
+  /**
+   * Placeholder background color
+   * @default '#E1E1E1'
+   */
+  placeholderColor?: string;
+
+  /**
+   * Placeholder animation duration in milliseconds
+   * @default 1000
+   */
+  placeholderDuration?: number;
 
   /**
    * Called when the icon loads successfully
@@ -89,6 +112,48 @@ export interface IconProps<T extends string = string> {
    * Test ID for testing purposes
    */
   testID?: string;
+
+  /**
+   * Animation to apply to the icon
+   * Can be a preset ('spin', 'pulse', 'bounce', 'shake', 'ping', 'wiggle')
+   * or a custom animation configuration
+   * @example 'spin'
+   * @example { type: 'rotate', duration: 2000, easing: 'linear' }
+   */
+  animate?: AnimationType;
+
+  /**
+   * Animation duration in milliseconds (overrides preset default)
+   */
+  animationDuration?: number;
+
+  /**
+   * Whether the animation should loop
+   * @default true for most presets
+   */
+  animationLoop?: boolean;
+
+  /**
+   * Animation easing function
+   */
+  animationEasing?: AnimationEasing;
+
+  /**
+   * Delay before animation starts (ms)
+   * @default 0
+   */
+  animationDelay?: number;
+
+  /**
+   * Whether to start animation automatically
+   * @default true
+   */
+  autoPlay?: boolean;
+
+  /**
+   * Callback when animation completes (for non-looping animations)
+   */
+  onAnimationComplete?: () => void;
 }
 
 /**
@@ -149,3 +214,15 @@ export interface IconRendererProps extends Omit<IconProps<string>, 'name'> {
    */
   iconName: string;
 }
+
+// Re-export placeholder types for convenience
+export type { PlaceholderType, PlaceholderConfig, PlaceholderPreset } from '../placeholder/types';
+
+// Re-export animation types for convenience
+export type {
+  AnimationType,
+  AnimationPreset,
+  AnimationConfig,
+  AnimationEasing,
+  AnimationControls,
+} from '../animated/types';

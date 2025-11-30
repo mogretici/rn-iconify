@@ -1,0 +1,644 @@
+---
+id: icon-explorer
+title: Icon Explorer
+sidebar_position: 8
+description: Browse, search, and discover icons from 200+ icon sets
+keywords: [explorer, browse, search, discover, icon-sets, collections]
+---
+
+The Icon Explorer provides a powerful interface for browsing, searching, and discovering icons from over 200+ icon sets.
+
+## Basic Usage
+
+```tsx
+import { IconExplorer } from 'rn-iconify';
+
+function App() {
+  return (
+    <IconExplorer
+      onIconSelect={(iconName) => {
+        console.log('Selected:', iconName);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+IconExplorer extends `ExplorerConfig` with additional display props:
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `visible` | `boolean` | `true` | Whether the explorer is visible |
+| `onClose` | `() => void` | - | Callback when explorer is closed |
+| `style` | `ViewStyle` | - | Container style |
+| `iconSets` | `string[]` | all | Icon set prefixes to include |
+| `initialQuery` | `string` | `''` | Initial search query |
+| `maxResults` | `number` | `100` | Maximum search results to display |
+| `preview` | `Partial<PreviewConfig>` | - | Preview configuration |
+| `onIconSelect` | `(iconName: string) => void` | - | Called when an icon is selected |
+| `onCopyCode` | `(code: string) => void` | - | Called when code is copied |
+| `keyboardShortcuts` | `boolean` | `true` | Enable keyboard shortcuts |
+
+## Filter by Icon Set
+
+Limit to specific icon sets:
+
+```tsx
+<IconExplorer
+  iconSets={['mdi', 'heroicons']}
+  onIconSelect={(icon) => console.log(icon)}
+/>
+```
+
+## Custom Styling
+
+```tsx
+<IconExplorer
+  style={{
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+  }}
+  preview={{
+    sizes: [24, 32, 48],
+    colors: ['#333', '#6366f1', '#ef4444'],
+  }}
+  onIconSelect={handleSelect}
+/>
+```
+
+---
+
+## useExplorer Hook
+
+Access explorer state and actions programmatically:
+
+```tsx
+import { useExplorer } from 'rn-iconify';
+
+function CustomExplorer() {
+  const {
+    // State
+    query,
+    results,           // SearchResult[] - not string[]!
+    isLoading,
+    selectedIcon,
+    activeIconSet,
+    iconSets,
+    totalIcons,
+    collectionsLoaded,
+    // Actions
+    setQuery,
+    selectIcon,        // not setSelectedIcon
+    filterByIconSet,   // not setActiveIconSet
+  } = useExplorer();
+
+  return (
+    <View>
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search icons..."
+      />
+
+      {isLoading ? (
+        <ActivityIndicator />
+      ) : (
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item.fullName}
+          renderItem={({ item }) => (
+            <IconItem
+              name={item.fullName}
+              onPress={() => selectIcon(item.fullName)}
+            />
+          )}
+        />
+      )}
+    </View>
+  );
+}
+```
+
+### Return Values
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `query` | `string` | Current search query |
+| `setQuery` | `(query: string) => void` | Update search query |
+| `results` | `SearchResult[]` | Search results (SearchResult objects) |
+| `isLoading` | `boolean` | Whether search is in progress |
+| `selectedIcon` | `string \| null` | Currently selected icon |
+| `selectIcon` | `(icon: string \| null) => void` | Select an icon |
+| `activeIconSet` | `string \| null` | Currently filtered icon set |
+| `filterByIconSet` | `(prefix: string \| null) => void` | Filter by icon set |
+| `iconSets` | `IconSetInfo[]` | Available icon sets |
+| `totalIcons` | `number` | Total icons available |
+| `collectionsLoaded` | `boolean` | Whether collections have loaded |
+
+---
+
+## Icon Set Functions
+
+### getAllIconSets
+
+Get information about all available icon sets:
+
+```tsx
+import { getAllIconSets } from 'rn-iconify';
+
+const iconSets = getAllIconSets();
+
+iconSets.forEach(set => {
+  console.log({
+    prefix: set.prefix,      // 'mdi'
+    name: set.name,          // 'Material Design Icons'
+    total: set.total,        // 7000
+    author: set.author,      // 'Austin Andrews' (string)
+    license: set.license,    // 'Apache 2.0' (string)
+    category: set.category,  // 'general'
+    samples: set.samples,    // ['home', 'account', 'settings', ...]
+  });
+});
+```
+
+### getIconSetByPrefix
+
+Get details for a specific icon set:
+
+```tsx
+import { getIconSetByPrefix } from 'rn-iconify';
+
+const mdi = getIconSetByPrefix('mdi');
+
+if (mdi) {
+  console.log(`${mdi.name} has ${mdi.total} icons`);
+}
+```
+
+### getIconSetsByCategory
+
+Filter icon sets by category:
+
+```tsx
+import { getIconSetsByCategory } from 'rn-iconify';
+
+// Get all general-purpose icon sets
+const generalSets = getIconSetsByCategory('general');
+
+// Get all brand icon sets
+const brandSets = getIconSetsByCategory('brand');
+
+// Get all emoji icon sets
+const emojiSets = getIconSetsByCategory('emoji');
+
+// Get all flag icon sets
+const flagSets = getIconSetsByCategory('flags');
+
+// Get all weather icon sets
+const weatherSets = getIconSetsByCategory('weather');
+```
+
+Available categories:
+- `'general'` - General purpose icons (MDI, Heroicons, etc.)
+- `'brand'` - Brand and social media icons
+- `'emoji'` - Emoji and emoticon sets
+- `'flags'` - Maps and flag icons
+- `'weather'` - Weather icons
+- `'other'` - Other themed icon sets
+
+### searchIconSets
+
+Search for icon sets by name or prefix:
+
+```tsx
+import { searchIconSets } from 'rn-iconify';
+
+// Search by name
+const results = searchIconSets('material');
+// Returns: [mdi, material-symbols, ic, ...]
+
+// Search by prefix
+const heroResults = searchIconSets('hero');
+// Returns: [heroicons]
+```
+
+---
+
+## Code Generation
+
+### generateImportStatement
+
+Generate import code for an icon:
+
+```tsx
+import { generateImportStatement } from 'rn-iconify';
+
+const importCode = generateImportStatement('mdi:home');
+// "import { Mdi } from 'rn-iconify';"
+
+const heroImport = generateImportStatement('heroicons:user');
+// "import { Heroicons } from 'rn-iconify';"
+```
+
+### generateIconJSX
+
+Generate JSX code for an icon:
+
+```tsx
+import { generateIconJSX } from 'rn-iconify';
+
+const jsx = generateIconJSX('mdi:home', 24, '#333');
+// '<Mdi name="home" size={24} color="#333" />'
+
+const customJsx = generateIconJSX('heroicons:user', 32, 'blue');
+// '<Heroicons name="user" size={32} color="blue" />'
+```
+
+Parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `iconName` | `string` | - | Full icon name (e.g., `'mdi:home'`) |
+| `size` | `number` | `24` | Icon size |
+| `color` | `string` | `'currentColor'` | Icon color |
+
+---
+
+## POPULAR_ICON_SETS
+
+Pre-defined list of popular icon sets with full metadata:
+
+```tsx
+import { POPULAR_ICON_SETS } from 'rn-iconify';
+
+// Array of IconSetInfo objects
+console.log(POPULAR_ICON_SETS);
+// [{ prefix: 'mdi', name: 'Material Design Icons', total: 7000, ... }, ...]
+
+// Access icon set data directly
+POPULAR_ICON_SETS.forEach(set => {
+  console.log(`${set.name} (${set.prefix}): ${set.total} icons`);
+});
+
+// Use to display popular icon sets
+function PopularIconSets() {
+  return (
+    <View>
+      {POPULAR_ICON_SETS.map(set => (
+        <IconSetCard key={set.prefix} iconSet={set} />
+      ))}
+    </View>
+  );
+}
+```
+
+---
+
+## ExplorerContext
+
+Access explorer state from any component:
+
+```tsx
+import { ExplorerContext, useExplorerContext } from 'rn-iconify';
+
+// Using the hook (recommended)
+function IconGrid() {
+  const { results, selectedIcon, selectIcon } = useExplorerContext();
+
+  return (
+    <FlatList
+      data={results}
+      keyExtractor={(item) => item.fullName}
+      renderItem={({ item }) => (
+        <Pressable onPress={() => selectIcon(item.fullName)}>
+          <Icon name={item.fullName} />
+        </Pressable>
+      )}
+    />
+  );
+}
+
+// Using context directly
+function CustomComponent() {
+  const context = useContext(ExplorerContext);
+
+  if (!context) {
+    return <Text>Not inside IconExplorer</Text>;
+  }
+
+  return <Text>Found {context.results.length} icons</Text>;
+}
+```
+
+### Context Value
+
+```tsx
+interface ExplorerContextValue {
+  // State
+  query: string;
+  results: SearchResult[];
+  selectedIcon: string | null;
+  activeIconSet: string | null;
+  isLoading: boolean;
+  error: string | null;
+  previewSize: number;
+  previewColor: string;
+  iconSets: IconSetInfo[];
+  totalIcons: number;
+  collectionsLoaded: boolean;
+
+  // Actions
+  setQuery: (query: string) => void;
+  selectIcon: (iconName: string | null) => void;
+  filterByIconSet: (prefix: string | null) => void;
+  setPreviewSize: (size: number) => void;
+  setPreviewColor: (color: string) => void;
+  copyIconCode: (iconName: string, format?: 'jsx' | 'import') => void;
+  reset: () => void;
+}
+```
+
+---
+
+## IconSetInfo Type
+
+```tsx
+interface IconSetInfo {
+  /** Icon set prefix (e.g., 'mdi') */
+  prefix: string;
+
+  /** Display name (e.g., 'Material Design Icons') */
+  name: string;
+
+  /** Total number of icons */
+  total: number;
+
+  /** Author name (e.g., 'Austin Andrews') */
+  author?: string;
+
+  /** License name (e.g., 'Apache 2.0', 'MIT') */
+  license?: string;
+
+  /** Sample icon names for preview */
+  samples?: string[];
+
+  /** Icon set category */
+  category?: 'general' | 'brand' | 'emoji' | 'flags' | 'weather' | 'other';
+}
+```
+
+### Example Data
+
+```tsx
+const mdiIconSet: IconSetInfo = {
+  prefix: 'mdi',
+  name: 'Material Design Icons',
+  total: 7000,
+  author: 'Austin Andrews',
+  license: 'Apache 2.0',
+  samples: ['home', 'account', 'settings', 'menu', 'close'],
+  category: 'general',
+};
+```
+
+---
+
+## Building a Custom Explorer
+
+Create a fully custom icon explorer:
+
+```tsx
+import {
+  useExplorer,
+  getAllIconSets,
+  getIconSetByPrefix,
+  generateIconJSX,
+  POPULAR_ICON_SETS,
+} from 'rn-iconify';
+
+function CustomIconExplorer({ onSelect }) {
+  const {
+    query,
+    setQuery,
+    results,
+    isLoading,
+    activeIconSet,
+    filterByIconSet,
+  } = useExplorer();
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = async (iconName) => {
+    const jsx = generateIconJSX(iconName, 24);
+    await Clipboard.setString(jsx);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Search */}
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search 200,000+ icons..."
+        style={styles.searchInput}
+      />
+
+      {/* Icon Set Filter */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <Chip
+          selected={!activeIconSet}
+          onPress={() => filterByIconSet(null)}
+        >
+          All
+        </Chip>
+        {POPULAR_ICON_SETS.map(set => (
+          <Chip
+            key={set.prefix}
+            selected={activeIconSet === set.prefix}
+            onPress={() => filterByIconSet(set.prefix)}
+          >
+            {set.name}
+          </Chip>
+        ))}
+      </ScrollView>
+
+      {/* Results */}
+      {isLoading ? (
+        <ActivityIndicator size="large" />
+      ) : (
+        <FlatList
+          data={results}
+          numColumns={5}
+          keyExtractor={(item) => item.fullName}
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => onSelect(item.fullName)}
+              onLongPress={() => handleCopyCode(item.fullName)}
+              style={styles.iconCell}
+            >
+              <Icon name={item.fullName} size={32} />
+              <Text style={styles.iconName}>
+                {item.name}
+              </Text>
+            </Pressable>
+          )}
+        />
+      )}
+
+      {copied && (
+        <Toast message="Code copied to clipboard!" />
+      )}
+    </View>
+  );
+}
+```
+
+---
+
+## Integration Examples
+
+### With Modal
+
+```tsx
+function IconPickerModal({ visible, onClose, onSelect }) {
+  return (
+    <Modal visible={visible} animationType="slide">
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Select Icon</Text>
+          <Pressable onPress={onClose}>
+            <Mdi name="close" size={24} />
+          </Pressable>
+        </View>
+
+        <IconExplorer
+          onIconSelect={(icon) => {
+            onSelect(icon);
+            onClose();
+          }}
+        />
+      </SafeAreaView>
+    </Modal>
+  );
+}
+```
+
+### With Form
+
+```tsx
+function IconFormField({ value, onChange }) {
+  const [showPicker, setShowPicker] = useState(false);
+
+  return (
+    <View>
+      <Text>Select an icon:</Text>
+
+      <Pressable
+        onPress={() => setShowPicker(true)}
+        style={styles.iconPreview}
+      >
+        {value ? (
+          <Icon name={value} size={48} />
+        ) : (
+          <Text>Tap to select</Text>
+        )}
+      </Pressable>
+
+      <IconPickerModal
+        visible={showPicker}
+        onClose={() => setShowPicker(false)}
+        onSelect={onChange}
+      />
+    </View>
+  );
+}
+```
+
+---
+
+## Best Practices
+
+### 1. Lazy Load Collections
+
+```tsx
+function App() {
+  const [explorerReady, setExplorerReady] = useState(false);
+
+  // Only load explorer when needed
+  return (
+    <View>
+      {explorerReady ? (
+        <IconExplorer onIconSelect={handleSelect} />
+      ) : (
+        <Button
+          title="Browse Icons"
+          onPress={() => setExplorerReady(true)}
+        />
+      )}
+    </View>
+  );
+}
+```
+
+### 2. Cache Search Results
+
+```tsx
+function useSearchWithCache() {
+  const cache = useRef(new Map());
+  const { setQuery, results } = useExplorer();
+
+  const search = useCallback((query) => {
+    if (cache.current.has(query)) {
+      return cache.current.get(query);
+    }
+
+    setQuery(query);
+    // Results will update via hook
+  }, [setQuery]);
+
+  useEffect(() => {
+    if (query && results.length > 0) {
+      cache.current.set(query, results);
+    }
+  }, [query, results]);
+
+  return { search, results };
+}
+```
+
+### 3. Debounce Search Input
+
+```tsx
+function DebouncedSearch() {
+  const [input, setInput] = useState('');
+  const { setQuery } = useExplorer();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setQuery(input);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [input, setQuery]);
+
+  return (
+    <TextInput
+      value={input}
+      onChangeText={setInput}
+      placeholder="Search..."
+    />
+  );
+}
+```
+
+---
+
+## Next Steps
+
+- [Quick Start](/docs/getting-started/quick-start) - Get started with rn-iconify
+- [API Reference - Utilities](/docs/api-reference/utilities#prefetchicons) - Preload icons for instant display
+- [Icon Aliases](/docs/features/icon-aliases) - Create custom icon names

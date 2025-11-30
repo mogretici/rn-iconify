@@ -1,0 +1,387 @@
+---
+id: offline-bundles
+title: Offline Bundles
+sidebar_position: 4
+description: Create and load icon bundles for offline support
+keywords: [offline, bundle, air-gapped, no-network]
+---
+
+Create and load icon bundles for complete offline support without any network requests.
+
+
+## When to Use Offline Bundles
+
+- **Air-gapped environments**: No network access
+- **Guaranteed availability**: Critical icons always available
+- **Reduced latency**: Zero network delay
+- **Compliance**: Strict network policies
+
+## Creating Bundles
+
+### CLI Method
+
+Generate a bundle using the CLI:
+
+```bash
+npx rn-iconify bundle \
+  --icons "mdi:home,mdi:settings,heroicons:user" \
+  --output ./src/icons/bundle.json
+```
+
+## Loading Bundles
+
+Load the bundle at app startup:
+
+```tsx
+import { loadOfflineBundle } from 'rn-iconify';
+import iconBundle from './icons/bundle.json';
+
+// Load before rendering any icons
+loadOfflineBundle(iconBundle);
+
+function App() {
+  return (
+    <>
+      <Mdi name="home" />  {/* Loads instantly from bundle */}
+      <Mdi name="settings" />
+    </>
+  );
+}
+```
+
+## Bundle Format
+
+The bundle JSON structure:
+
+```json
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-01-15T10:30:00Z",
+  "count": 2,
+  "icons": {
+    "mdi:home": {
+      "svg": "<path d=\"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z\"/>",
+      "width": 24,
+      "height": 24
+    },
+    "mdi:settings": {
+      "svg": "<path d=\"...\"/>",
+      "width": 24,
+      "height": 24
+    }
+  }
+}
+```
+
+## Bundle by Icon Set
+
+Create separate bundles per icon set:
+
+```bash
+# Material Design Icons
+npx rn-iconify bundle --icons "mdi:*" --output ./bundles/mdi.bundle.json
+
+# Heroicons
+npx rn-iconify bundle --icons "heroicons:*" --output ./bundles/heroicons.bundle.json
+```
+
+Load specific bundles:
+
+```tsx
+import mdiBundle from './bundles/mdi.bundle.json';
+import heroiconsBundle from './bundles/heroicons.bundle.json';
+
+// Load only what you need
+loadOfflineBundle(mdiBundle);
+loadOfflineBundle(heroiconsBundle);
+```
+
+## Lazy Loading Bundles
+
+Load bundles on demand:
+
+```tsx
+import { loadOfflineBundle } from 'rn-iconify';
+
+async function loadIconSet(setName: string) {
+  let bundle;
+
+  switch (setName) {
+    case 'mdi':
+      bundle = await import('./bundles/mdi.bundle.json');
+      break;
+    case 'heroicons':
+      bundle = await import('./bundles/heroicons.bundle.json');
+      break;
+  }
+
+  if (bundle) {
+    loadOfflineBundle(bundle);
+  }
+}
+
+// Load when entering a screen that uses specific icons
+useEffect(() => {
+  loadIconSet('heroicons');
+}, []);
+```
+
+## Bundle Optimization
+
+### Analyze Usage First
+
+```bash
+# See which icons you actually use
+npx rn-iconify analyze --src ./src
+
+# Generate bundle with only used icons
+npx rn-iconify bundle \
+  --icons "mdi:home,mdi:settings,mdi:account" \
+  --output ./bundle.json
+```
+
+### Size Comparison
+
+| Bundle Content | Approximate Size |
+|----------------|------------------|
+| 10 icons | ~5 KB |
+| 100 icons | ~50 KB |
+| 500 icons | ~250 KB |
+| Full MDI (7,447) | ~3.5 MB |
+
+:::warning
+  Only bundle icons you actually use. Analyze your codebase first with `npx rn-iconify analyze`.
+:::
+
+## Hybrid Mode
+
+Combine offline bundles with runtime fetching:
+
+```tsx
+import { loadOfflineBundle, configure } from 'rn-iconify';
+import criticalIcons from './bundles/critical.json';
+
+// Load critical icons from bundle
+loadOfflineBundle(criticalIcons);
+
+// Configure API settings for non-bundled icons
+configure({
+  api: {
+    timeout: 5000,
+    retries: 2,
+  },
+});
+```
+
+## OTA Bundle Updates
+
+Update bundles without app store releases:
+
+```tsx
+import { loadOfflineBundle } from 'rn-iconify';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+async function updateIconBundle() {
+  try {
+    // Fetch latest bundle from your server
+    const response = await fetch('https://your-server.com/icons/bundle.json');
+    const bundle = await response.json();
+
+    // Save for offline use
+    await AsyncStorage.setItem('iconBundle', JSON.stringify(bundle));
+
+    // Load immediately
+    loadOfflineBundle(bundle);
+  } catch (error) {
+    // Fall back to stored bundle
+    const stored = await AsyncStorage.getItem('iconBundle');
+    if (stored) {
+      loadOfflineBundle(JSON.parse(stored));
+    }
+  }
+}
+```
+
+## Build Integration
+
+For build-time icon bundling, use the CLI command in your build scripts:
+
+```json
+// package.json
+{
+  "scripts": {
+    "prebuild": "npx rn-iconify bundle --auto --output ./assets/icons.bundle.json"
+  }
+}
+```
+
+Or use the Babel plugin for automatic bundling during compilation. See [Babel Plugin](/docs/advanced/babel-plugin) for details.
+
+## TypeScript Support
+
+Create type-safe bundles by importing the JSON with TypeScript:
+
+```tsx
+// icons.ts
+import iconBundle from './assets/icons.bundle.json';
+import { loadOfflineBundle, IconBundle } from 'rn-iconify';
+
+// Type-safe bundle loading
+loadOfflineBundle(iconBundle as IconBundle);
+
+// Extract bundled icon names for type safety
+export type BundledIconName = keyof typeof iconBundle.icons;
+```
+
+## Best Practices
+
+### 1. Bundle Critical Icons
+
+```tsx
+// Critical icons - always bundled
+const criticalIcons = [
+  'mdi:home',
+  'mdi:menu',
+  'mdi:close',
+  'mdi:arrow-left',
+];
+```
+
+### 2. Keep Bundles Small
+
+```bash
+# Bad - bundles everything
+npx rn-iconify bundle --icons "mdi:*"
+
+# Good - bundles only what's used
+npx rn-iconify bundle --icons "mdi:home,mdi:settings,mdi:user"
+```
+
+### 3. Update Bundles Regularly
+
+```json
+// package.json
+{
+  "scripts": {
+    "icons:bundle": "rn-iconify bundle --icons \"mdi:home,mdi:settings\" --output ./src/icons/bundle.json",
+    "prebuild": "npm run icons:bundle"
+  }
+}
+```
+
+## Troubleshooting
+
+### Check Bundled Icons
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+// Check bundled count
+const stats = CacheManager.getStats();
+console.log('Bundled icons count:', stats.bundledCount);
+```
+
+### Icon Not in Bundle
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+if (!CacheManager.hasBundled('mdi:home')) {
+  console.warn('mdi:home not in bundle, will fetch from network');
+}
+```
+
+## Bundle Utilities
+
+### isBundleCompatible
+
+Check if a bundle is compatible with the current version:
+
+```tsx
+import { isBundleCompatible } from 'rn-iconify';
+import iconBundle from './bundle.json';
+
+if (isBundleCompatible(iconBundle)) {
+  loadOfflineBundle(iconBundle);
+} else {
+  console.warn('Bundle version mismatch, regenerate bundle');
+}
+```
+
+### getBundleStats
+
+Get detailed statistics about a bundle:
+
+```tsx
+import { getBundleStats } from 'rn-iconify';
+import iconBundle from './bundle.json';
+
+const stats = getBundleStats(iconBundle);
+
+console.log({
+  iconCount: stats.iconCount,
+  prefixes: stats.prefixes,       // ['mdi', 'heroicons']
+  sizeBytes: stats.estimatedSizeBytes,
+  generatedAt: stats.generatedAt,
+});
+```
+
+---
+
+## Async Loading with Progress
+
+### loadOfflineBundleAsync
+
+Load large bundles asynchronously with progress tracking:
+
+```tsx
+import { loadOfflineBundleAsync } from 'rn-iconify';
+import { useState } from 'react';
+
+function App() {
+  const [progress, setProgress] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    loadOfflineBundleAsync(
+      require('./large-bundle.json'),
+      {
+        batchSize: 100,  // Load 100 icons per batch
+        onProgress: (loaded, total) => {
+          setProgress((loaded / total) * 100);
+        },
+      }
+    ).then(() => {
+      setLoaded(true);
+    });
+  }, []);
+
+  if (!loaded) {
+    return (
+      <View>
+        <Text>Loading icons: {progress.toFixed(0)}%</Text>
+        <ProgressBar progress={progress} />
+      </View>
+    );
+  }
+
+  return <MainApp />;
+}
+```
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `skipExisting` | `boolean` | `true` | Skip icons already in cache |
+| `verbose` | `boolean` | `false` | Log loading progress |
+| `batchSize` | `number` | `50` | Icons to load per batch |
+| `onProgress` | `(loaded, total) => void` | - | Progress callback |
+
+---
+
+## Next Steps
+
+- [Babel Plugin](/docs/advanced/babel-plugin) - Build-time bundling alternative
+- [Custom Server](/docs/advanced/custom-server) - Self-hosted icon server
+- [Architecture](/docs/advanced/architecture) - How bundling works

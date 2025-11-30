@@ -1,14 +1,26 @@
 /**
  * Iconify API Client
  * Handles fetching icon data from Iconify API
+ * Supports custom API servers via ConfigManager
  */
 
 import type { IconifyAPIResponse, IconifyIconData } from '../types';
+import { ConfigManager } from '../config';
 
-const ICONIFY_API_BASE = 'https://api.iconify.design';
-const DEFAULT_TIMEOUT_MS = 30000; // 30 second timeout
-const MAX_RETRIES = 2;
-const RETRY_DELAY_MS = 1000;
+/**
+ * Get current API configuration
+ */
+function getAPISettings() {
+  const config = ConfigManager.getAPIConfig();
+  return {
+    baseUrl: config.apiUrl,
+    timeout: config.timeout,
+    retries: config.retries,
+    retryDelay: config.retryDelay,
+    headers: config.headers,
+    logging: config.logging,
+  };
+}
 
 /**
  * Request deduplication map
@@ -22,18 +34,26 @@ const pendingRequests = new Map<string, Promise<string>>();
 async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
-  timeoutMs: number = DEFAULT_TIMEOUT_MS
+  timeoutMs?: number
 ): Promise<Response> {
+  const settings = getAPISettings();
+  const effectiveTimeout = timeoutMs ?? settings.timeout;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
 
   // Merge abort signals if one is provided
   const signal = options.signal
     ? anySignal([options.signal, controller.signal])
     : controller.signal;
 
+  // Merge headers from config
+  const headers = {
+    ...settings.headers,
+    ...(options.headers as Record<string, string> | undefined),
+  };
+
   try {
-    const response = await fetch(url, { ...options, signal });
+    const response = await fetch(url, { ...options, headers, signal });
     return response;
   } finally {
     clearTimeout(timeoutId);
@@ -150,16 +170,22 @@ export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise
 
   // Create and store the request promise
   const requestPromise = (async () => {
+    const settings = getAPISettings();
     let lastError: Error | null = null;
 
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    for (let attempt = 0; attempt <= settings.retries; attempt++) {
       try {
         // Check if already aborted
         if (signal?.aborted) {
           throw new DOMException('Aborted', 'AbortError');
         }
 
-        const url = `${ICONIFY_API_BASE}/${prefix}.json?icons=${name}`;
+        const url = `${settings.baseUrl}/${prefix}.json?icons=${name}`;
+
+        if (settings.logging) {
+          console.log(`[rn-iconify] Fetching: ${url} (attempt ${attempt + 1})`);
+        }
+
         const response = await fetchWithTimeout(url, { signal });
 
         if (!response.ok) {
@@ -203,15 +229,20 @@ export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise
         lastError = error instanceof Error ? error : new Error(String(error));
 
         // Wait before retrying (except on last attempt)
-        if (attempt < MAX_RETRIES) {
-          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * (attempt + 1)));
+        if (attempt < settings.retries) {
+          const delay = settings.retryDelay * (attempt + 1);
+          if (settings.logging) {
+            console.log(`[rn-iconify] Retry ${attempt + 1} in ${delay}ms...`);
+          }
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
 
     // All retries exhausted
     throw (
-      lastError ?? new Error(`Failed to fetch icon "${iconName}" after ${MAX_RETRIES + 1} attempts`)
+      lastError ??
+      new Error(`Failed to fetch icon "${iconName}" after ${settings.retries + 1} attempts`)
     );
   })();
 
@@ -261,6 +292,7 @@ export async function fetchIconsBatch(
   }
 
   // Fetch each prefix group with error handling per group
+  const settings = getAPISettings();
   const fetchPromises = Array.from(byPrefix.entries()).map(async ([prefix, names]) => {
     try {
       // Check if aborted
@@ -271,7 +303,12 @@ export async function fetchIconsBatch(
 
       // Sort icon names alphabetically for consistent caching (Iconify best practice)
       const sortedNames = [...names].sort();
-      const url = `${ICONIFY_API_BASE}/${prefix}.json?icons=${sortedNames.join(',')}`;
+      const url = `${settings.baseUrl}/${prefix}.json?icons=${sortedNames.join(',')}`;
+
+      if (settings.logging) {
+        console.log(`[rn-iconify] Batch fetching: ${url}`);
+      }
+
       const response = await fetchWithTimeout(url, { signal });
 
       if (!response.ok) {
@@ -321,12 +358,143 @@ export async function fetchIconsBatch(
  * Check if Iconify API is reachable
  */
 export async function checkAPIHealth(): Promise<boolean> {
+  const settings = getAPISettings();
   try {
-    const response = await fetch(`${ICONIFY_API_BASE}/collections`, {
+    const response = await fetch(`${settings.baseUrl}/collections`, {
       method: 'HEAD',
+      headers: settings.headers,
     });
     return response.ok;
   } catch {
     return false;
   }
+}
+
+/**
+ * Get the current API base URL
+ */
+export function getAPIBaseUrl(): string {
+  return getAPISettings().baseUrl;
+}
+
+/**
+ * Icon collection info from Iconify API
+ */
+export interface IconifyCollectionInfo {
+  prefix: string;
+  total: number;
+  title?: string;
+  icons: string[];
+  aliases?: Record<string, string>;
+  categories?: Record<string, string[]>;
+}
+
+/**
+ * Fetch all icons for a specific icon set from Iconify API
+ * @param prefix Icon set prefix (e.g., "mdi", "heroicons")
+ * @param signal Optional AbortSignal for cancellation
+ * @returns Collection info including all icon names
+ */
+export async function fetchCollection(
+  prefix: string,
+  signal?: AbortSignal
+): Promise<IconifyCollectionInfo> {
+  // Validate prefix
+  if (!SAFE_NAME_PATTERN.test(prefix)) {
+    throw new Error(`Invalid icon set prefix: "${prefix}"`);
+  }
+
+  const settings = getAPISettings();
+  const url = `${settings.baseUrl}/collection?prefix=${prefix}`;
+
+  if (settings.logging) {
+    console.log(`[rn-iconify] Fetching collection: ${url}`);
+  }
+
+  const response = await fetchWithTimeout(url, { signal });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: Failed to fetch collection "${prefix}"`);
+  }
+
+  const data = await response.json();
+
+  // Validate response structure
+  if (!data || typeof data !== 'object') {
+    throw new Error(`Invalid API response for collection "${prefix}"`);
+  }
+
+  // Build icons list from uncategorized or categories
+  let icons: string[] = [];
+
+  if (data.uncategorized && Array.isArray(data.uncategorized)) {
+    icons = [...data.uncategorized];
+  }
+
+  if (data.categories && typeof data.categories === 'object') {
+    for (const category of Object.values(data.categories)) {
+      if (Array.isArray(category)) {
+        icons.push(...category);
+      }
+    }
+  }
+
+  // Remove duplicates
+  icons = [...new Set(icons)];
+
+  return {
+    prefix,
+    total: data.total || icons.length,
+    title: data.title,
+    icons,
+    aliases: data.aliases,
+    categories: data.categories,
+  };
+}
+
+/**
+ * Search icons using Iconify API
+ * @param query Search query
+ * @param prefixes Optional array of icon set prefixes to search
+ * @param limit Maximum number of results
+ * @param signal Optional AbortSignal for cancellation
+ * @returns Array of icon names
+ */
+export async function searchIconsAPI(
+  query: string,
+  prefixes?: string[],
+  limit: number = 100,
+  signal?: AbortSignal
+): Promise<string[]> {
+  const settings = getAPISettings();
+
+  // Build URL with query parameters
+  const params = new URLSearchParams();
+  params.set('query', query);
+  params.set('limit', String(limit));
+
+  if (prefixes && prefixes.length > 0) {
+    params.set('prefixes', prefixes.join(','));
+  }
+
+  const url = `${settings.baseUrl}/search?${params.toString()}`;
+
+  if (settings.logging) {
+    console.log(`[rn-iconify] Searching icons: ${url}`);
+  }
+
+  const response = await fetchWithTimeout(url, { signal });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: Search failed`);
+  }
+
+  const data = await response.json();
+
+  // Response is an array of icon names
+  if (Array.isArray(data.icons)) {
+    return data.icons;
+  }
+
+  return [];
 }

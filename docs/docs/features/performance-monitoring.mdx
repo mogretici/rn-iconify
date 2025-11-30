@@ -1,0 +1,525 @@
+---
+id: performance-monitoring
+title: Performance Monitoring
+sidebar_position: 7
+description: Monitor icon loading performance and cache hits
+keywords: [performance, monitoring, cache, optimization]
+---
+
+Monitor and optimize icon loading performance in your app with built-in metrics collection.
+
+## Enable Monitoring
+
+Enable performance monitoring in development:
+
+```tsx
+import { enablePerformanceMonitoring, getPerformanceReport } from 'rn-iconify';
+
+// Enable monitoring
+enablePerformanceMonitoring();
+
+// Later, retrieve the report
+const report = getPerformanceReport();
+console.log(`Cache hit rate: ${(report.cacheStats.hitRate * 100).toFixed(1)}%`);
+console.log(`Avg load time: ${report.summary.avgLoadTime.toFixed(2)}ms`);
+```
+
+## Performance Report
+
+The report object contains comprehensive metrics:
+
+```tsx
+interface PerformanceReport {
+  summary: {
+    avgLoadTime: number;
+    minLoadTime: number;
+    maxLoadTime: number;
+    p50LoadTime: number;
+    p90LoadTime: number;
+    p99LoadTime: number;
+    totalLoads: number;
+    totalErrors: number;
+    uptime: number;
+  };
+  cacheStats: {
+    memoryHits: number;
+    bundledHits: number;
+    diskHits: number;
+    networkFetches: number;
+    errors: number;
+    totalRequests: number;
+    hitRate: number;
+  };
+  loadTimesByType: {
+    memory: number;
+    bundled: number;
+    disk: number;
+    network: number;
+  };
+  slowestIcons: Array<{
+    iconName: string;
+    avgDuration: number;
+    count: number;
+  }>;
+  mostUsedIcons: Array<{
+    iconName: string;
+    count: number;
+  }>;
+  /** Recent load events (last 100) */
+  recentEvents: IconLoadEvent[];
+  /** Report generation timestamp */
+  generatedAt: number;
+}
+```
+
+## Usage Example
+
+```tsx
+import { useEffect } from 'react';
+import { enablePerformanceMonitoring, getPerformanceReport, PerformanceMonitor } from 'rn-iconify';
+
+function App() {
+  useEffect(() => {
+    // Enable in development only
+    if (__DEV__) {
+      enablePerformanceMonitoring();
+    }
+
+    // Log metrics periodically
+    const interval = setInterval(() => {
+      const report = getPerformanceReport();
+      console.log('Icon Performance:', {
+        loaded: report.summary.totalLoads,
+        cacheHitRate: `${(report.cacheStats.hitRate * 100).toFixed(1)}%`,
+        avgLoadTime: `${report.summary.avgLoadTime.toFixed(0)}ms`,
+        errors: report.summary.totalErrors,
+      });
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return <MainApp />;
+}
+```
+
+## Debug Component
+
+Create a debug overlay for development:
+
+```tsx
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { enablePerformanceMonitoring, getPerformanceReport } from 'rn-iconify';
+
+function IconDebugOverlay() {
+  const [report, setReport] = useState(getPerformanceReport());
+
+  useEffect(() => {
+    enablePerformanceMonitoring();
+
+    const interval = setInterval(() => {
+      setReport(getPerformanceReport());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!__DEV__) return null;
+
+  return (
+    <View style={styles.overlay}>
+      <Text style={styles.title}>Icon Metrics</Text>
+      <Text style={styles.metric}>
+        Loaded: {report.summary.totalLoads}
+      </Text>
+      <Text style={styles.metric}>
+        Cache: {(report.cacheStats.hitRate * 100).toFixed(0)}%
+      </Text>
+      <Text style={styles.metric}>
+        Avg: {report.summary.avgLoadTime.toFixed(0)}ms
+      </Text>
+      <Text style={styles.metric}>
+        Errors: {report.summary.totalErrors}
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 50,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    padding: 10,
+    borderRadius: 8,
+    zIndex: 9999,
+  },
+  title: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  metric: {
+    color: 'white',
+    fontSize: 12,
+  },
+});
+```
+
+## Bundle Statistics
+
+Analyze bundle statistics:
+
+```tsx
+import { loadOfflineBundle, getBundleStats } from 'rn-iconify';
+import iconBundle from './assets/icons.bundle.json';
+
+// Get statistics from bundle before loading
+const stats = getBundleStats(iconBundle);
+console.log('Bundle stats:', {
+  totalIcons: stats.iconCount,
+  prefixes: stats.prefixes,
+  sizeKB: (stats.estimatedSizeBytes / 1024).toFixed(2),
+  generatedAt: stats.generatedAt,
+});
+
+// Load the bundle
+loadOfflineBundle(iconBundle);
+```
+
+## Identify Slow Icons
+
+Find icons that are slow to load:
+
+```tsx
+import { getPerformanceReport } from 'rn-iconify';
+
+function analyzeSlowIcons() {
+  const report = getPerformanceReport();
+
+  // Get slowest icons from the report
+  const slowIcons = report.slowestIcons.filter(icon => icon.avgDuration > 500);
+
+  if (slowIcons.length > 0) {
+    console.warn('Slow loading icons:', slowIcons);
+  }
+
+  return slowIcons;
+}
+```
+
+## Subscribe to Events
+
+Listen for icon load events in real-time:
+
+```tsx
+import { PerformanceMonitor, enablePerformanceMonitoring } from 'rn-iconify';
+
+// Enable monitoring first
+enablePerformanceMonitoring();
+
+// Subscribe to events
+const unsubscribe = PerformanceMonitor.subscribe((event) => {
+  if (event.type === 'error') {
+    console.error(`Failed to load icon: ${event.iconName}`, event.error);
+  } else if (event.duration > 500) {
+    console.warn(`Slow icon: ${event.iconName} took ${event.duration}ms`);
+  }
+});
+
+// Unsubscribe when done
+unsubscribe();
+```
+
+## Print Report
+
+Print a formatted report to the console:
+
+```tsx
+import { printPerformanceReport, enablePerformanceMonitoring } from 'rn-iconify';
+
+// Enable and later print
+enablePerformanceMonitoring();
+
+// After some time, print formatted report
+printPerformanceReport();
+```
+
+Output:
+
+```
+┌─────────────────────────────────────────────────────┐
+│ rn-iconify Performance Report                       │
+├─────────────────────────────────────────────────────┤
+│ Total Loads: 150        │ Errors: 0                 │
+│ Cache Hit Rate: 94.7%                               │
+├─────────────────────────────────────────────────────┤
+│ Load Times                                          │
+│   Average: 12.34ms                                  │
+│   Min: 0.12ms │ Max: 234.56ms                       │
+│   P50: 8.00ms │ P90: 45.00ms │ P99: 120.00ms        │
+├─────────────────────────────────────────────────────┤
+│ By Source                                           │
+│   Memory: 0.15ms (89 hits)                          │
+│   Bundled: 0.10ms (42 hits)                         │
+│   Disk: 1.20ms (11 hits)                            │
+│   Network: 156.00ms (8 fetches)                     │
+└─────────────────────────────────────────────────────┘
+```
+
+## Reset Monitoring
+
+Clear all performance data:
+
+```tsx
+import { PerformanceMonitor, getPerformanceReport } from 'rn-iconify';
+
+// Reset all metrics
+PerformanceMonitor.reset();
+
+// Metrics are now zeroed
+const report = getPerformanceReport();
+console.log(report.summary.totalLoads); // 0
+```
+
+## Optimization Recommendations
+
+Based on metrics, optimize your icon usage:
+
+### High Network Fetches
+
+If `networkFetches` is high, consider:
+
+```tsx
+import { prefetchIcons } from 'rn-iconify';
+
+// Prefetch commonly used icons at app start
+async function initApp() {
+  await prefetchIcons([
+    'mdi:home',
+    'mdi:settings',
+    'mdi:account',
+    // ... frequently used icons
+  ]);
+}
+```
+
+### Low Cache Hit Rate
+
+If `hitRate` is low:
+
+1. **Check cache configuration**:
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  cache: {
+    maxMemoryItems: 1000, // Increase max cached icons
+    enableDiskCache: true,
+  },
+});
+```
+
+2. **Use Babel plugin** for critical icons:
+```js
+// babel.config.js
+module.exports = {
+  plugins: [
+    ['rn-iconify/babel', {
+      include: ['mdi:home', 'mdi:settings'],
+    }],
+  ],
+};
+```
+
+### High Average Load Time
+
+If `avgLoadTime` is high:
+
+1. **Use local Iconify server**:
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  api: {
+    apiUrl: 'http://localhost:3000',
+  },
+});
+```
+
+2. **Bundle critical icons**:
+```js
+// babel.config.js
+module.exports = {
+  plugins: [
+    ['rn-iconify/babel', {
+      include: ['mdi:*'], // Bundle all MDI icons
+    }],
+  ],
+};
+```
+
+## Performance Targets
+
+Recommended targets for good icon performance:
+
+| Metric | Target | Action if Poor |
+|--------|--------|----------------|
+| Cache Hit Rate | > 90% | Increase cache size, prefetch icons |
+| Avg Load Time | < 100ms | Use local server, bundle critical icons |
+| Errors | 0 | Check network, validate icon names |
+
+## Best Practices
+
+### 1. Development Only
+
+```tsx
+if (__DEV__) {
+  enablePerformanceMonitoring();
+}
+```
+
+### 2. Regular Monitoring
+
+```tsx
+useEffect(() => {
+  const interval = setInterval(() => {
+    const report = getPerformanceReport();
+    // Analyze and log
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, []);
+```
+
+### 3. Set Performance Budget
+
+```tsx
+function checkIconBudget() {
+  const report = getPerformanceReport();
+
+  if (report.summary.avgLoadTime > 200) {
+    console.warn('Icon load time exceeds budget');
+  }
+
+  if (report.cacheStats.hitRate < 0.8) {
+    console.warn('Cache hit rate below target');
+  }
+}
+```
+
+## Disable Monitoring
+
+Disable when not needed:
+
+```tsx
+import { disablePerformanceMonitoring } from 'rn-iconify';
+
+disablePerformanceMonitoring();
+```
+
+## PerformanceMonitor API
+
+The `PerformanceMonitor` object provides detailed access to performance data.
+
+### getSummary
+
+Get performance summary with percentiles:
+
+```tsx
+import { PerformanceMonitor } from 'rn-iconify';
+
+const summary = PerformanceMonitor.getSummary();
+
+console.log({
+  totalLoads: summary.totalLoads,
+  avgLoadTime: summary.avgLoadTime,
+  p50: summary.p50LoadTime,  // median
+  p90: summary.p90LoadTime,  // 90th percentile
+  p99: summary.p99LoadTime,  // 99th percentile
+  totalErrors: summary.totalErrors,
+  uptime: summary.uptime,
+});
+```
+
+### getEvents
+
+Get all recorded load events:
+
+```tsx
+import { PerformanceMonitor } from 'rn-iconify';
+
+const events = PerformanceMonitor.getEvents();
+
+events.forEach(event => {
+  console.log({
+    icon: event.iconName,
+    duration: event.duration,
+    type: event.type,  // 'memory_hit' | 'bundled_hit' | 'disk_hit' | 'network_fetch' | 'error'
+    timestamp: event.timestamp,
+    error: event.error,  // Only present if type is 'error'
+  });
+});
+```
+
+### getCacheStats
+
+Get cache-specific statistics:
+
+```tsx
+import { PerformanceMonitor } from 'rn-iconify';
+
+const stats = PerformanceMonitor.getCacheStats();
+
+console.log({
+  memoryHits: stats.memoryHits,
+  bundledHits: stats.bundledHits,
+  diskHits: stats.diskHits,
+  networkFetches: stats.networkFetches,
+  errors: stats.errors,
+  totalRequests: stats.totalRequests,
+  hitRate: stats.hitRate,
+});
+```
+
+### subscribe
+
+Subscribe to real-time load events:
+
+```tsx
+import { PerformanceMonitor } from 'rn-iconify';
+
+const unsubscribe = PerformanceMonitor.subscribe((event) => {
+  // Called for every icon load
+  console.log(`${event.iconName}: ${event.duration}ms from ${event.type}`);
+
+  if (event.type === 'error') {
+    console.error(`Failed to load ${event.iconName}:`, event.error);
+  }
+});
+
+// Cleanup
+return () => unsubscribe();
+```
+
+### isEnabled
+
+Check if monitoring is enabled:
+
+```tsx
+import { PerformanceMonitor } from 'rn-iconify';
+
+if (PerformanceMonitor.isEnabled()) {
+  console.log('Performance monitoring is active');
+}
+```
+
+---
+
+## Next Steps
+
+- [Babel Plugin](/docs/advanced/babel-plugin) - Bundle icons for 0ms load
+- [Architecture](/docs/advanced/architecture) - Understanding the caching system
+- [Custom Server](/docs/advanced/custom-server) - Self-hosted Iconify server

@@ -1,0 +1,435 @@
+# Hooks
+
+API reference for React hooks.
+
+## useIconTheme
+
+Access the current icon theme context.
+
+```tsx copy
+import { useIconTheme } from 'rn-iconify';
+
+function MyComponent() {
+  const theme = useIconTheme();
+
+  return (
+    <Text style={{ color: theme.color }}>
+      Current icon size: {theme.size}
+    </Text>
+  );
+}
+```
+
+### Returns
+
+```tsx
+interface IconTheme {
+  /** Default icon size */
+  size: number;
+
+  /** Default icon color */
+  color: string;
+
+  /** Default placeholder */
+  placeholder?: ReactNode | 'skeleton' | 'pulse' | 'shimmer';
+}
+```
+
+### Example
+
+```tsx copy
+import { useIconTheme, Mdi } from 'rn-iconify';
+import { View, Text } from 'react-native';
+
+function IconWithLabel({ name, label }: { name: string; label: string }) {
+  const { color, size } = useIconTheme();
+
+  return (
+    <View style={{ alignItems: 'center' }}>
+      <Mdi name={name} />
+      <Text style={{ color, fontSize: size / 2 }}>{label}</Text>
+    </View>
+  );
+}
+```
+
+---
+
+## useIconLoader
+
+Load icon data programmatically.
+
+```tsx copy
+import { useIconLoader } from 'rn-iconify';
+
+function MyComponent() {
+  const { data, loading, error } = useIconLoader('mdi:home');
+
+  if (loading) return <ActivityIndicator />;
+  if (error) return <Text>Error loading icon</Text>;
+
+  return <Text>Icon loaded: {data.body}</Text>;
+}
+```
+
+### Parameters
+
+```tsx
+function useIconLoader(
+  iconName: string,
+  options?: UseIconLoaderOptions
+): UseIconLoaderResult;
+
+interface UseIconLoaderOptions {
+  /** Skip loading (useful for conditional loading) */
+  skip?: boolean;
+
+  /** Custom server URL */
+  server?: string;
+}
+```
+
+### Returns
+
+```tsx
+interface UseIconLoaderResult {
+  /** Icon SVG data */
+  data: IconData | null;
+
+  /** Loading state */
+  loading: boolean;
+
+  /** Error if loading failed */
+  error: Error | null;
+
+  /** Reload the icon */
+  reload: () => void;
+}
+
+interface IconData {
+  /** SVG body content */
+  body: string;
+
+  /** Icon width */
+  width: number;
+
+  /** Icon height */
+  height: number;
+}
+```
+
+### Example
+
+```tsx copy
+import { useIconLoader } from 'rn-iconify';
+import Svg, { Path } from 'react-native-svg';
+
+function CustomIcon({ name }: { name: string }) {
+  const { data, loading, error } = useIconLoader(name);
+
+  if (loading) return <View style={styles.placeholder} />;
+  if (error || !data) return null;
+
+  return (
+    <Svg
+      width={data.width}
+      height={data.height}
+      viewBox={`0 0 ${data.width} ${data.height}`}
+    >
+      {/* Render custom SVG with data.body */}
+    </Svg>
+  );
+}
+```
+
+---
+
+## useIconPrefetch
+
+Prefetch icons for faster rendering.
+
+```tsx copy
+import { useIconPrefetch } from 'rn-iconify';
+
+function App() {
+  useIconPrefetch([
+    'mdi:home',
+    'mdi:settings',
+    'mdi:account',
+  ]);
+
+  return <MainContent />;
+}
+```
+
+### Parameters
+
+```tsx
+function useIconPrefetch(
+  icons: string[],
+  options?: UseIconPrefetchOptions
+): UseIconPrefetchResult;
+
+interface UseIconPrefetchOptions {
+  /** Run prefetch on mount */
+  immediate?: boolean;
+
+  /** Priority (affects order when multiple prefetches) */
+  priority?: 'high' | 'normal' | 'low';
+}
+```
+
+### Returns
+
+```tsx
+interface UseIconPrefetchResult {
+  /** Prefetch progress (0-1) */
+  progress: number;
+
+  /** Whether prefetch is complete */
+  complete: boolean;
+
+  /** Any errors during prefetch */
+  errors: Error[];
+
+  /** Manually trigger prefetch */
+  prefetch: () => Promise<void>;
+}
+```
+
+### Example
+
+```tsx copy
+import { useIconPrefetch } from 'rn-iconify';
+
+function SplashScreen({ onReady }: { onReady: () => void }) {
+  const { progress, complete } = useIconPrefetch([
+    'mdi:home',
+    'mdi:settings',
+    'mdi:account',
+    'mdi:menu',
+  ]);
+
+  useEffect(() => {
+    if (complete) {
+      onReady();
+    }
+  }, [complete]);
+
+  return (
+    <View>
+      <Text>Loading... {Math.round(progress * 100)}%</Text>
+    </View>
+  );
+}
+```
+
+---
+
+## useIconCache
+
+Access and manage the icon cache.
+
+```tsx copy
+import { useIconCache } from 'rn-iconify';
+
+function CacheManager() {
+  const { size, clear, stats } = useIconCache();
+
+  return (
+    <View>
+      <Text>Cached icons: {size}</Text>
+      <Text>Cache hit rate: {(stats.hitRate * 100).toFixed(1)}%</Text>
+      <Button title="Clear Cache" onPress={clear} />
+    </View>
+  );
+}
+```
+
+### Returns
+
+```tsx
+interface UseIconCacheResult {
+  /** Number of cached icons */
+  size: number;
+
+  /** Clear the entire cache */
+  clear: () => void;
+
+  /** Remove specific icon from cache */
+  remove: (iconName: string) => void;
+
+  /** Check if icon is cached */
+  has: (iconName: string) => boolean;
+
+  /** Cache statistics */
+  stats: {
+    hitRate: number;
+    hits: number;
+    misses: number;
+    memorySize: number;
+    diskSize: number;
+  };
+}
+```
+
+### Example
+
+```tsx copy
+import { useIconCache } from 'rn-iconify';
+
+function SettingsScreen() {
+  const cache = useIconCache();
+
+  const handleClearCache = async () => {
+    cache.clear();
+    Alert.alert('Cache cleared', `Removed ${cache.size} icons`);
+  };
+
+  return (
+    <View>
+      <Text>Cache Size: {cache.stats.memorySize} bytes</Text>
+      <Text>Hit Rate: {(cache.stats.hitRate * 100).toFixed(1)}%</Text>
+      <TouchableOpacity onPress={handleClearCache}>
+        <Text>Clear Icon Cache</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+```
+
+---
+
+## useAnimatedIcon
+
+Create custom animated icons.
+
+```tsx copy
+import { useAnimatedIcon } from 'rn-iconify';
+
+function PulsingHeart() {
+  const { animatedStyle, start, stop } = useAnimatedIcon('pulse');
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Mdi name="heart" />
+    </Animated.View>
+  );
+}
+```
+
+### Parameters
+
+```tsx
+function useAnimatedIcon(
+  animation: AnimationType,
+  options?: UseAnimatedIconOptions
+): UseAnimatedIconResult;
+
+type AnimationType = 'spin' | 'pulse' | 'bounce' | 'shake' | 'ping' | 'wiggle';
+
+interface UseAnimatedIconOptions {
+  /** Start animation immediately */
+  autoStart?: boolean;
+
+  /** Animation duration (ms) */
+  duration?: number;
+
+  /** Number of iterations (Infinity for loop) */
+  iterations?: number;
+}
+```
+
+### Returns
+
+```tsx
+interface UseAnimatedIconResult {
+  /** Animated style to apply */
+  animatedStyle: Animated.AnimatedProps<ViewStyle>;
+
+  /** Start the animation */
+  start: () => void;
+
+  /** Stop the animation */
+  stop: () => void;
+
+  /** Reset animation to initial state */
+  reset: () => void;
+
+  /** Whether animation is running */
+  isRunning: boolean;
+}
+```
+
+### Example
+
+```tsx copy
+import { useAnimatedIcon, Mdi } from 'rn-iconify';
+import { Animated, TouchableOpacity } from 'react-native';
+
+function AnimatedLikeButton() {
+  const { animatedStyle, start, isRunning } = useAnimatedIcon('pulse', {
+    autoStart: false,
+    iterations: 3,
+  });
+
+  const handlePress = () => {
+    if (!isRunning) {
+      start();
+    }
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      <Animated.View style={animatedStyle}>
+        <Mdi name="heart" size={32} color="red" />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+```
+
+---
+
+## useReducedMotion
+
+Check if user prefers reduced motion.
+
+```tsx copy
+import { useReducedMotion } from 'rn-iconify';
+
+function AccessibleIcon() {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <Mdi
+      name="loading"
+      animation={prefersReducedMotion ? undefined : 'spin'}
+    />
+  );
+}
+```
+
+### Returns
+
+```tsx
+function useReducedMotion(): boolean;
+```
+
+### Example
+
+```tsx copy
+import { useReducedMotion, Mdi } from 'rn-iconify';
+
+function LoadingIndicator() {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    // Static loading indicator for users who prefer reduced motion
+    return <Mdi name="loading" />;
+  }
+
+  // Animated for others
+  return <Mdi name="loading" animation="spin" />;
+}
+```

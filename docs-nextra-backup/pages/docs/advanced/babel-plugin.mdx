@@ -1,0 +1,288 @@
+# Babel Plugin
+
+Bundle icons at build time for 0ms first render - no network requests, no loading states.
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+  The Babel plugin is optional. rn-iconify works out of the box with runtime fetching. Use this for production optimization.
+</Callout>
+
+## Installation
+
+The Babel plugin is included with rn-iconify:
+
+```bash copy
+npm install rn-iconify
+```
+
+## Configuration
+
+Add to your `babel.config.js`:
+
+```js copy
+module.exports = {
+  presets: ['module:metro-react-native-babel-preset'],
+  plugins: [
+    ['rn-iconify/babel', {
+      // Bundle specific icons
+      icons: [
+        'mdi:home',
+        'mdi:settings',
+        'mdi:account',
+        'heroicons:user',
+      ],
+    }],
+  ],
+};
+```
+
+## Bundling Options
+
+### Specific Icons
+
+Bundle individual icons:
+
+```js copy
+plugins: [
+  ['rn-iconify/babel', {
+    icons: [
+      'mdi:home',
+      'mdi:arrow-left',
+      'heroicons:user',
+    ],
+  }],
+],
+```
+
+### Icon Set Prefixes
+
+Bundle entire icon sets:
+
+```js copy
+plugins: [
+  ['rn-iconify/babel', {
+    icons: [
+      'mdi:*',      // All Material Design Icons (7,447 icons)
+      'heroicons:*', // All Heroicons (1,288 icons)
+    ],
+  }],
+],
+```
+
+### Pattern Matching
+
+Use glob patterns:
+
+```js copy
+plugins: [
+  ['rn-iconify/babel', {
+    icons: [
+      'mdi:home*',      // home, home-outline, home-variant, etc.
+      'mdi:arrow-*',    // All arrow icons
+      'heroicons:*-solid', // All solid Heroicons
+    ],
+  }],
+],
+```
+
+## Full Configuration
+
+```js copy
+module.exports = {
+  presets: ['module:metro-react-native-babel-preset'],
+  plugins: [
+    ['rn-iconify/babel', {
+      // Icons to bundle
+      icons: [
+        'mdi:home',
+        'mdi:settings',
+      ],
+
+      // Output directory for generated files (optional)
+      outputDir: './src/icons',
+
+      // Log bundled icons during build (optional)
+      verbose: true,
+
+      // Fail build if icon not found (optional)
+      strict: true,
+    }],
+  ],
+};
+```
+
+## Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `icons` | `string[]` | `[]` | Icons or patterns to bundle |
+| `outputDir` | `string` | `node_modules/.cache` | Generated files location |
+| `verbose` | `boolean` | `false` | Log bundled icons |
+| `strict` | `boolean` | `false` | Fail on missing icons |
+
+## How It Works
+
+1. **Build time**: Plugin downloads icon SVG data from Iconify API
+2. **Transform**: Converts icon usage to inline SVG data
+3. **Runtime**: Icons render instantly without network requests
+
+```tsx
+// Before transformation
+<Mdi name="home" />
+
+// After transformation (conceptual)
+<Mdi name="home" __bundled={true} __data="<svg>...</svg>" />
+```
+
+## Bundle Size Impact
+
+Bundled icons add to your JavaScript bundle:
+
+| Icons Bundled | Approximate Size |
+|---------------|------------------|
+| 10 icons | ~5 KB |
+| 100 icons | ~50 KB |
+| 1,000 icons | ~500 KB |
+| Full MDI set (7,447) | ~3.5 MB |
+
+<Callout type="warning">
+  Bundle only the icons you actually use. Bundling entire icon sets significantly increases app size.
+</Callout>
+
+## Recommended Strategy
+
+### Critical Icons
+
+Bundle icons that appear on first screens:
+
+```js copy
+icons: [
+  // Tab bar icons
+  'mdi:home',
+  'mdi:magnify',
+  'mdi:account',
+
+  // Common UI icons
+  'mdi:arrow-left',
+  'mdi:close',
+  'mdi:menu',
+],
+```
+
+### Hybrid Approach
+
+Bundle critical icons, fetch others at runtime:
+
+```js copy
+// babel.config.js - bundle critical icons
+icons: ['mdi:home', 'mdi:account'],
+
+// App.tsx - prefetch secondary icons
+prefetchIcons(['mdi:settings', 'mdi:help']);
+```
+
+## Expo Configuration
+
+For Expo projects, modify `babel.config.js`:
+
+```js copy
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      ['rn-iconify/babel', {
+        icons: ['mdi:home', 'mdi:settings'],
+      }],
+    ],
+  };
+};
+```
+
+## Clearing Cache
+
+After changing bundled icons, clear Metro cache:
+
+```bash copy
+npx react-native start --reset-cache
+```
+
+Or for Expo:
+
+```bash copy
+npx expo start --clear
+```
+
+## Verifying Bundle
+
+Check which icons are bundled:
+
+```tsx copy
+import { getBundledIcons } from 'rn-iconify';
+
+const bundled = getBundledIcons();
+console.log('Bundled icons:', bundled);
+// ['mdi:home', 'mdi:settings', 'mdi:account']
+```
+
+## CI/CD Integration
+
+Ensure icons are bundled in CI:
+
+```yaml
+# .github/workflows/build.yml
+- name: Build Android
+  run: |
+    npx react-native bundle \
+      --platform android \
+      --dev false \
+      --entry-file index.js \
+      --bundle-output ./android/app/src/main/assets/index.android.bundle
+```
+
+## Troubleshooting
+
+### Icons Not Bundling
+
+1. Check icon names are correct
+2. Clear Metro cache
+3. Enable verbose mode to see bundled icons
+
+```js
+['rn-iconify/babel', {
+  icons: ['mdi:home'],
+  verbose: true,
+}],
+```
+
+### Build Fails with Missing Icon
+
+Enable strict mode to catch typos:
+
+```js
+['rn-iconify/babel', {
+  icons: ['mdi:hoem'], // Typo!
+  strict: true, // Build will fail
+}],
+```
+
+### Large Bundle Size
+
+1. Review bundled icons - remove unused ones
+2. Use specific icons instead of patterns
+3. Consider runtime fetching for rarely used icons
+
+## Performance Comparison
+
+| Method | First Render | Bundle Size | Network |
+|--------|-------------|-------------|---------|
+| Runtime fetch | ~100-500ms | Minimal | Required |
+| Prefetch | ~0ms (after prefetch) | Minimal | Required |
+| Babel plugin | 0ms | Increases | None |
+
+## Next Steps
+
+- [CLI Tools](/advanced/cli-tools) - Command-line utilities
+- [Offline Bundles](/advanced/offline-bundles) - Full offline support
+- [Architecture](/advanced/architecture) - How bundling works

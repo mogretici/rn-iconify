@@ -1,0 +1,453 @@
+---
+id: icon-aliases
+title: Icon Aliases
+sidebar_position: 3
+description: Create type-safe custom icon name mappings
+keywords: [aliases, custom-names, mapping, type-safe]
+---
+
+Create custom, type-safe icon names that map to any icon from any icon set.
+
+## Why Use Aliases?
+
+- **Consistent naming**: Use `back` instead of `mdi:arrow-left`
+- **Easy swapping**: Change icons app-wide from one place
+- **Type safety**: Full autocomplete for your custom names
+- **Design system**: Create a semantic icon vocabulary
+
+## Basic Usage
+
+```tsx
+import { createIconAliases } from 'rn-iconify';
+
+const { Icon } = createIconAliases({
+  aliases: {
+    back: 'mdi:arrow-left',
+    forward: 'mdi:arrow-right',
+    home: 'mdi:home',
+    settings: 'mdi:cog',
+    user: 'heroicons:user',
+    search: 'lucide:search',
+  } as const,
+});
+
+// Usage
+<Icon name="back" size={24} />
+<Icon name="home" color="blue" />
+<Icon name="settings" />
+```
+
+## Type Safety
+
+The `as const` assertion enables full autocomplete:
+
+```tsx
+<Icon name="back" />     // ✅ Valid
+<Icon name="home" />     // ✅ Valid
+<Icon name="invalid" />  // ❌ TypeScript error
+```
+
+## Mixing Icon Sets
+
+Aliases can reference any icon set:
+
+```tsx
+const { Icon } = createIconAliases({
+  aliases: {
+    // Material Design Icons
+    home: 'mdi:home',
+    menu: 'mdi:menu',
+
+    // Heroicons
+    user: 'heroicons:user',
+    cog: 'heroicons:cog-6-tooth',
+
+    // Lucide
+    camera: 'lucide:camera',
+    image: 'lucide:image',
+
+    // Phosphor
+    heart: 'ph:heart-fill',
+    star: 'ph:star-fill',
+  } as const,
+});
+```
+
+## Configuration Options
+
+```tsx
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    user: 'heroicons:user',
+  } as const,
+
+  // Validate icon names at creation time (dev only, default: true)
+  validate: true,
+});
+```
+
+:::tip
+To set default props for all icons, use the `IconThemeProvider` instead:
+```tsx
+<IconThemeProvider theme={{ size: 24, color: '#333' }}>
+  <App />
+</IconThemeProvider>
+```
+:::
+
+## Multiple Alias Sets
+
+Create different alias sets for different parts of your app:
+
+```tsx
+// Navigation icons
+const { Icon: NavIcon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    explore: 'mdi:compass',
+    profile: 'mdi:account',
+    settings: 'mdi:cog',
+  } as const,
+});
+
+// Action icons
+const { Icon: ActionIcon } = createIconAliases({
+  aliases: {
+    add: 'mdi:plus',
+    edit: 'mdi:pencil',
+    delete: 'mdi:delete',
+    share: 'mdi:share',
+  } as const,
+});
+
+// Usage
+<NavIcon name="home" />
+<ActionIcon name="add" />
+```
+
+## With Theme Provider
+
+Combine with theme provider for global styling:
+
+```tsx
+import { IconThemeProvider, createIconAliases } from 'rn-iconify';
+
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    user: 'heroicons:user',
+  } as const,
+});
+
+function App() {
+  return (
+    <IconThemeProvider theme={{ size: 24, color: '#333' }}>
+      <Icon name="home" />  {/* Inherits theme values */}
+    </IconThemeProvider>
+  );
+}
+```
+
+## Semantic Icon System
+
+Create a semantic design system:
+
+```tsx
+const { Icon } = createIconAliases({
+  aliases: {
+    // Navigation
+    navBack: 'mdi:arrow-left',
+    navForward: 'mdi:arrow-right',
+    navClose: 'mdi:close',
+    navMenu: 'mdi:menu',
+
+    // Actions
+    actionAdd: 'mdi:plus',
+    actionEdit: 'mdi:pencil',
+    actionDelete: 'mdi:delete',
+    actionSave: 'mdi:content-save',
+
+    // Status
+    statusSuccess: 'mdi:check-circle',
+    statusError: 'mdi:alert-circle',
+    statusWarning: 'mdi:alert',
+    statusInfo: 'mdi:information',
+
+    // Social
+    socialTwitter: 'mdi:twitter',
+    socialFacebook: 'mdi:facebook',
+    socialInstagram: 'mdi:instagram',
+  } as const,
+});
+```
+
+## Easy Icon Swapping
+
+Change icons app-wide from one place:
+
+```tsx
+// Before: Using Heroicons style
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'heroicons:home',
+    user: 'heroicons:user',
+  } as const,
+});
+
+// After: Switched to Material Design
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',        // Changed
+    user: 'mdi:account',     // Changed
+  } as const,
+});
+
+// All <Icon name="home" /> throughout your app now use MDI
+```
+
+## TypeScript Integration
+
+Export types for use in your components:
+
+```tsx
+import { createIconAliases } from 'rn-iconify';
+
+const aliases = {
+  home: 'mdi:home',
+  user: 'heroicons:user',
+  settings: 'mdi:cog',
+} as const;
+
+const { Icon } = createIconAliases({ aliases });
+
+// Export the type
+export type AppIconName = keyof typeof aliases;
+
+// Use in component props
+interface ButtonProps {
+  icon: AppIconName;
+  label: string;
+}
+
+function IconButton({ icon, label }: ButtonProps) {
+  return (
+    <TouchableOpacity>
+      <Icon name={icon} />
+      <Text>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+```
+
+## Best Practices
+
+### 1. Use Semantic Names
+
+```tsx
+// ✅ Good - semantic
+aliases: {
+  actionDelete: 'mdi:delete',
+  navBack: 'mdi:arrow-left',
+}
+
+// ❌ Avoid - non-semantic
+aliases: {
+  trashCan: 'mdi:delete',
+  leftArrow: 'mdi:arrow-left',
+}
+```
+
+### 2. Centralize Definitions
+
+Create a single file for all aliases:
+
+```tsx
+// src/icons.ts
+import { createIconAliases } from 'rn-iconify';
+
+export const { Icon, aliases } = createIconAliases({
+  aliases: {
+    // All app icons defined here
+  } as const,
+});
+
+export type AppIconName = keyof typeof aliases;
+```
+
+### 3. Document Icon Usage
+
+```tsx
+const { Icon } = createIconAliases({
+  aliases: {
+    /** Primary navigation - bottom tab bar */
+    home: 'mdi:home',
+    /** User profile and account settings */
+    user: 'heroicons:user',
+    /** App configuration and preferences */
+    settings: 'mdi:cog',
+  } as const,
+});
+```
+
+---
+
+## IconAliasProvider
+
+For app-wide alias availability, wrap your app with `IconAliasProvider`:
+
+```tsx
+import { IconAliasProvider, Icon } from 'rn-iconify';
+
+const aliases = {
+  home: 'mdi:home',
+  user: 'heroicons:user',
+  settings: 'mdi:cog',
+} as const;
+
+function App() {
+  return (
+    <IconAliasProvider aliases={aliases}>
+      <MainApp />
+    </IconAliasProvider>
+  );
+}
+
+// Any component can now use the Icon component with aliases
+function HomeScreen() {
+  return <Icon name="home" size={24} />;
+}
+```
+
+### Provider Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `aliases` | `Record<string, string>` | - | Alias name to icon name mappings |
+| `extend` | `boolean` | `true` | Whether to inherit aliases from parent provider |
+| `children` | `ReactNode` | - | Child components |
+
+---
+
+## useIconAliasContext
+
+Access alias context from any component:
+
+```tsx
+import { useIconAliasContext } from 'rn-iconify';
+
+function IconInfo({ aliasName }) {
+  const { resolveIcon, isAlias, aliases } = useIconAliasContext();
+
+  if (!isAlias(aliasName)) {
+    return <Text>Unknown alias: {aliasName}</Text>;
+  }
+
+  const fullName = resolveIcon(aliasName);
+
+  return (
+    <View>
+      <Text>Alias: {aliasName}</Text>
+      <Text>Maps to: {fullName}</Text>
+    </View>
+  );
+}
+```
+
+### Return Values
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `aliases` | `Record<string, string>` | All alias mappings |
+| `resolveIcon` | `(alias: string) => string` | Resolve alias to full icon name |
+| `isAlias` | `(alias: string) => boolean` | Check if alias exists |
+| `registerAliases` | `(newAliases: Record<string, string>) => void` | Register new aliases dynamically |
+
+---
+
+## Simple Aliases with defineAliases
+
+For simpler use cases without a component, use `defineAliases`:
+
+```tsx
+import { defineAliases, Icon } from 'rn-iconify';
+
+// Define aliases in a central file
+export const icons = defineAliases({
+  home: 'mdi:home',
+  user: 'heroicons:user',
+  settings: 'mdi:cog',
+  back: 'mdi:arrow-left',
+} as const);
+
+// Usage anywhere
+<Icon name={icons.home} size={24} />
+<Icon name={icons.settings} size={24} />
+```
+
+:::info
+See [defineAliases in API Reference](/docs/api-reference/utilities#definealiases) for complete documentation.
+:::
+
+---
+
+## Advanced: Dynamic Aliases
+
+Create aliases dynamically based on conditions:
+
+```tsx
+import { createIconAliases } from 'rn-iconify';
+
+function createThemedAliases(theme: 'filled' | 'outlined') {
+  const suffix = theme === 'filled' ? '' : '-outline';
+
+  return createIconAliases({
+    aliases: {
+      home: `mdi:home${suffix}`,
+      heart: `mdi:heart${suffix}`,
+      star: `mdi:star${suffix}`,
+      bookmark: `mdi:bookmark${suffix}`,
+    } as const,
+  });
+}
+
+// Usage
+const { Icon: FilledIcon } = createThemedAliases('filled');
+const { Icon: OutlinedIcon } = createThemedAliases('outlined');
+```
+
+---
+
+## Combining with Icon Component
+
+Use aliases with the Icon component for maximum flexibility:
+
+```tsx
+import { Icon, useResolveIcon, IconAliasProvider } from 'rn-iconify';
+
+const aliases = {
+  home: 'mdi:home',
+  user: 'heroicons:user',
+};
+
+function FlexibleIcon({ name, ...props }) {
+  // Check if it's an alias first
+  const resolvedName = aliases[name] || name;
+
+  return <Icon name={resolvedName} {...props} />;
+}
+
+// Usage
+<IconAliasProvider aliases={aliases}>
+  <FlexibleIcon name="home" />          // Uses alias
+  <FlexibleIcon name="mdi:settings" />  // Uses direct name
+</IconAliasProvider>
+```
+
+---
+
+## Next Steps
+
+- [Theme Provider](/docs/features/theme-provider) - Global icon styling
+- [React Navigation](/docs/features/react-navigation) - Use aliases in navigation
+- [TypeScript](/docs/getting-started/typescript) - Type system details

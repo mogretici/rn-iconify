@@ -7,9 +7,36 @@
   "types": "lib/typescript/index.d.ts",
   "react-native": "src/index.ts",
   "source": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/typescript/index.d.ts",
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js"
+    },
+    "./babel": {
+      "types": "./lib/typescript/babel/index.d.ts",
+      "import": "./lib/module/babel/index.js",
+      "require": "./lib/commonjs/babel/index.js"
+    },
+    "./navigation": {
+      "types": "./lib/typescript/navigation/index.d.ts",
+      "import": "./lib/module/navigation/index.js",
+      "require": "./lib/commonjs/navigation/index.js"
+    },
+    "./animated": {
+      "types": "./lib/typescript/animated/index.d.ts",
+      "import": "./lib/module/animated/index.js",
+      "require": "./lib/commonjs/animated/index.js"
+    }
+  },
+  "bin": {
+    "rn-iconify": "./lib/commonjs/cli/index.js"
+  },
   "files": [
     "src",
     "lib",
+    "bin",
+    "babel.js",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__"
@@ -67,6 +94,8 @@
     }
   },
   "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/types": "^7.24.0",
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
     "@react-native/babel-preset": "^0.82.1",

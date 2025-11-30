@@ -1,0 +1,500 @@
+---
+id: animations
+title: Animations
+sidebar_position: 5
+description: Animate icons with spin, pulse, bounce, shake, and more
+keywords: [animation, spin, pulse, bounce, animated]
+---
+
+Add eye-catching animations to your icons using the `AnimatedIcon` wrapper component.
+
+## Basic Usage
+
+Wrap any icon with `AnimatedIcon` to add animations:
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+
+// Spinning loader
+<AnimatedIcon animate="spin">
+  <Mdi name="loading" size={24} />
+</AnimatedIcon>
+
+// Pulsing heart
+<AnimatedIcon animate="pulse">
+  <Mdi name="heart" size={24} color="red" />
+</AnimatedIcon>
+
+// Bouncing arrow
+<AnimatedIcon animate="bounce">
+  <Mdi name="arrow-down" size={24} />
+</AnimatedIcon>
+```
+
+## Animation Presets
+
+| Preset | Effect | Use Case |
+|--------|--------|----------|
+| `spin` | 360° rotation | Loading indicators |
+| `pulse` | Opacity fade 1 → 0.4 | Attention, heartbeat |
+| `bounce` | Vertical bounce | Download, scroll hint |
+| `shake` | Horizontal shake | Error, notification |
+| `ping` | Scale expand (1 → 1.5) | Status, notification |
+| `wiggle` | Rotate ±15° | Greeting, attention |
+
+## All Presets Example
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+
+<AnimatedIcon animate="spin">
+  <Mdi name="loading" size={24} />
+</AnimatedIcon>
+
+<AnimatedIcon animate="pulse">
+  <Mdi name="heart" size={24} />
+</AnimatedIcon>
+
+<AnimatedIcon animate="bounce">
+  <Mdi name="arrow-down" size={24} />
+</AnimatedIcon>
+
+<AnimatedIcon animate="shake">
+  <Mdi name="bell" size={24} />
+</AnimatedIcon>
+
+<AnimatedIcon animate="ping">
+  <Mdi name="circle" size={24} />
+</AnimatedIcon>
+
+<AnimatedIcon animate="wiggle">
+  <Mdi name="hand-wave" size={24} />
+</AnimatedIcon>
+```
+
+## Loading Spinner
+
+Create a loading indicator:
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+import { View, Text } from 'react-native';
+
+function LoadingState() {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <AnimatedIcon animate="spin">
+        <Mdi name="loading" size={24} color="#6366f1" />
+      </AnimatedIcon>
+      <Text>Loading...</Text>
+    </View>
+  );
+}
+```
+
+## Notification Bell
+
+Animated notification indicator:
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+
+function NotificationBell({ hasNew }: { hasNew: boolean }) {
+  if (hasNew) {
+    return (
+      <AnimatedIcon animate="shake">
+        <Mdi name="bell" size={24} color="red" />
+      </AnimatedIcon>
+    );
+  }
+
+  return <Mdi name="bell" size={24} color="gray" />;
+}
+```
+
+## Like Button
+
+Animated heart icon:
+
+```tsx
+import { useState, useRef } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+import type { AnimationControls } from 'rn-iconify/animated';
+
+function LikeButton() {
+  const [liked, setLiked] = useState(false);
+  const animRef = useRef<AnimationControls>(null);
+
+  const handlePress = () => {
+    setLiked(!liked);
+    animRef.current?.start();
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      <AnimatedIcon ref={animRef} animate="pulse" autoPlay={false}>
+        <Mdi
+          name={liked ? 'heart' : 'heart-outline'}
+          size={32}
+          color={liked ? 'red' : 'gray'}
+        />
+      </AnimatedIcon>
+    </TouchableOpacity>
+  );
+}
+```
+
+## Download Indicator
+
+Loading spinner during download:
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+
+function DownloadButton({ isDownloading }: { isDownloading: boolean }) {
+  if (isDownloading) {
+    return (
+      <AnimatedIcon animate="spin">
+        <Mdi name="loading" size={24} />
+      </AnimatedIcon>
+    );
+  }
+
+  return <Mdi name="download" size={24} />;
+}
+```
+
+## Greeting Animation
+
+Waving hand icon:
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+import { View, Text } from 'react-native';
+
+function Greeting({ name }: { name: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <AnimatedIcon animate="wiggle">
+        <Mdi name="hand-wave" size={24} />
+      </AnimatedIcon>
+      <Text>Hello, {name}!</Text>
+    </View>
+  );
+}
+```
+
+## Status Ping
+
+Online status indicator:
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+import { View } from 'react-native';
+
+function OnlineStatus({ isOnline }: { isOnline: boolean }) {
+  if (isOnline) {
+    return (
+      <AnimatedIcon animate="ping">
+        <Mdi name="circle" size={12} color="green" />
+      </AnimatedIcon>
+    );
+  }
+
+  return <Mdi name="circle" size={12} color="gray" />;
+}
+```
+
+## Custom Animation Configuration
+
+Fine-tune animations with custom configuration:
+
+```tsx
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+
+// Slow rotation
+<AnimatedIcon
+  animate={{
+    type: 'rotate',
+    duration: 3000,
+    easing: 'linear',
+    loop: true,
+  }}
+>
+  <Mdi name="sync" size={24} />
+</AnimatedIcon>
+
+// Scale animation
+<AnimatedIcon
+  animate={{
+    type: 'scale',
+    duration: 800,
+    from: 1,
+    to: 1.3,
+    easing: 'ease-in-out',
+  }}
+>
+  <Mdi name="star" size={24} />
+</AnimatedIcon>
+```
+
+## Animation Control with Ref
+
+Use ref for manual animation control:
+
+```tsx
+import { useRef } from 'react';
+import { Button, View } from 'react-native';
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+import type { AnimationControls } from 'rn-iconify/animated';
+
+function ControlledAnimation() {
+  const animRef = useRef<AnimationControls>(null);
+
+  return (
+    <View>
+      <AnimatedIcon ref={animRef} animate="bounce" autoPlay={false}>
+        <Mdi name="heart" size={32} color="red" />
+      </AnimatedIcon>
+
+      <Button title="Start" onPress={() => animRef.current?.start()} />
+      <Button title="Stop" onPress={() => animRef.current?.stop()} />
+      <Button title="Reset" onPress={() => animRef.current?.reset()} />
+    </View>
+  );
+}
+```
+
+## AnimationControls API
+
+| Method | Description |
+|--------|-------------|
+| `start()` | Start the animation |
+| `stop()` | Stop the animation |
+| `pause()` | Pause the animation |
+| `resume()` | Resume paused animation |
+| `reset()` | Reset to initial state |
+| `isAnimating` | Whether animation is running |
+| `state` | Current animation state |
+
+## With React Navigation
+
+Animated tab icons:
+
+```tsx
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+
+const Tab = createBottomTabNavigator();
+
+<Tab.Navigator>
+  <Tab.Screen
+    name="Notifications"
+    component={NotificationsScreen}
+    options={{
+      tabBarIcon: ({ focused, color, size }) => {
+        const icon = <Mdi name="bell" size={size} color={color} />;
+
+        if (focused) {
+          return (
+            <AnimatedIcon animate="pulse">
+              {icon}
+            </AnimatedIcon>
+          );
+        }
+
+        return icon;
+      },
+    }}
+  />
+</Tab.Navigator>
+```
+
+## useIconAnimation Hook
+
+For more control, use the hook directly:
+
+```tsx
+import { useIconAnimation } from 'rn-iconify/animated';
+import { Animated, TouchableOpacity, View, Text, Button } from 'react-native';
+import { Mdi } from 'rn-iconify';
+
+function CustomAnimatedIcon() {
+  const {
+    animatedStyle,
+    start,
+    stop,
+    pause,
+    resume,
+    reset,
+    isAnimating,
+    hasAnimation,
+    state,
+  } = useIconAnimation({
+    animation: 'spin',
+    autoPlay: false,
+  });
+
+  return (
+    <View>
+      <TouchableOpacity onPress={isAnimating ? stop : start}>
+        <Animated.View style={animatedStyle}>
+          <Mdi name="refresh" size={24} />
+        </Animated.View>
+      </TouchableOpacity>
+      <Text>State: {state}</Text>
+      <Text>Has animation: {hasAnimation ? 'Yes' : 'No'}</Text>
+      <Button title="Pause" onPress={pause} disabled={state !== 'running'} />
+      <Button title="Resume" onPress={resume} disabled={state !== 'paused'} />
+      <Button title="Reset" onPress={reset} />
+    </View>
+  );
+}
+```
+
+### useIconAnimation Return Value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `animatedStyle` | `object` | Style object to apply to Animated.View |
+| `start` | `() => void` | Start the animation |
+| `stop` | `() => void` | Stop the animation |
+| `pause` | `() => void` | Pause the animation |
+| `resume` | `() => void` | Resume paused animation |
+| `reset` | `() => void` | Reset to initial state |
+| `isAnimating` | `boolean` | Whether animation is currently running |
+| `hasAnimation` | `boolean` | Whether animation is configured |
+| `state` | `'idle' \| 'running' \| 'paused' \| 'completed'` | Current animation state |
+
+## AnimatedIcon Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | **required** | Icon element to animate |
+| `animate` | `AnimationPreset \| AnimationConfig` | - | Animation to apply |
+| `animationDuration` | `number` | varies | Duration override (ms) |
+| `animationLoop` | `boolean` | varies | Loop override |
+| `animationEasing` | `AnimationEasing` | varies | Easing override |
+| `animationDelay` | `number` | `0` | Delay before start (ms) |
+| `autoPlay` | `boolean` | `true` | Auto-start animation |
+| `onAnimationComplete` | `() => void` | - | Callback on completion |
+| `width` | `number` | - | Width of the animation container |
+| `height` | `number` | - | Height of the animation container |
+| `testID` | `string` | - | Test ID for testing |
+
+## Animation Presets Reference
+
+| Preset | Type | Duration | Loops | Easing | Direction | From → To |
+|--------|------|----------|-------|--------|-----------|-----------|
+| `spin` | rotate | 1000ms | Yes | linear | normal | 0° → 360° |
+| `pulse` | opacity | 1500ms | Yes | ease-in-out | alternate | 1 → 0.4 |
+| `bounce` | scale | 600ms | Yes | bounce | alternate | 1 → 1.2 |
+| `shake` | translate | 500ms | No | ease-out | normal | 0 → 10px (x) |
+| `ping` | scale | 1000ms | Yes | ease-out | normal | 1 → 1.5 |
+| `wiggle` | rotate | 300ms | No | ease-in-out | alternate | -15° → 15° |
+
+## Performance
+
+Animations use React Native's `Animated` API for smooth 60fps performance:
+
+- Animations run on the native thread
+- Minimal JavaScript overhead
+- Battery-efficient
+
+## Tips
+
+### 1. Use Sparingly
+
+Too many animations can be distracting:
+
+```tsx
+// Good - one animated icon
+<View>
+  <AnimatedIcon animate="spin">
+    <Mdi name="loading" size={24} />
+  </AnimatedIcon>
+  <Mdi name="check" size={24} />
+  <Mdi name="close" size={24} />
+</View>
+
+// Avoid - too many animations
+<View>
+  <AnimatedIcon animate="spin">
+    <Mdi name="loading" size={24} />
+  </AnimatedIcon>
+  <AnimatedIcon animate="pulse">
+    <Mdi name="heart" size={24} />
+  </AnimatedIcon>
+  <AnimatedIcon animate="shake">
+    <Mdi name="bell" size={24} />
+  </AnimatedIcon>
+</View>
+```
+
+### 2. Meaningful Animations
+
+Use animations that convey meaning:
+
+```tsx
+// Good - loading uses spin
+<AnimatedIcon animate="spin">
+  <Mdi name="loading" size={24} />
+</AnimatedIcon>
+
+// Good - error uses shake
+<AnimatedIcon animate="shake">
+  <Mdi name="alert" size={24} />
+</AnimatedIcon>
+
+// Confusing - loading with bounce
+<AnimatedIcon animate="bounce">
+  <Mdi name="loading" size={24} />
+</AnimatedIcon>
+```
+
+### 3. Respect Motion Preferences
+
+Check user's reduced motion preference:
+
+```tsx
+import { AccessibilityInfo } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AnimatedIcon } from 'rn-iconify/animated';
+import { Mdi } from 'rn-iconify';
+
+function AccessibleIcon() {
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+  }, []);
+
+  if (reduceMotion) {
+    return <Mdi name="loading" size={24} />;
+  }
+
+  return (
+    <AnimatedIcon animate="spin">
+      <Mdi name="loading" size={24} />
+    </AnimatedIcon>
+  );
+}
+```
+
+## Next Steps
+
+- [Accessibility](/docs/features/accessibility) - A11y best practices
+- [Theme Provider](/docs/features/theme-provider) - Global icon settings
+- [React Navigation](/docs/features/react-navigation) - Animated navigation icons

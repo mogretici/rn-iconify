@@ -1,0 +1,484 @@
+# Types
+
+TypeScript type definitions exported by rn-iconify.
+
+## Icon Name Types
+
+Each icon set exports its own icon name type for full autocomplete support.
+
+### MdiIconName
+
+```tsx copy
+import { type MdiIconName } from 'rn-iconify';
+
+const icon: MdiIconName = 'home'; // ✅
+const invalid: MdiIconName = 'invalid'; // ❌ TypeScript error
+```
+
+### HeroiconsIconName
+
+```tsx copy
+import { type HeroiconsIconName } from 'rn-iconify';
+
+const icon: HeroiconsIconName = 'user';
+```
+
+### LucideIconName
+
+```tsx copy
+import { type LucideIconName } from 'rn-iconify';
+
+const icon: LucideIconName = 'camera';
+```
+
+### PhIconName
+
+```tsx copy
+import { type PhIconName } from 'rn-iconify';
+
+const icon: PhIconName = 'house';
+```
+
+### Other Icon Name Types
+
+All 200+ icon sets have corresponding name types:
+
+```tsx copy
+import {
+  type TablerIconName,
+  type FeatherIconName,
+  type BiIconName,
+  type Fa6SolidIconName,
+  type Fa6RegularIconName,
+  type Fa6BrandsIconName,
+  type IonIconName,
+  type RiIconName,
+  // ... and 200+ more
+} from 'rn-iconify';
+```
+
+---
+
+## Component Props Types
+
+### IconProps
+
+Base props shared by all icon components.
+
+```tsx copy
+import { type IconProps } from 'rn-iconify';
+
+interface IconProps {
+  /** Icon name */
+  name: string;
+
+  /** Icon size in pixels */
+  size?: number;
+
+  /** Icon color (any valid color string) */
+  color?: string;
+
+  /** Rotation angle in degrees */
+  rotate?: 0 | 90 | 180 | 270;
+
+  /** Flip direction */
+  flip?: 'horizontal' | 'vertical' | 'both';
+
+  /** Animation preset */
+  animation?: AnimationType;
+
+  /** Loading placeholder */
+  placeholder?: PlaceholderType;
+
+  /** Additional styles */
+  style?: ViewStyle;
+
+  /** Accessibility label */
+  accessibilityLabel?: string;
+
+  /** Accessible (for screen readers) */
+  accessible?: boolean;
+
+  /** Accessibility role */
+  accessibilityRole?: AccessibilityRole;
+}
+```
+
+### MdiProps
+
+Props for the Mdi component.
+
+```tsx copy
+import { type MdiProps } from 'rn-iconify';
+
+interface MdiProps extends IconProps {
+  name: MdiIconName;
+}
+```
+
+### HeroiconsProps
+
+```tsx copy
+import { type HeroiconsProps } from 'rn-iconify';
+
+interface HeroiconsProps extends IconProps {
+  name: HeroiconsIconName;
+}
+```
+
+Each icon component has its own Props type following the same pattern.
+
+---
+
+## Theme Types
+
+### IconTheme
+
+Theme configuration object.
+
+```tsx copy
+import { type IconTheme } from 'rn-iconify';
+
+const theme: IconTheme = {
+  size: 24,
+  color: '#333333',
+  placeholder: 'shimmer',
+};
+```
+
+```tsx
+interface IconTheme {
+  /** Default icon size */
+  size?: number;
+
+  /** Default icon color */
+  color?: string;
+
+  /** Default placeholder */
+  placeholder?: PlaceholderType;
+}
+```
+
+### IconThemeProviderProps
+
+```tsx copy
+import { type IconThemeProviderProps } from 'rn-iconify';
+
+interface IconThemeProviderProps {
+  theme: IconTheme;
+  children: ReactNode;
+}
+```
+
+---
+
+## Animation Types
+
+### AnimationType
+
+Available animation presets.
+
+```tsx copy
+import { type AnimationType } from 'rn-iconify';
+
+type AnimationType =
+  | 'spin'    // Continuous rotation
+  | 'pulse'   // Scale up/down
+  | 'bounce'  // Vertical bounce
+  | 'shake'   // Horizontal shake
+  | 'ping'    // Expand and fade
+  | 'wiggle'; // Rotate wiggle
+```
+
+---
+
+## Placeholder Types
+
+### PlaceholderType
+
+Placeholder options.
+
+```tsx copy
+import { type PlaceholderType } from 'rn-iconify';
+
+type PlaceholderType =
+  | 'skeleton'  // Gray box
+  | 'pulse'     // Fading animation
+  | 'shimmer'   // Gradient sweep
+  | ReactNode;  // Custom component
+```
+
+---
+
+## Data Types
+
+### IconData
+
+Icon SVG data structure.
+
+```tsx copy
+import { type IconData } from 'rn-iconify';
+
+interface IconData {
+  /** SVG body content */
+  body: string;
+
+  /** Icon width */
+  width: number;
+
+  /** Icon height */
+  height: number;
+
+  /** Left offset */
+  left?: number;
+
+  /** Top offset */
+  top?: number;
+}
+```
+
+### IconBundle
+
+Offline bundle structure.
+
+```tsx copy
+import { type IconBundle } from 'rn-iconify';
+
+interface IconBundle {
+  /** Bundle format version */
+  version: number;
+
+  /** Generation timestamp */
+  generated?: string;
+
+  /** Icon data keyed by full name */
+  icons: Record<string, IconData>;
+}
+```
+
+---
+
+## Configuration Types
+
+### IconifyConfig
+
+Global configuration options.
+
+```tsx copy
+import { type IconifyConfig } from 'rn-iconify';
+
+interface IconifyConfig {
+  /** Iconify API server URL */
+  server?: string;
+
+  /** Request timeout in milliseconds */
+  timeout?: number;
+
+  /** Number of retries on failure */
+  retries?: number;
+
+  /** Custom HTTP headers */
+  headers?: Record<string, string>;
+
+  /** Enable debug logging */
+  verbose?: boolean;
+}
+```
+
+### CacheConfig
+
+Cache configuration options.
+
+```tsx copy
+import { type CacheConfig } from 'rn-iconify';
+
+interface CacheConfig {
+  /** Maximum number of icons to cache */
+  maxSize?: number;
+
+  /** Time-to-live in milliseconds */
+  ttl?: number;
+
+  /** Enable persistent (disk) cache */
+  persistent?: boolean;
+}
+```
+
+---
+
+## Metrics Types
+
+### IconMetrics
+
+Performance metrics data.
+
+```tsx copy
+import { type IconMetrics } from 'rn-iconify';
+
+interface IconMetrics {
+  /** Total icons loaded */
+  totalLoaded: number;
+
+  /** Cache hits */
+  cacheHits: number;
+
+  /** Network fetches */
+  networkFetches: number;
+
+  /** Average load time (ms) */
+  averageLoadTime: number;
+
+  /** Failed loads */
+  failures: number;
+
+  /** Cache hit rate (0-1) */
+  cacheHitRate: number;
+
+  /** Per-icon timing data */
+  iconTimings: Map<string, number>;
+}
+```
+
+---
+
+## Navigation Types
+
+### TabBarIconOptions
+
+Options for createTabBarIcon.
+
+```tsx copy
+import { type TabBarIconOptions } from 'rn-iconify';
+
+interface TabBarIconOptions {
+  /** Icon when focused */
+  focusedIcon?: string;
+
+  /** Icon when not focused */
+  unfocusedIcon?: string;
+
+  /** Override size */
+  size?: number;
+}
+```
+
+### HeaderIconOptions
+
+Options for createHeaderIcon.
+
+```tsx copy
+import { type HeaderIconOptions } from 'rn-iconify';
+
+interface HeaderIconOptions {
+  /** Press handler */
+  onPress?: () => void;
+
+  /** Icon size */
+  size?: number;
+
+  /** Icon color */
+  color?: string;
+
+  /** Accessibility label */
+  accessibilityLabel?: string;
+
+  /** Hit slop */
+  hitSlop?: {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+  };
+}
+```
+
+---
+
+## Alias Types
+
+### CreateIconAliasesOptions
+
+Options for createIconAliases.
+
+```tsx copy
+import { type CreateIconAliasesOptions } from 'rn-iconify';
+
+interface CreateIconAliasesOptions<T extends Record<string, string>> {
+  /** Alias mappings */
+  aliases: T;
+
+  /** Default props */
+  defaultProps?: Partial<IconProps>;
+}
+```
+
+---
+
+## Utility Types
+
+### PrefetchOptions
+
+Options for prefetchIcons.
+
+```tsx copy
+import { type PrefetchOptions } from 'rn-iconify';
+
+interface PrefetchOptions {
+  /** Timeout per icon (ms) */
+  timeout?: number;
+
+  /** Continue on error */
+  continueOnError?: boolean;
+
+  /** Progress callback */
+  onProgress?: (loaded: number, total: number) => void;
+}
+```
+
+### PrefetchResult
+
+Result from prefetchIcons.
+
+```tsx copy
+import { type PrefetchResult } from 'rn-iconify';
+
+interface PrefetchResult {
+  /** Successfully loaded icons */
+  success: string[];
+
+  /** Failed icons with errors */
+  failed: Array<{ icon: string; error: Error }>;
+
+  /** Total duration (ms) */
+  duration: number;
+}
+```
+
+---
+
+## Type Helpers
+
+### InferIconName
+
+Infer icon name type from a component.
+
+```tsx copy
+import { type InferIconName, Mdi, Heroicons } from 'rn-iconify';
+
+type MdiName = InferIconName<typeof Mdi>;
+// Equivalent to MdiIconName
+
+type HeroName = InferIconName<typeof Heroicons>;
+// Equivalent to HeroiconsIconName
+```
+
+### IconSetPrefix
+
+Get prefix for an icon set.
+
+```tsx copy
+import { type IconSetPrefix } from 'rn-iconify';
+
+type Prefix = IconSetPrefix<'Mdi'>; // 'mdi'
+type Prefix2 = IconSetPrefix<'Heroicons'>; // 'heroicons'
+```

@@ -1,6 +1,6 @@
 /**
- * Cache Manager - Orchestrates memory and disk cache
- * Priority: Memory Cache → Disk Cache → Native Cache → Network
+ * Cache Manager - Orchestrates memory, bundled, and disk cache
+ * Priority: Memory Cache → Bundled Icons → Disk Cache → Native Cache → Network
  *
  * Integrates with native module for background prefetching when available
  */
@@ -9,6 +9,25 @@ import { MemoryCache } from './MemoryCache';
 import { DiskCache } from './DiskCache';
 import { getNativeIconify, isNativeModuleAvailable } from '../native';
 
+/**
+ * Bundled icon data structure
+ */
+interface BundledIconData {
+  svg: string;
+  width: number;
+  height: number;
+}
+
+/**
+ * Bundle structure from Babel plugin
+ */
+interface IconBundle {
+  version: string;
+  generatedAt: string;
+  icons: Record<string, BundledIconData>;
+  count: number;
+}
+
 class CacheManagerImpl {
   /**
    * Track in-flight prefetch operations to prevent race conditions
@@ -16,7 +35,76 @@ class CacheManagerImpl {
   private prefetchingIcons = new Set<string>();
 
   /**
-   * Get icon SVG from cache (memory first, then disk)
+   * Bundled icons from Babel plugin (loaded at app start)
+   * These are icons that were detected during build time
+   */
+  private bundledIcons: Map<string, string> | null = null;
+
+  /**
+   * Whether bundled icons have been initialized
+   */
+  private bundledIconsInitialized = false;
+
+  /**
+   * Initialize bundled icons from the Babel plugin cache
+   * This should be called automatically on first access
+   */
+  initBundledIcons(): void {
+    if (this.bundledIconsInitialized) {
+      return;
+    }
+
+    this.bundledIconsInitialized = true;
+
+    // Bundled icons loading is disabled by default to prevent Metro bundling errors
+    // Use loadBundle() explicitly to load icons from a generated bundle file
+    // This is called by the app after importing the bundle from the Babel plugin output
+  }
+
+  /**
+   * Load bundled icons from a custom bundle object
+   * Useful for manual bundle loading or testing
+   *
+   * @param bundle The icon bundle to load
+   * @returns Number of icons loaded
+   */
+  loadBundle(bundle: IconBundle): number {
+    if (!bundle || !bundle.icons || bundle.version !== '1.0.0') {
+      return 0;
+    }
+
+    this.bundledIcons = new Map();
+
+    for (const [iconName, data] of Object.entries(bundle.icons)) {
+      this.bundledIcons.set(iconName, data.svg);
+    }
+
+    this.bundledIconsInitialized = true;
+    return this.bundledIcons.size;
+  }
+
+  /**
+   * Check if an icon is in the bundled cache
+   */
+  hasBundled(iconName: string): boolean {
+    if (!this.bundledIconsInitialized) {
+      this.initBundledIcons();
+    }
+    return this.bundledIcons?.has(iconName) ?? false;
+  }
+
+  /**
+   * Get bundled icons count
+   */
+  getBundledCount(): number {
+    if (!this.bundledIconsInitialized) {
+      this.initBundledIcons();
+    }
+    return this.bundledIcons?.size ?? 0;
+  }
+
+  /**
+   * Get icon SVG from cache (memory first, then bundled, then disk)
    * @returns SVG string or null if not cached
    */
   get(iconName: string): string | null {
@@ -26,7 +114,18 @@ class CacheManagerImpl {
       return memoryCached;
     }
 
-    // 2. Try disk cache (~1-5ms via JSI)
+    // 2. Try bundled icons (instant, ~0ms)
+    if (!this.bundledIconsInitialized) {
+      this.initBundledIcons();
+    }
+    const bundledSvg = this.bundledIcons?.get(iconName);
+    if (bundledSvg) {
+      // Promote to memory cache for faster subsequent access
+      MemoryCache.set(iconName, bundledSvg);
+      return bundledSvg;
+    }
+
+    // 3. Try disk cache (~1-5ms via JSI)
     const diskCached = DiskCache.get(iconName);
     if (diskCached) {
       // Promote to memory cache for faster subsequent access
@@ -46,10 +145,22 @@ class CacheManagerImpl {
   }
 
   /**
-   * Check if icon exists in any cache
+   * Check if icon exists in any cache (memory, bundled, or disk)
    */
   has(iconName: string): boolean {
-    return MemoryCache.has(iconName) || DiskCache.has(iconName);
+    if (MemoryCache.has(iconName)) {
+      return true;
+    }
+
+    // Check bundled icons
+    if (!this.bundledIconsInitialized) {
+      this.initBundledIcons();
+    }
+    if (this.bundledIcons?.has(iconName)) {
+      return true;
+    }
+
+    return DiskCache.has(iconName);
   }
 
   /**
@@ -80,12 +191,18 @@ class CacheManagerImpl {
    */
   getStats(): {
     memoryCount: number;
+    bundledCount: number;
     diskCount: number;
     diskSizeBytes: number;
   } {
+    if (!this.bundledIconsInitialized) {
+      this.initBundledIcons();
+    }
+
     const diskStats = DiskCache.getStats();
     return {
       memoryCount: MemoryCache.size,
+      bundledCount: this.bundledIcons?.size ?? 0,
       diskCount: diskStats.iconCount,
       diskSizeBytes: diskStats.sizeBytes,
     };

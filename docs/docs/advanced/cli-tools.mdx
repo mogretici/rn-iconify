@@ -1,0 +1,234 @@
+---
+id: cli-tools
+title: CLI Tools
+sidebar_position: 2
+description: Command-line utilities for analyzing and bundling icons
+keywords: [cli, command-line, analyze, bundle]
+---
+
+rn-iconify includes command-line tools for analyzing icon usage and generating offline bundles.
+
+## Available Commands
+
+```bash
+npx rn-iconify <command> [options]
+```
+
+| Command | Description |
+|---------|-------------|
+| `bundle` | Generate offline icon bundle |
+| `analyze` | Analyze icon usage in your project |
+| `help` | Show help message |
+| `version` | Show version |
+
+## Bundle Command
+
+Generate bundled icon files for offline use:
+
+```bash
+npx rn-iconify bundle --auto --output ./assets/icons.bundle.json
+```
+
+### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--src <path>` | Source directory to analyze | `./src` |
+| `--output <path>` | Output file path | `./assets/icons.bundle.json` |
+| `--auto` | Auto-detect icons from source code | `true` |
+| `--icons <list>` | Comma-separated list of icons to include | - |
+| `--exclude <list>` | Comma-separated patterns to exclude | - |
+| `--verbose` | Show detailed output | `false` |
+| `--pretty` | Pretty-print JSON output | `false` |
+
+### Examples
+
+```bash
+# Auto-detect and bundle icons from source
+npx rn-iconify bundle --auto
+
+# Bundle specific icons
+npx rn-iconify bundle --icons "mdi:home,mdi:cog,heroicons:user"
+
+# Custom output path
+npx rn-iconify bundle --output ./src/generated/icons.bundle.json
+
+# Verbose output
+npx rn-iconify bundle --auto --verbose --pretty
+```
+
+### Generated Bundle
+
+The bundle command creates a JSON file with icon data:
+
+```json
+{
+  "version": "1.0.0",
+  "generatedAt": "2024-01-15T10:30:00Z",
+  "icons": {
+    "mdi:home": {
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z\"/></svg>",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "count": 47
+}
+```
+
+## Analyze Command
+
+Analyze icon usage across your project:
+
+```bash
+npx rn-iconify analyze
+```
+
+### Output
+
+```
+📊 Icon Usage Analysis
+
+Found 47 unique icons across 23 files
+
+By Icon Set:
+  mdi: 28 icons
+  heroicons: 12 icons
+  lucide: 7 icons
+
+Most Used Icons:
+  1. mdi:home (12 usages)
+  2. mdi:arrow-left (8 usages)
+  3. heroicons:user (6 usages)
+
+Recommendation:
+  npx rn-iconify bundle --icons "mdi:home,mdi:arrow-left,heroicons:user"
+```
+
+### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--src <path>` | Source directory to analyze | `./src` |
+| `--format <type>` | Output format: `table`, `json`, `markdown` | `table` |
+| `--detailed` | Show file locations for each icon | `false` |
+| `--verbose` | Show detailed output | `false` |
+
+### Examples
+
+```bash
+# Analyze specific directory
+npx rn-iconify analyze --src ./app
+
+# JSON output for CI integration
+npx rn-iconify analyze --format json > icon-usage.json
+
+# Detailed view with file locations
+npx rn-iconify analyze --detailed
+
+# Markdown output for documentation
+npx rn-iconify analyze --format markdown > ICONS.md
+```
+
+## Integration with package.json
+
+Add scripts for common operations:
+
+```json
+{
+  "scripts": {
+    "icons:analyze": "rn-iconify analyze --src ./src",
+    "icons:bundle": "rn-iconify bundle --auto --output ./assets/icons.bundle.json",
+    "icons:bundle:verbose": "rn-iconify bundle --auto --verbose --pretty"
+  }
+}
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/icons.yml
+name: Icon Analysis
+
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Analyze Icons
+        run: npx rn-iconify analyze --format json > icon-report.json
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: icon-report
+          path: icon-report.json
+```
+
+### Pre-commit Hook
+
+Add icon analysis to pre-commit:
+
+```bash
+# .husky/pre-commit
+npx rn-iconify analyze --src ./src
+```
+
+## Loading Generated Bundle
+
+Use the generated bundle in your app:
+
+```tsx
+import { loadOfflineBundle } from 'rn-iconify';
+import iconBundle from './assets/icons.bundle.json';
+
+// Load at app startup
+loadOfflineBundle(iconBundle);
+
+// Icons are now available offline
+<Mdi name="home" /> // Renders instantly
+```
+
+## Troubleshooting
+
+### Command Not Found
+
+Ensure rn-iconify is installed:
+
+```bash
+npm install rn-iconify
+```
+
+### Network Errors
+
+The CLI fetches icon data from Iconify API. If you have network issues:
+
+```bash
+# Check connectivity
+curl https://api.iconify.design/mdi.json?icons=home
+```
+
+### Permission Errors
+
+If output directory is protected:
+
+```bash
+# Check directory permissions
+ls -la ./assets
+
+# Or use a different directory
+npx rn-iconify bundle --output ./generated/icons.bundle.json
+```
+
+## Next Steps
+
+- [Babel Plugin](/docs/advanced/babel-plugin) - Build-time bundling
+- [Offline Bundles](/docs/advanced/offline-bundles) - Full offline support
+- [Architecture](/docs/advanced/architecture) - How it all works

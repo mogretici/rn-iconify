@@ -1,0 +1,227 @@
+# Icon Sets
+
+Browse all 200+ icon sets with 268,000+ icons available in rn-iconify.
+
+import { IconBrowser } from '../components/IconBrowser'
+
+## Browse Icons
+
+Search and explore icons from all available icon sets. Click on any icon to copy its usage code.
+
+<IconBrowser />
+
+## Popular Icon Sets
+
+### Material Design Icons (Mdi)
+
+The most comprehensive icon set with 7,447+ icons covering almost every use case.
+
+```tsx copy
+import { Mdi } from 'rn-iconify';
+
+<Mdi name="home" />
+<Mdi name="settings" />
+<Mdi name="account" />
+```
+
+**Best for**: General purpose apps, Android-style design
+
+---
+
+### Heroicons
+
+Beautiful hand-crafted icons by the makers of Tailwind CSS. Available in outline and solid styles.
+
+```tsx copy
+import { Heroicons } from 'rn-iconify';
+
+<Heroicons name="home" />
+<Heroicons name="user" />
+<Heroicons name="cog-6-tooth" />
+```
+
+**Best for**: Modern web-style apps, Tailwind users
+
+---
+
+### Lucide
+
+Community-driven fork of Feather Icons with a growing collection of 1,650+ icons.
+
+```tsx copy
+import { Lucide } from 'rn-iconify';
+
+<Lucide name="home" />
+<Lucide name="settings" />
+<Lucide name="user" />
+```
+
+**Best for**: Clean, minimal designs
+
+---
+
+### Phosphor (Ph)
+
+Flexible icon family with 9,072 icons in 6 weights: thin, light, regular, bold, fill, and duotone.
+
+```tsx copy
+import { Ph } from 'rn-iconify';
+
+<Ph name="house" />
+<Ph name="gear" />
+<Ph name="user" />
+```
+
+**Best for**: Apps needing multiple icon weights
+
+---
+
+### Tabler Icons
+
+5,963 free MIT-licensed icons with consistent 24x24 grid and 2px stroke.
+
+```tsx copy
+import { Tabler } from 'rn-iconify';
+
+<Tabler name="home" />
+<Tabler name="settings" />
+<Tabler name="user" />
+```
+
+**Best for**: Dashboard and admin interfaces
+
+---
+
+### Font Awesome 6
+
+The iconic icon library with solid, regular, and brand icons.
+
+```tsx copy
+import { Fa6Solid, Fa6Regular, Fa6Brands } from 'rn-iconify';
+
+<Fa6Solid name="house" />
+<Fa6Regular name="circle" />
+<Fa6Brands name="github" />
+```
+
+**Best for**: Brand icons, familiar icon style
+
+---
+
+### Bootstrap Icons
+
+Official Bootstrap icon library with 2,078 icons.
+
+```tsx copy
+import { Bi } from 'rn-iconify';
+
+<Bi name="house" />
+<Bi name="gear" />
+<Bi name="person" />
+```
+
+**Best for**: Bootstrap-based designs
+
+---
+
+### Ionicons
+
+Premium icons for iOS, Android, and web apps.
+
+```tsx copy
+import { Ion } from 'rn-iconify';
+
+<Ion name="home" />
+<Ion name="settings" />
+<Ion name="person" />
+```
+
+**Best for**: Ionic framework, cross-platform apps
+
+---
+
+### Remix Icon
+
+Open-source icon library with 2,860+ icons.
+
+```tsx copy
+import { Ri } from 'rn-iconify';
+
+<Ri name="home-line" />
+<Ri name="settings-line" />
+<Ri name="user-line" />
+```
+
+**Best for**: Line and fill icon variations
+
+---
+
+### Feather Icons
+
+Simply beautiful 286 open source icons.
+
+```tsx copy
+import { Feather } from 'rn-iconify';
+
+<Feather name="home" />
+<Feather name="settings" />
+<Feather name="user" />
+```
+
+**Best for**: Minimal, clean interfaces
+
+---
+
+## Choosing an Icon Set
+
+| Need | Recommended Set |
+|------|-----------------|
+| Most icons | Material Design (Mdi) |
+| Modern style | Heroicons, Lucide |
+| Multiple weights | Phosphor (Ph) |
+| Brand logos | Font Awesome Brands |
+| iOS style | SF Symbols, Ionicons |
+| Android style | Material Design |
+| Dashboard | Tabler, Carbon |
+
+## Using Multiple Sets
+
+You can use icons from different sets in the same app:
+
+```tsx copy
+import { Mdi, Heroicons, Lucide } from 'rn-iconify';
+
+function MyComponent() {
+  return (
+    <>
+      <Mdi name="home" />
+      <Heroicons name="user" />
+      <Lucide name="camera" />
+    </>
+  );
+}
+```
+
+## Finding Icons
+
+1. **Search above**: Use the icon browser to search all 268,000+ icons
+2. **Iconify website**: Browse at [icon-sets.iconify.design](https://icon-sets.iconify.design/)
+3. **Individual sites**: Visit each icon set's official website
+
+## Import Pattern
+
+All icon sets follow the same import pattern:
+
+```tsx
+// Component import
+import { ComponentName } from 'rn-iconify';
+
+// Type import
+import { type ComponentNameIconName } from 'rn-iconify';
+```
+
+Examples:
+- `Mdi` → `MdiIconName`
+- `Heroicons` → `HeroiconsIconName`
+- `Lucide` → `LucideIconName`
+- `Ph` → `PhIconName`

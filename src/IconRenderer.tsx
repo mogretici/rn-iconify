@@ -4,10 +4,12 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { CacheManager } from './cache/CacheManager';
 import { fetchIcon } from './network/IconifyAPI';
+import { PlaceholderFactory } from './placeholder';
+import { useIconAnimation } from './animated/useIconAnimation';
 import type { IconRendererProps, IconLoadingState } from './types';
 
 /**
@@ -34,10 +36,21 @@ export function IconRenderer({
   flip,
   fallback,
   fallbackDelay = 0,
+  placeholder,
+  placeholderColor,
+  placeholderDuration,
   onLoad,
   onError,
   accessibilityLabel,
   testID,
+  // Animation props
+  animate,
+  animationDuration,
+  animationLoop,
+  animationEasing,
+  animationDelay,
+  autoPlay = true,
+  onAnimationComplete,
 }: IconRendererProps) {
   const [svg, setSvg] = useState<string | null>(null);
   const [state, setState] = useState<IconLoadingState>('idle');
@@ -50,6 +63,17 @@ export function IconRenderer({
   // Calculate dimensions
   const iconWidth = propWidth ?? size;
   const iconHeight = propHeight ?? size;
+
+  // Animation hook
+  const { animatedStyle, hasAnimation } = useIconAnimation({
+    animation: animate,
+    duration: animationDuration,
+    loop: animationLoop,
+    easing: animationEasing,
+    delay: animationDelay,
+    autoPlay,
+    onComplete: onAnimationComplete,
+  });
 
   // Load icon
   const loadIcon = useCallback(async () => {
@@ -159,8 +183,31 @@ export function IconRenderer({
     return svg.replace(/currentColor/g, safeColor).replace(/<svg/, `<svg fill="${safeColor}"`);
   }, [svg, color]);
 
-  // Render fallback
-  if ((state === 'loading' && showFallback) || state === 'error') {
+  // Determine if we should show placeholder/fallback
+  const shouldShowPlaceholder = (state === 'loading' && showFallback) || state === 'error';
+
+  // Render placeholder or fallback during loading/error
+  if (shouldShowPlaceholder) {
+    // Priority: placeholder > fallback
+    if (placeholder !== undefined) {
+      return (
+        <View
+          style={[{ width: iconWidth, height: iconHeight }, style]}
+          accessibilityLabel={accessibilityLabel}
+          testID={testID}
+        >
+          <PlaceholderFactory
+            type={placeholder}
+            width={iconWidth}
+            height={iconHeight}
+            color={placeholderColor}
+            duration={placeholderDuration}
+          />
+        </View>
+      );
+    }
+
+    // Fallback for backwards compatibility (deprecated)
     if (fallback) {
       return (
         <View
@@ -172,7 +219,8 @@ export function IconRenderer({
         </View>
       );
     }
-    // Return empty view if no fallback
+
+    // Return empty view if no placeholder/fallback
     return (
       <View
         style={[{ width: iconWidth, height: iconHeight }, style]}
@@ -184,6 +232,26 @@ export function IconRenderer({
 
   // Render icon
   if (colorizedSvg) {
+    // Render with animation wrapper if animation is enabled
+    if (hasAnimation) {
+      return (
+        <Animated.View
+          style={[
+            styles.container,
+            { width: iconWidth, height: iconHeight, transform: transformStyle },
+            style,
+            animatedStyle,
+          ]}
+          accessibilityLabel={accessibilityLabel}
+          accessibilityRole="image"
+          testID={testID}
+        >
+          <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
+        </Animated.View>
+      );
+    }
+
+    // Render without animation
     return (
       <View
         style={[
@@ -196,6 +264,25 @@ export function IconRenderer({
         testID={testID}
       >
         <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
+      </View>
+    );
+  }
+
+  // Show placeholder immediately if set (no delay), otherwise empty view
+  if (placeholder !== undefined && state === 'loading') {
+    return (
+      <View
+        style={[{ width: iconWidth, height: iconHeight }, style]}
+        accessibilityLabel={accessibilityLabel}
+        testID={testID}
+      >
+        <PlaceholderFactory
+          type={placeholder}
+          width={iconWidth}
+          height={iconHeight}
+          color={placeholderColor}
+          duration={placeholderDuration}
+        />
       </View>
     );
   }

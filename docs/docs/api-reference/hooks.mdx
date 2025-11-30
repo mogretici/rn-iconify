@@ -1,0 +1,1140 @@
+---
+id: hooks
+title: Hooks
+sidebar_position: 2
+description: API reference for React hooks
+keywords: [api, hooks, useIconTheme, useIconAnimation, useNavigationIcon, useAccessibleIcon]
+---
+
+API reference for React hooks.
+
+## useIconTheme
+
+Access the current icon theme context.
+
+```tsx
+import { useIconTheme } from 'rn-iconify';
+
+function MyComponent() {
+  const { theme, setTheme } = useIconTheme();
+
+  return (
+    <Text style={{ color: theme.color }}>
+      Current icon size: {theme.size}
+    </Text>
+  );
+}
+```
+
+### Returns
+
+```tsx
+interface IconThemeContextValue {
+  /** Current theme values */
+  theme: IconTheme;
+
+  /** Update theme */
+  setTheme: (theme: IconTheme | ((prev: IconTheme) => IconTheme)) => void;
+}
+
+interface IconTheme {
+  /** Default icon size @default 24 */
+  size?: number;
+
+  /** Default icon color @default '#000000' */
+  color?: string;
+
+  /** Default placeholder type */
+  placeholder?: ReactNode | 'skeleton' | 'pulse' | 'shimmer';
+
+  /** Placeholder color @default '#E1E1E1' */
+  placeholderColor?: string;
+
+  /** Placeholder animation duration (ms) @default 1000 */
+  placeholderDuration?: number;
+
+  /** Default rotation @default 0 */
+  rotate?: 0 | 90 | 180 | 270;
+
+  /** Default flip direction */
+  flip?: 'horizontal' | 'vertical' | 'both';
+
+  /** Fallback delay (ms) @default 0 */
+  fallbackDelay?: number;
+}
+```
+
+### Example
+
+```tsx
+import { useIconTheme, Mdi } from 'rn-iconify';
+import { View, Button } from 'react-native';
+
+function ThemeToggle() {
+  const { theme, setTheme } = useIconTheme();
+
+  const toggleDarkMode = () => {
+    setTheme(prev => ({
+      ...prev,
+      color: prev.color === '#000000' ? '#ffffff' : '#000000',
+    }));
+  };
+
+  return (
+    <View>
+      <Mdi name="home" />
+      <Button onPress={toggleDarkMode} title="Toggle Dark Mode" />
+    </View>
+  );
+}
+```
+
+---
+
+## useIconAnimation
+
+Hook for managing icon animations.
+
+```tsx
+import { useIconAnimation } from 'rn-iconify';
+import { Animated } from 'react-native';
+
+function SpinningIcon() {
+  const { animatedStyle, start, stop, isAnimating } = useIconAnimation({
+    animation: 'spin',
+  });
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Mdi name="loading" size={24} />
+    </Animated.View>
+  );
+}
+```
+
+### Parameters
+
+```tsx
+function useIconAnimation(options?: UseIconAnimationOptions): UseIconAnimationReturn;
+
+interface UseIconAnimationOptions {
+  /** Animation preset or custom config: 'spin' | 'pulse' | 'bounce' | 'shake' | 'ping' | 'wiggle' | AnimationConfig */
+  animation?: AnimationType;
+
+  /** Duration override (ms) */
+  duration?: number;
+
+  /** Loop override */
+  loop?: boolean;
+
+  /** Easing override */
+  easing?: AnimationEasing;
+
+  /** Delay before animation starts (ms) */
+  delay?: number;
+
+  /** Whether to start automatically (default: true) */
+  autoPlay?: boolean;
+
+  /** Callback when animation completes */
+  onComplete?: () => void;
+}
+```
+
+### Returns
+
+```tsx
+interface UseIconAnimationReturn {
+  /** Animated style to apply */
+  animatedStyle: {
+    transform?: Array<
+      | { rotate: Animated.AnimatedInterpolation<string> }
+      | { scale: Animated.Value }
+      | { translateX: Animated.Value }
+      | { translateY: Animated.Value }
+    >;
+    opacity?: Animated.Value;
+  };
+
+  /** Whether animation is enabled */
+  hasAnimation: boolean;
+
+  /** Current animation state */
+  state: 'idle' | 'running' | 'paused' | 'completed';
+
+  /** Whether animation is currently running */
+  isAnimating: boolean;
+
+  /** Start the animation */
+  start: () => void;
+
+  /** Stop the animation */
+  stop: () => void;
+
+  /** Pause the animation */
+  pause: () => void;
+
+  /** Resume paused animation */
+  resume: () => void;
+
+  /** Reset animation to initial state */
+  reset: () => void;
+}
+```
+
+### Example
+
+```tsx
+import { useIconAnimation, Mdi } from 'rn-iconify';
+import { Animated, TouchableOpacity } from 'react-native';
+
+function AnimatedLikeButton() {
+  const { animatedStyle, start, isAnimating } = useIconAnimation({
+    animation: 'pulse',
+    autoPlay: false,
+    loop: false,
+  });
+
+  const handlePress = () => {
+    if (!isAnimating) {
+      start();
+    }
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      <Animated.View style={animatedStyle}>
+        <Mdi name="heart" size={32} color="red" />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+```
+
+---
+
+## useNavigationIcon
+
+Hook for creating navigation icons with React Navigation.
+
+```tsx
+import { useNavigationIcon } from 'rn-iconify';
+
+function MyTabs() {
+  const { tabBarIcon, drawerIcon } = useNavigationIcon();
+
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="Home"
+        options={{
+          tabBarIcon: tabBarIcon('mdi:home', 'mdi:home-outline'),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+```
+
+### Parameters
+
+```tsx
+function useNavigationIcon(options?: UseNavigationIconOptions): UseNavigationIconReturn;
+
+interface UseNavigationIconOptions {
+  /** Default size for icons (default: 24) */
+  defaultSize?: number;
+
+  /** Suffix for unfocused icon variants (default: '-outline') */
+  outlineSuffix?: string;
+}
+```
+
+### Returns
+
+```tsx
+interface UseNavigationIconReturn {
+  /** Create a tab bar icon function */
+  tabBarIcon: (focused: IconSpec, unfocused?: IconSpec) => TabBarIconFunction;
+
+  /** Create a drawer icon function */
+  drawerIcon: (icon: IconSpec, focusedIcon?: IconSpec) => DrawerIconFunction;
+
+  /** Create an auto-outline tab bar icon */
+  autoTabBarIcon: (prefix: string, name: string) => TabBarIconFunction;
+
+  /** Render an icon directly with navigation props */
+  renderIcon: (name: IconSpec, props: { color: string; size: number }) => React.ReactElement;
+}
+```
+
+:::info
+`IconSpec` is a type alias for `string` that represents an icon name (full name like `'mdi:home'` or an alias). See [IconSpec](/docs/api-reference/types#iconspec) for details.
+:::
+
+### Example
+
+```tsx
+import { useNavigationIcon } from 'rn-iconify';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+const Tab = createBottomTabNavigator();
+
+function AppTabs() {
+  const { tabBarIcon, autoTabBarIcon } = useNavigationIcon();
+
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          // Uses mdi:home when focused, mdi:home-outline when not
+          tabBarIcon: tabBarIcon('mdi:home', 'mdi:home-outline'),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          // Auto-generates outline variant
+          tabBarIcon: autoTabBarIcon('mdi', 'cog'),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+```
+
+---
+
+## useAccessibleIcon
+
+Hook for creating accessible icon props with automatic label generation and high contrast support.
+
+```tsx
+import { useAccessibleIcon } from 'rn-iconify';
+
+function AccessibleIcon({ name, size, color }) {
+  const {
+    accessibilityProps,
+    adjustedColor,
+    touchTargetPadding,
+    shouldDisableAnimations,
+    isHighContrast,
+  } = useAccessibleIcon({
+    iconName: name,
+    size,
+    color,
+    isInteractive: true,
+  });
+
+  return (
+    <View style={{ padding: touchTargetPadding }} {...accessibilityProps}>
+      <Mdi name={name} size={size} color={adjustedColor} />
+    </View>
+  );
+}
+```
+
+### Parameters
+
+```tsx
+function useAccessibleIcon(input: UseAccessibleIconInput): UseAccessibleIconOutput;
+
+interface UseAccessibleIconInput {
+  /** Icon name for auto-label generation */
+  iconName: string;
+
+  /** Icon size for touch target calculation */
+  size?: number;
+
+  /** Custom accessibility label */
+  accessibilityLabel?: string;
+
+  /** Custom accessibility hint */
+  accessibilityHint?: string;
+
+  /** Custom accessibility role */
+  accessibilityRole?: AccessibilityRole;
+
+  /** Override high contrast for this icon */
+  highContrast?: boolean;
+
+  /** Hide from screen readers (decorative icon) */
+  accessibilityElementsHidden?: boolean;
+
+  /** Android importantForAccessibility */
+  importantForAccessibility?: 'auto' | 'yes' | 'no' | 'no-hide-descendants';
+
+  /** Icon color for contrast adjustment */
+  color?: string;
+
+  /** Whether the icon is interactive (button, etc.) */
+  isInteractive?: boolean;
+}
+```
+
+### Returns
+
+```tsx
+interface UseAccessibleIconOutput {
+  /** Props to spread on the icon component */
+  accessibilityProps: {
+    accessible: boolean;
+    accessibilityLabel?: string;
+    accessibilityHint?: string;
+    accessibilityRole: AccessibilityRole;
+    accessibilityElementsHidden?: boolean;
+    importantForAccessibility?: 'auto' | 'yes' | 'no' | 'no-hide-descendants';
+  };
+
+  /** Adjusted color for high contrast */
+  adjustedColor?: string;
+
+  /** Padding needed to meet minimum touch target */
+  touchTargetPadding: number;
+
+  /** Whether animations should be disabled */
+  shouldDisableAnimations: boolean;
+
+  /** Whether high contrast mode is active */
+  isHighContrast: boolean;
+}
+```
+
+### Example
+
+```tsx
+import { useAccessibleIcon, Mdi, AnimatedIcon } from 'rn-iconify';
+import { TouchableOpacity, View } from 'react-native';
+
+function AccessibleButton({ iconName, onPress, animated = false }) {
+  const {
+    accessibilityProps,
+    adjustedColor,
+    touchTargetPadding,
+    shouldDisableAnimations,
+  } = useAccessibleIcon({
+    iconName,
+    size: 24,
+    color: '#007AFF',
+    isInteractive: true,
+  });
+
+  const icon = (
+    <Mdi
+      name={iconName}
+      size={24}
+      color={adjustedColor}
+    />
+  );
+
+  // Respect user's reduced motion preference
+  const shouldAnimate = animated && !shouldDisableAnimations;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{ padding: touchTargetPadding }}
+      {...accessibilityProps}
+    >
+      {shouldAnimate ? (
+        <AnimatedIcon animate="pulse">{icon}</AnimatedIcon>
+      ) : (
+        icon
+      )}
+    </TouchableOpacity>
+  );
+}
+```
+
+---
+
+## useExplorer
+
+Hook for Icon Explorer functionality (dev mode).
+
+```tsx
+import { useExplorer } from 'rn-iconify';
+
+function IconBrowser() {
+  const {
+    query,
+    results,
+    setQuery,
+    selectIcon,
+    copyIconCode,
+  } = useExplorer();
+
+  return (
+    <View>
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search icons..."
+      />
+      {results.map(icon => (
+        <TouchableOpacity
+          key={icon.fullName}
+          onPress={() => selectIcon(icon.fullName)}
+        >
+          <Text>{icon.name}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+```
+
+### Parameters
+
+```tsx
+function useExplorer(config?: ExplorerConfig): ExplorerContextValue;
+
+interface ExplorerConfig {
+  /** Icon set prefixes to include (empty = all) */
+  iconSets?: string[];
+
+  /** Initial search query */
+  initialQuery?: string;
+
+  /** Maximum search results */
+  maxResults?: number;
+
+  /** Preview configuration (partial config allowed) */
+  preview?: Partial<PreviewConfig>;
+
+  /** Callback when icon is selected */
+  onIconSelect?: (iconName: string) => void;
+
+  /** Callback when code is copied */
+  onCopyCode?: (code: string) => void;
+
+  /** Enable keyboard shortcuts */
+  keyboardShortcuts?: boolean;
+}
+```
+
+### Returns
+
+```tsx
+interface ExplorerContextValue {
+  /** Current search query */
+  query: string;
+
+  /** Search results */
+  results: SearchResult[];
+
+  /** Currently selected icon */
+  selectedIcon: string | null;
+
+  /** Active icon set filter */
+  activeIconSet: string | null;
+
+  /** Loading state */
+  isLoading: boolean;
+
+  /** Error message */
+  error: string | null;
+
+  /** Current preview size */
+  previewSize: number;
+
+  /** Current preview color */
+  previewColor: string;
+
+  /** Available icon sets */
+  iconSets: IconSetInfo[];
+
+  /** Total number of icons available */
+  totalIcons: number;
+
+  /** Whether collections have been loaded */
+  collectionsLoaded: boolean;
+
+  /** Resolved explorer configuration */
+  config: ResolvedExplorerConfig;
+
+  /** Set search query */
+  setQuery: (query: string) => void;
+
+  /** Select an icon */
+  selectIcon: (iconName: string | null) => void;
+
+  /** Filter by icon set */
+  filterByIconSet: (prefix: string | null) => void;
+
+  /** Set preview size */
+  setPreviewSize: (size: number) => void;
+
+  /** Set preview color */
+  setPreviewColor: (color: string) => void;
+
+  /** Copy icon code to clipboard */
+  copyIconCode: (iconName: string, format?: 'jsx' | 'import') => void;
+
+  /** Reset explorer state */
+  reset: () => void;
+}
+```
+
+### Example
+
+```tsx
+import { useExplorer } from 'rn-iconify';
+import { View, FlatList, TouchableOpacity } from 'react-native';
+
+function CustomIconBrowser({ onSelect }) {
+  const {
+    query,
+    setQuery,
+    results,
+    isLoading,
+    selectIcon,
+  } = useExplorer({
+    iconSets: ['mdi', 'heroicons', 'lucide'],
+    maxResults: 50,
+    onIconSelect: onSelect,
+  });
+
+  return (
+    <View>
+      <TextInput value={query} onChangeText={setQuery} />
+      <FlatList
+        data={results}
+        keyExtractor={(item) => item.fullName}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => selectIcon(item.fullName)}>
+            <Icon name={item.fullName} size={24} />
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
+}
+```
+
+:::info
+Note: `useExplorer` returns state and actions for building custom explorer UIs. For a ready-to-use explorer, use the `IconExplorer` component directly with config props.
+:::
+
+---
+
+## useIconThemeValue
+
+Get a specific theme value by key with automatic fallback to defaults.
+
+```tsx
+import { useIconThemeValue } from 'rn-iconify';
+
+function MyIcon() {
+  const size = useIconThemeValue('size');
+  const color = useIconThemeValue('color');
+
+  return <Icon name="mdi:home" size={size} color={color} />;
+}
+```
+
+### Parameters
+
+```tsx
+function useIconThemeValue<K extends keyof IconTheme>(
+  key: K
+): NonNullable<IconTheme[K]> | undefined;
+```
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `key` | `keyof IconTheme` | Theme property to retrieve |
+
+### Returns
+
+The value of the specified theme property, with defaults applied. Returns `undefined` if no value exists.
+
+### Example
+
+```tsx
+import { useIconThemeValue } from 'rn-iconify';
+
+function IconBadge() {
+  // Get individual theme values
+  const size = useIconThemeValue('size');
+  const color = useIconThemeValue('color');
+  const placeholder = useIconThemeValue('placeholder');
+
+  return (
+    <View style={{ backgroundColor: color, padding: size / 4 }}>
+      <Text>Size: {size}</Text>
+    </View>
+  );
+}
+```
+
+---
+
+## useMergedIconProps
+
+Merge component props with theme defaults, where props override theme values.
+
+```tsx
+import { useMergedIconProps } from 'rn-iconify';
+
+function CustomIcon({ size, color, ...props }) {
+  const mergedProps = useMergedIconProps({ size, color });
+
+  return <Icon {...props} {...mergedProps} />;
+}
+```
+
+### Parameters
+
+```tsx
+function useMergedIconProps<T extends Partial<IconTheme>>(
+  props: T
+): T & Required<Pick<IconTheme, 'size' | 'color'>>;
+```
+
+### Returns
+
+Merged props object with theme defaults applied where props are undefined. Returns input type `T` with guaranteed `size` and `color` properties.
+
+### Example
+
+```tsx
+import { useMergedIconProps, Icon } from 'rn-iconify';
+
+interface MyIconProps {
+  name: string;
+  size?: number;
+  color?: string;
+  style?: StyleProp<ViewStyle>;
+}
+
+function MyIcon({ name, size, color, style }: MyIconProps) {
+  // Props override theme, theme provides defaults
+  const mergedProps = useMergedIconProps({ size, color });
+
+  return (
+    <View style={style}>
+      <Icon name={name} {...mergedProps} />
+    </View>
+  );
+}
+
+// Usage
+<MyIcon name="mdi:home" />              // Uses theme size/color
+<MyIcon name="mdi:home" size={32} />    // Size=32, theme color
+<MyIcon name="mdi:home" color="red" />  // Theme size, color=red
+```
+
+---
+
+## useResolveIcon
+
+Resolve an icon alias to its full icon name.
+
+```tsx
+import { useResolveIcon } from 'rn-iconify';
+
+function MyComponent() {
+  const fullName = useResolveIcon('home');
+  console.log(fullName); // 'mdi:home' (based on alias config)
+
+  return <Icon name={fullName} />;
+}
+```
+
+### Parameters
+
+```tsx
+function useResolveIcon(name: string): string;
+```
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Alias name or full icon name |
+
+### Returns
+
+The resolved full icon name. If no alias is found, returns the input unchanged.
+
+### Example
+
+```tsx
+import { useResolveIcon, IconAliasProvider, createIconAliases } from 'rn-iconify';
+
+const { aliases } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    user: 'heroicons:user',
+    settings: 'lucide:settings',
+  },
+});
+
+function IconInfo({ alias }) {
+  const fullName = useResolveIcon(alias);
+  const [prefix, name] = fullName.split(':');
+
+  return (
+    <View>
+      <Text>Alias: {alias}</Text>
+      <Text>Full name: {fullName}</Text>
+      <Text>Icon set: {prefix}</Text>
+      <Icon name={fullName} size={24} />
+    </View>
+  );
+}
+
+// Usage
+function App() {
+  return (
+    <IconAliasProvider aliases={aliases}>
+      <IconInfo alias="home" />
+      {/* Output: Alias: home, Full name: mdi:home, Icon set: mdi */}
+    </IconAliasProvider>
+  );
+}
+```
+
+---
+
+## useIconAliasContext
+
+Access the raw icon alias context for advanced use cases.
+
+```tsx
+import { useIconAliasContext } from 'rn-iconify';
+
+function AliasDebugger() {
+  const context = useIconAliasContext();
+
+  return (
+    <View>
+      <Text>Total aliases: {Object.keys(context.aliases).length}</Text>
+    </View>
+  );
+}
+```
+
+### Returns
+
+```tsx
+interface IconAliasContextValue {
+  /** Alias mappings */
+  aliases: Record<string, string>;
+
+  /** Resolve a name to full icon name (returns input if not an alias) */
+  resolveIcon: (name: string) => string;
+
+  /** Check if a name is a registered alias */
+  isAlias: (name: string) => boolean;
+
+  /** Register new aliases dynamically */
+  registerAliases: (newAliases: Record<string, string>) => void;
+}
+```
+
+### Example
+
+```tsx
+import { useIconAliasContext } from 'rn-iconify';
+
+function AliasList() {
+  const { aliases, resolveIcon, isAlias } = useIconAliasContext();
+
+  return (
+    <ScrollView>
+      {Object.entries(aliases).map(([alias, fullName]) => (
+        <View key={alias} style={styles.row}>
+          <Text style={styles.alias}>{alias}</Text>
+          <Text style={styles.arrow}>→</Text>
+          <Text style={styles.fullName}>{fullName}</Text>
+          <Icon name={fullName} size={20} />
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+function IconValidator({ name }) {
+  const { isAlias, resolveIcon } = useIconAliasContext();
+
+  if (isAlias(name)) {
+    console.log(`${name} is an alias for ${resolveIcon(name)}`);
+  }
+
+  return <Icon name={resolveIcon(name)} />;
+}
+```
+
+---
+
+## useExplorerContext
+
+Access the Icon Explorer context directly for building custom explorer UIs.
+
+```tsx
+import { useExplorerContext } from 'rn-iconify';
+
+function CustomSearchResults() {
+  const { results, isLoading, selectIcon } = useExplorerContext();
+
+  if (isLoading) return <ActivityIndicator />;
+
+  return (
+    <FlatList
+      data={results}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => selectIcon(item.fullName)}>
+          <Icon name={item.fullName} size={24} />
+        </TouchableOpacity>
+      )}
+    />
+  );
+}
+```
+
+### Returns
+
+```tsx
+interface ExplorerContextWithTheme extends ExplorerContextValue {
+  /** Theme colors for styling */
+  theme: ThemeColors;
+
+  /** Whether dark mode is active */
+  isDark: boolean;
+
+  /** Close the preview modal */
+  closePreview: () => void;
+}
+```
+
+Extends `useExplorer` return type with theme-related properties. See [useExplorer](#useexplorer) for base properties.
+
+### Example
+
+```tsx
+import { useExplorerContext, IconExplorer, ExplorerContext } from 'rn-iconify';
+
+// Custom search bar component
+function CustomSearchBar() {
+  const { query, setQuery, isLoading } = useExplorerContext();
+
+  return (
+    <View style={styles.searchContainer}>
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search 200,000+ icons..."
+        style={styles.searchInput}
+      />
+      {isLoading && <ActivityIndicator style={styles.loader} />}
+    </View>
+  );
+}
+
+// Custom icon grid component
+function CustomIconGrid() {
+  const {
+    results,
+    selectedIcon,
+    selectIcon,
+    previewSize,
+    previewColor,
+  } = useExplorerContext();
+
+  return (
+    <FlatList
+      data={results}
+      numColumns={4}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          onPress={() => selectIcon(item.fullName)}
+          style={[
+            styles.iconCell,
+            selectedIcon === item.fullName && styles.selected,
+          ]}
+        >
+          <Icon
+            name={item.fullName}
+            size={previewSize}
+            color={previewColor}
+          />
+          <Text style={styles.iconName}>{item.name}</Text>
+        </TouchableOpacity>
+      )}
+    />
+  );
+}
+
+// Use IconExplorer with custom configuration
+function CustomExplorer() {
+  return (
+    <IconExplorer
+      iconSets={['mdi', 'heroicons']}
+      maxResults={50}
+      onIconSelect={(name) => console.log('Selected:', name)}
+      onCopyCode={(code) => console.log('Copied:', code)}
+    />
+  );
+}
+```
+
+---
+
+## useAccessibilityContext
+
+Access the accessibility context. Throws an error if used outside `AccessibilityProvider`.
+
+```tsx
+import { useAccessibilityContext } from 'rn-iconify';
+
+function MyComponent() {
+  const {
+    config,
+    prefersReducedMotion,
+    isHighContrast,
+    setConfig,
+    getLabel,
+    getContrastColor,
+    shouldDisableAnimations,
+  } = useAccessibilityContext();
+
+  return (
+    <View>
+      <Text>High Contrast: {isHighContrast ? 'Yes' : 'No'}</Text>
+      <Text>Reduced Motion: {prefersReducedMotion ? 'Yes' : 'No'}</Text>
+    </View>
+  );
+}
+```
+
+### Returns
+
+```tsx
+interface AccessibilityContextValue {
+  /** Current accessibility configuration */
+  config: ResolvedAccessibilityConfig;
+
+  /** Whether user prefers reduced motion */
+  prefersReducedMotion: boolean;
+
+  /** Whether high contrast mode is active */
+  isHighContrast: boolean;
+
+  /** Update accessibility configuration */
+  setConfig: (config: Partial<AccessibilityConfig>) => void;
+
+  /** Get accessibility label for an icon */
+  getLabel: (iconName: string, customLabel?: string) => string | undefined;
+
+  /** Get contrast-adjusted color */
+  getContrastColor: (color: string) => string;
+
+  /** Check if animations should be disabled */
+  shouldDisableAnimations: () => boolean;
+}
+```
+
+### Example
+
+```tsx
+import { useAccessibilityContext, Mdi, AnimatedIcon } from 'rn-iconify';
+
+function AccessibleLoadingIcon() {
+  const { shouldDisableAnimations, getContrastColor } = useAccessibilityContext();
+
+  const iconColor = getContrastColor('#6366f1');
+  const disableAnimation = shouldDisableAnimations();
+
+  if (disableAnimation) {
+    return <Mdi name="loading" size={24} color={iconColor} />;
+  }
+
+  return (
+    <AnimatedIcon animate="spin">
+      <Mdi name="loading" size={24} color={iconColor} />
+    </AnimatedIcon>
+  );
+}
+```
+
+:::warning
+This hook throws an error if used outside an `AccessibilityProvider`. Use `useAccessibility` for a safe alternative that returns `null` when no provider is present.
+:::
+
+---
+
+## useAccessibility
+
+Safely access the accessibility context. Returns `null` if used outside `AccessibilityProvider` (does not throw).
+
+```tsx
+import { useAccessibility } from 'rn-iconify';
+
+function MyComponent() {
+  const accessibility = useAccessibility();
+
+  if (!accessibility) {
+    // No provider, use defaults
+    return <Mdi name="home" size={24} />;
+  }
+
+  const color = accessibility.getContrastColor('#333');
+  return <Mdi name="home" size={24} color={color} />;
+}
+```
+
+### Returns
+
+```tsx
+function useAccessibility(): AccessibilityContextValue | null;
+```
+
+Returns `AccessibilityContextValue` if inside an `AccessibilityProvider`, otherwise `null`.
+
+See [useAccessibilityContext](#useaccessibilitycontext) for the full `AccessibilityContextValue` interface.
+
+### Example
+
+```tsx
+import { useAccessibility, Mdi } from 'rn-iconify';
+
+function SafeIcon({ name, color }) {
+  const accessibility = useAccessibility();
+
+  // Apply high contrast if provider exists and high contrast is enabled
+  const finalColor = accessibility?.getContrastColor(color) ?? color;
+
+  // Check reduced motion preference
+  const disableAnimation = accessibility?.shouldDisableAnimations() ?? false;
+
+  return (
+    <Mdi
+      name={name}
+      size={24}
+      color={finalColor}
+    />
+  );
+}
+
+// Works with or without AccessibilityProvider
+function App() {
+  return (
+    <>
+      {/* Without provider - uses default color */}
+      <SafeIcon name="home" color="#333" />
+
+      {/* With provider - applies accessibility settings */}
+      <AccessibilityProvider config={{ highContrast: true }}>
+        <SafeIcon name="home" color="#333" />
+      </AccessibilityProvider>
+    </>
+  );
+}
+```
+
+:::info
+Use `useAccessibility` when your component should work both with and without an `AccessibilityProvider`. Use `useAccessibilityContext` when the provider is required and you want to catch configuration errors early.
+:::

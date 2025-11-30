@@ -1,0 +1,513 @@
+---
+id: cache-management
+title: Cache Management
+sidebar_position: 6
+description: Configure and manage icon caching for optimal performance
+keywords: [cache, memory, disk, mmkv, storage, optimization]
+---
+
+rn-iconify includes a multi-tier caching system for optimal performance. This guide covers configuration and management of the cache.
+
+## Cache Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Cache Hierarchy                       │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│   Request: getIcon('mdi:home')                          │
+│                 │                                        │
+│                 ▼                                        │
+│   ┌─────────────────────┐                               │
+│   │   Memory Cache      │ ← ~0.01ms (instant)           │
+│   │   (LRU, in-memory)  │                               │
+│   └──────────┬──────────┘                               │
+│              │ miss                                      │
+│              ▼                                           │
+│   ┌─────────────────────┐                               │
+│   │   Bundled Icons     │ ← ~0ms (compiled in)          │
+│   │   (Babel plugin)    │                               │
+│   └──────────┬──────────┘                               │
+│              │ miss                                      │
+│              ▼                                           │
+│   ┌─────────────────────┐                               │
+│   │   Disk Cache        │ ← ~0.1ms (MMKV/JSI)           │
+│   │   (Native storage)  │                               │
+│   └──────────┬──────────┘                               │
+│              │ miss                                      │
+│              ▼                                           │
+│   ┌─────────────────────┐                               │
+│   │   Network           │ ← 100-500ms                   │
+│   │   (Iconify API)     │                               │
+│   └─────────────────────┘                               │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+## CacheManager
+
+The `CacheManager` singleton provides full control over caching:
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+// Get icon from cache (any layer)
+const icon = CacheManager.get('mdi:home');
+
+// Check if icon is cached
+const isCached = CacheManager.has('mdi:home');
+
+// Store icon in cache
+CacheManager.set('mdi:home', iconData);
+
+// Get cache statistics
+const stats = CacheManager.getStats();
+console.log({
+  memoryCount: stats.memoryCount,      // Icons in memory
+  bundledCount: stats.bundledCount,    // Bundled icons
+  diskCount: stats.diskCount,          // Icons on disk
+  diskSizeBytes: stats.diskSizeBytes,  // Disk usage
+});
+```
+
+## Configuration
+
+### Basic Configuration
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  cache: {
+    maxMemoryItems: 500,       // Max icons in memory
+    enableDiskCache: true,     // Enable disk caching (MMKV)
+    diskCachePrefix: 'rn-iconify:', // Cache key prefix
+  },
+});
+```
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `maxMemoryItems` | `number` | `500` | Maximum icons in memory cache (LRU) |
+| `enableDiskCache` | `boolean` | `true` | Enable persistent disk cache (MMKV) |
+| `diskCachePrefix` | `string` | `'rn-iconify:'` | Key prefix for disk cache entries |
+
+## Clearing Cache
+
+### Clear All Caches
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+// Clear everything (memory + disk)
+CacheManager.clear();
+```
+
+### Clear Memory Only
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+// Clear only memory cache (disk remains)
+CacheManager.clearMemory();
+```
+
+### Clear Specific Icon
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+// Delete specific icon from cache
+CacheManager.delete('mdi:home');
+```
+
+## Prefetching
+
+### Basic Prefetching
+
+```tsx
+import { prefetchIcons } from 'rn-iconify';
+
+// Prefetch icons at app startup
+async function initApp() {
+  await prefetchIcons([
+    'mdi:home',
+    'mdi:settings',
+    'mdi:account',
+    'heroicons:user',
+    'heroicons:cog',
+  ]);
+}
+```
+
+### Prefetch Result
+
+```tsx
+import { prefetchIcons } from 'rn-iconify';
+
+const result = await prefetchIcons([
+  'mdi:home',
+  'mdi:settings',
+  'unknown:icon',
+]);
+
+console.log({
+  success: result.success,  // ['mdi:home', 'mdi:settings']
+  failed: result.failed,    // ['unknown:icon']
+});
+```
+
+### Prefetch by Icon Set
+
+```tsx
+import { prefetchIcons, fetchCollection } from 'rn-iconify';
+
+// Get icon names from a collection, then prefetch
+async function prefetchIconSet(prefix: string, limit = 100) {
+  const collection = await fetchCollection(prefix);
+  const iconsToFetch = collection.icons.slice(0, limit).map(name => `${prefix}:${name}`);
+  return prefetchIcons(iconsToFetch);
+}
+
+// Usage
+await prefetchIconSet('heroicons', 50);  // First 50 icons
+```
+
+## Cache Warming
+
+Warm the cache on app start by prefetching common icons:
+
+```tsx
+import { prefetchIcons, CacheManager } from 'rn-iconify';
+
+// Warm cache from disk to memory
+async function onAppStart() {
+  // Prefetch priority icons first
+  await prefetchIcons([
+    'mdi:home',
+    'mdi:settings',
+    'mdi:account',
+    'mdi:menu',
+    // Add your commonly used icons
+  ]);
+
+  console.log('Cache warmed:', CacheManager.getStats().memoryCount);
+}
+```
+
+## Offline Bundles
+
+Load pre-bundled icons for offline support:
+
+```tsx
+import { loadOfflineBundle, CacheManager } from 'rn-iconify';
+import iconBundle from './assets/icons.bundle.json';
+
+// Load bundle into cache
+const result = loadOfflineBundle(iconBundle);
+
+console.log({
+  loaded: result.loaded,        // Number of icons loaded
+  skipped: result.skipped,      // Already cached (skipped)
+  total: result.total,          // Total icons in bundle
+  version: result.version,      // Bundle version
+  loadTimeMs: result.loadTimeMs, // Load time in milliseconds
+});
+
+// Verify
+console.log('Bundle loaded:', CacheManager.has('mdi:home'));
+```
+
+## Cache Statistics
+
+### Get Current Stats
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+const stats = CacheManager.getStats();
+
+console.log({
+  // Counts
+  memoryCount: stats.memoryCount,     // Icons in memory cache
+  bundledCount: stats.bundledCount,   // Icons from offline bundles
+  diskCount: stats.diskCount,         // Icons in disk cache
+  diskSizeBytes: stats.diskSizeBytes, // Disk cache size in bytes
+});
+```
+
+### Stats Return Type
+
+```tsx
+interface CacheStats {
+  memoryCount: number;     // Icons in memory (LRU cache)
+  bundledCount: number;    // Icons from loadOfflineBundle()
+  diskCount: number;       // Icons persisted to MMKV
+  diskSizeBytes: number;   // Total disk cache size
+}
+```
+
+## Cache Persistence
+
+### Default Behavior
+
+By default, rn-iconify persists the disk cache across app restarts:
+
+```tsx
+// First app launch
+<Mdi name="home" />  // Fetches from network, caches to disk
+
+// Second app launch
+<Mdi name="home" />  // Loads from disk cache instantly
+```
+
+### Disable Persistence
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  cache: {
+    enableDiskCache: false,  // Memory-only caching
+  },
+});
+```
+
+### Custom Cache Prefix
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  cache: {
+    diskCachePrefix: 'my-app-icons:',  // Custom cache key prefix
+  },
+});
+```
+
+## Memory Management
+
+### LRU Eviction
+
+Memory cache uses LRU (Least Recently Used) eviction:
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  cache: {
+    maxMemoryItems: 100,  // Keep max 100 icons in memory
+  },
+});
+
+// When cache is full, oldest unused icons are evicted automatically
+```
+
+---
+
+## Native Cache Integration
+
+When the native module is available, CacheManager provides additional methods:
+
+### Check Native Availability
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+if (CacheManager.isNativeAvailable()) {
+  console.log('Native cache enabled');
+}
+```
+
+### Get Native Stats
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+async function logNativeStats() {
+  const nativeStats = await CacheManager.getNativeStats();
+
+  if (nativeStats) {
+    console.log({
+      diskCount: nativeStats.diskCount,
+      diskSizeBytes: nativeStats.diskSizeBytes,
+      hitRate: nativeStats.hitRate,
+    });
+  }
+}
+```
+
+### Clear Native Cache
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+
+async function clearAllCaches() {
+  // Clear JS caches (memory + disk)
+  CacheManager.clear();
+
+  // Clear native module cache separately
+  await CacheManager.clearNative();
+
+  console.log('All caches cleared');
+}
+```
+
+### Prefetch with Native Module
+
+```tsx
+import { CacheManager, fetchIcon } from 'rn-iconify';
+
+async function prefetchIcons(iconNames: string[]) {
+  // Uses native module if available, JS fallback otherwise
+  const result = await CacheManager.prefetch(
+    iconNames,
+    fetchIcon  // Fallback fetch function
+  );
+
+  console.log({
+    success: result.success.length,
+    failed: result.failed.length,
+  });
+}
+```
+
+## Best Practices
+
+### 1. Prefetch Critical Icons
+
+```tsx
+// App.tsx
+useEffect(() => {
+  prefetchIcons([
+    'mdi:home',
+    'mdi:menu',
+    'mdi:close',
+    'mdi:arrow-left',
+    // Navigation and common UI icons
+  ]);
+}, []);
+```
+
+### 2. Use Bundles for Offline Support
+
+```tsx
+// For critical icons that must work offline
+import criticalBundle from './bundles/critical.json';
+
+loadOfflineBundle(criticalBundle);
+```
+
+### 3. Configure Appropriate Cache Size
+
+```tsx
+// Small app with few icons
+configure({ cache: { maxMemoryItems: 50 } });
+
+// Large app with many icons
+configure({ cache: { maxMemoryItems: 500 } });
+```
+
+### 4. Clear Cache on User Logout
+
+```tsx
+function handleLogout() {
+  // Clear user data...
+
+  // Optionally clear icon cache
+  CacheManager.clear();
+}
+```
+
+### 5. Monitor Cache in Development
+
+```tsx
+if (__DEV__) {
+  setInterval(() => {
+    const stats = CacheManager.getStats();
+    console.log('Cache stats:', stats);
+  }, 10000);
+}
+```
+
+## Troubleshooting
+
+### Cache Not Persisting
+
+```tsx
+import { CacheManager, getConfiguration } from 'rn-iconify';
+
+// Check if disk cache is enabled
+const stats = CacheManager.getStats();
+if (stats.diskCount === 0) {
+  console.warn('Disk cache may be disabled or failed to initialize');
+
+  // Check configuration
+  const config = getConfiguration();
+  console.log('enableDiskCache:', config.cache.enableDiskCache);
+}
+```
+
+### High Memory Usage
+
+```tsx
+import { CacheManager, configure } from 'rn-iconify';
+
+// Check memory cache count
+const stats = CacheManager.getStats();
+if (stats.memoryCount > 500) {
+  console.warn('High memory icon count, consider reducing maxMemoryItems');
+
+  // Clear memory cache (disk cache persists)
+  CacheManager.clearMemory();
+
+  // Reduce future cache size
+  configure({ cache: { maxMemoryItems: 200 } });
+}
+```
+
+### Cache Misses
+
+```tsx
+import { enablePerformanceMonitoring, getPerformanceReport } from 'rn-iconify';
+
+enablePerformanceMonitoring();
+
+// After some time...
+const report = getPerformanceReport();
+if (report.cacheStats.hitRate < 0.8) {
+  console.warn('Low cache hit rate, consider prefetching icons');
+}
+```
+
+## Cache Migration
+
+When upgrading rn-iconify versions, you may want to clear the cache:
+
+```tsx
+import { CacheManager } from 'rn-iconify';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const LIBRARY_VERSION = '1.0.0'; // Update when you upgrade rn-iconify
+
+async function checkCacheMigration() {
+  const storedVersion = await AsyncStorage.getItem('rn-iconify-version');
+
+  if (storedVersion !== LIBRARY_VERSION) {
+    // Clear cache on version change
+    CacheManager.clear();
+    await AsyncStorage.setItem('rn-iconify-version', LIBRARY_VERSION);
+    console.log('Cache cleared for version upgrade');
+  }
+}
+```
+
+---
+
+## Next Steps
+
+- [Performance Monitoring](/docs/features/performance-monitoring) - Track cache performance
+- [Offline Bundles](/docs/advanced/offline-bundles) - Pre-bundle icons
+- [Architecture](/docs/advanced/architecture) - How caching works internally

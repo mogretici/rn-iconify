@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release with 212 icon sets and 268,000+ icons
+- Initial release with 200+ icon sets and 268,000+ icons
 - Simple component API (`<Mdi name="home" />`)
 - Full TypeScript autocomplete for all icon names
 - MMKV-based disk caching (30x faster than AsyncStorage)

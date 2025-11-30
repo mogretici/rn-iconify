@@ -1,0 +1,136 @@
+.features {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem 0 3rem;
+}
+
+/* Marquee */
+.marqueeContainer {
+  width: 100%;
+  padding: 1rem 0;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 5%,
+    black 95%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 5%,
+    black 95%,
+    transparent
+  );
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  animation: marquee 100s linear infinite;
+}
+
+.marqueeTrack:hover {
+  animation-play-state: paused;
+}
+
+/* 10 cards * (300px + 24px gap) = 3240px per set */
+/* Animation moves by 1 set width (33.333% of 3 sets) */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-324px * 10));
+  }
+}
+
+/* Cards */
+.card {
+  flex-shrink: 0;
+  width: 300px;
+  margin-right: 24px;
+  padding: 2rem;
+  background: var(--surface-1);
+  border: 1px solid var(--surface-3);
+  border-radius: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border-color: var(--ifm-color-primary-lighter);
+}
+
+[data-theme='dark'] .card {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--surface-2);
+}
+
+[data-theme='dark'] .card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.iconWrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.icon {
+  font-size: 1.75rem;
+  filter: grayscale(1) brightness(10);
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text-primary);
+}
+
+.cardDescription {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .features {
+    padding: 3rem 0;
+  }
+
+  .header {
+    padding: 0 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    width: 260px;
+    margin-right: 16px;
+    padding: 1.5rem;
+  }
+
+  .marqueeTrack {
+    animation-duration: 75s;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(calc(-276px * 10));
+    }
+  }
+}

@@ -4,6 +4,8 @@
 
 import React from 'react';
 import { IconRenderer } from './IconRenderer';
+import { useIconTheme } from './theme';
+import { DEFAULT_ICON_THEME } from './theme/types';
 import type { IconProps } from './types';
 
 /**
@@ -54,20 +56,47 @@ export function createIconSet<T extends string>(
    */
   function IconComponent({
     name,
-    size = 24,
-    color = '#000000',
+    size,
+    color,
     width,
     height,
     style,
-    rotate = 0,
+    rotate,
     flip,
     fallback,
-    fallbackDelay = 0,
+    fallbackDelay,
+    placeholder,
+    placeholderColor,
+    placeholderDuration,
     onLoad,
     onError,
     accessibilityLabel,
     testID,
+    // Animation props
+    animate,
+    animationDuration,
+    animationLoop,
+    animationEasing,
+    animationDelay,
+    autoPlay,
+    onAnimationComplete,
   }: IconProps<T>) {
+    // Get theme defaults
+    const { theme } = useIconTheme();
+
+    // Merge props with theme defaults (props take precedence)
+    const mergedSize = size ?? theme.size ?? DEFAULT_ICON_THEME.size;
+    const mergedColor = color ?? theme.color ?? DEFAULT_ICON_THEME.color;
+    const mergedRotate = rotate ?? theme.rotate ?? DEFAULT_ICON_THEME.rotate;
+    const mergedFlip = flip ?? theme.flip;
+    const mergedFallbackDelay =
+      fallbackDelay ?? theme.fallbackDelay ?? DEFAULT_ICON_THEME.fallbackDelay;
+    const mergedPlaceholder = placeholder ?? theme.placeholder;
+    const mergedPlaceholderColor =
+      placeholderColor ?? theme.placeholderColor ?? DEFAULT_ICON_THEME.placeholderColor;
+    const mergedPlaceholderDuration =
+      placeholderDuration ?? theme.placeholderDuration ?? DEFAULT_ICON_THEME.placeholderDuration;
+
     // Runtime validation for icon name
     if (__DEV__ && !(name in iconNames)) {
       console.warn(
@@ -83,19 +112,29 @@ export function createIconSet<T extends string>(
     return (
       <IconRenderer
         iconName={iconName}
-        size={size}
-        color={color}
+        size={mergedSize}
+        color={mergedColor}
         width={width}
         height={height}
         style={style}
-        rotate={rotate}
-        flip={flip}
+        rotate={mergedRotate}
+        flip={mergedFlip}
         fallback={fallback}
-        fallbackDelay={fallbackDelay}
+        fallbackDelay={mergedFallbackDelay}
+        placeholder={mergedPlaceholder}
+        placeholderColor={mergedPlaceholderColor}
+        placeholderDuration={mergedPlaceholderDuration}
         onLoad={onLoad}
         onError={onError}
         accessibilityLabel={accessibilityLabel ?? name}
         testID={testID}
+        animate={animate}
+        animationDuration={animationDuration}
+        animationLoop={animationLoop}
+        animationEasing={animationEasing}
+        animationDelay={animationDelay}
+        autoPlay={autoPlay}
+        onAnimationComplete={onAnimationComplete}
       />
     );
   }

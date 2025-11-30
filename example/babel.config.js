@@ -11,6 +11,9 @@ module.exports = function (api) {
           },
         },
       ],
+      // rn-iconify babel plugin for build-time icon bundling
+      ['../babel', { verbose: true }],
+      'react-native-reanimated/plugin',
     ],
   };
 };

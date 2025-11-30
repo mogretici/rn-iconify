@@ -1,0 +1,248 @@
+---
+id: placeholders
+title: Placeholders
+sidebar_position: 1
+description: Loading placeholders and skeleton states for icons
+keywords: [loading, placeholder, skeleton, shimmer, pulse]
+---
+
+Show loading states while icons are being fetched from the Iconify API.
+
+## Built-in Presets
+
+rn-iconify includes three built-in placeholder presets:
+
+```tsx
+import { Mdi } from 'rn-iconify';
+
+// Skeleton - Simple gray box
+<Mdi name="home" placeholder="skeleton" />
+
+// Pulse - Fading animation
+<Mdi name="home" placeholder="pulse" />
+
+// Shimmer - Gradient sweep effect
+<Mdi name="home" placeholder="shimmer" />
+```
+
+## Preset Comparison
+
+| Preset | Animation | Use Case |
+|--------|-----------|----------|
+| `skeleton` | None | Simple, minimal UI |
+| `pulse` | Fade in/out | Subtle loading indicator |
+| `shimmer` | Gradient sweep | Premium feel, content loading |
+
+## Custom Placeholders
+
+Use any React Native component as a placeholder:
+
+```tsx
+import { Mdi } from 'rn-iconify';
+import { ActivityIndicator, View, Text } from 'react-native';
+
+// Activity Indicator
+<Mdi
+  name="home"
+  size={24}
+  placeholder={<ActivityIndicator size="small" color="blue" />}
+/>
+
+// Custom View
+<Mdi
+  name="home"
+  size={48}
+  placeholder={
+    <View style={{ width: 48, height: 48, backgroundColor: '#e0e0e0', borderRadius: 8 }} />
+  }
+/>
+
+// Text placeholder
+<Mdi
+  name="home"
+  size={24}
+  placeholder={<Text>...</Text>}
+/>
+```
+
+## Global Placeholder with Theme Provider
+
+Set a default placeholder for all icons:
+
+```tsx
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+
+function App() {
+  return (
+    <IconThemeProvider
+      theme={{
+        placeholder: 'shimmer',
+      }}
+    >
+      {/* All icons will use shimmer placeholder */}
+      <Mdi name="home" />
+      <Mdi name="settings" />
+    </IconThemeProvider>
+  );
+}
+```
+
+## Custom Global Placeholder
+
+```tsx
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+import { ActivityIndicator } from 'react-native';
+
+function App() {
+  return (
+    <IconThemeProvider
+      theme={{
+        placeholder: <ActivityIndicator size="small" />,
+      }}
+    >
+      <Mdi name="home" />
+    </IconThemeProvider>
+  );
+}
+```
+
+## Placeholder Sizing
+
+Placeholders automatically inherit the icon's size:
+
+```tsx
+// Placeholder will be 48x48
+<Mdi name="home" size={48} placeholder="skeleton" />
+
+// Placeholder will be 24x24 (default)
+<Mdi name="home" placeholder="skeleton" />
+```
+
+## Conditional Placeholders
+
+Show different placeholders based on context:
+
+```tsx
+import { Mdi } from 'rn-iconify';
+import { Platform } from 'react-native';
+
+function Icon({ name }: { name: string }) {
+  const placeholder = Platform.OS === 'ios' ? 'shimmer' : 'skeleton';
+
+  return <Mdi name={name} placeholder={placeholder} />;
+}
+```
+
+## Performance Considerations
+
+- **First render**: Placeholder shows while icon fetches from API
+- **Cached icons**: No placeholder shown (instant render)
+- **Prefetched icons**: No placeholder shown
+
+To eliminate placeholders entirely, use:
+- [Prefetching](/docs/getting-started/quick-start#prefetching) - Load icons on app start
+- [Babel Plugin](/docs/advanced/babel-plugin) - Bundle icons at build time
+
+## Disable Placeholders
+
+To show nothing while loading:
+
+```tsx
+<Mdi name="home" placeholder={null} />
+```
+
+---
+
+## Component API Reference
+
+### Skeleton
+
+Static gray box placeholder (no animation).
+
+```tsx
+import { Skeleton } from 'rn-iconify';
+
+<Skeleton width={24} height={24} />
+<Skeleton width={48} height={48} color="#D1D5DB" borderRadius={8} />
+```
+
+### Pulse
+
+Fading opacity animation placeholder.
+
+```tsx
+import { Pulse } from 'rn-iconify';
+
+<Pulse width={24} height={24} />
+<Pulse width={32} height={32} duration={1500} color="#E5E7EB" />
+```
+
+### Shimmer
+
+Gradient sweep animation placeholder.
+
+```tsx
+import { Shimmer } from 'rn-iconify';
+
+<Shimmer width={24} height={24} />
+<Shimmer
+  width={48}
+  height={48}
+  color="#E5E7EB"
+  highlightColor="#F9FAFB"
+  duration={1200}
+/>
+```
+
+### PlaceholderProps
+
+Common props for Skeleton, Pulse, and Shimmer components.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Width of the placeholder |
+| `height` | `number` | **required** | Height of the placeholder |
+| `color` | `string` | `'#E1E1E1'` | Background color |
+| `highlightColor` | `string` | `'#F5F5F5'` | Secondary color (shimmer gradient) |
+| `duration` | `number` | `1000` | Animation duration in milliseconds |
+| `borderRadius` | `number` | `4` | Border radius |
+| `testID` | `string` | - | Test ID for testing |
+
+### PlaceholderFactory
+
+Creates the appropriate placeholder based on type.
+
+```tsx
+import { PlaceholderFactory } from 'rn-iconify';
+
+// Using preset
+<PlaceholderFactory type="shimmer" width={24} height={24} />
+
+// Using custom component
+<PlaceholderFactory
+  type={<ActivityIndicator size="small" />}
+  width={24}
+  height={24}
+/>
+```
+
+### PlaceholderFactoryProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `PlaceholderType` | **required** | `'skeleton'` \| `'pulse'` \| `'shimmer'` \| `ReactNode` |
+| `width` | `number` | **required** | Width of the placeholder |
+| `height` | `number` | **required** | Height of the placeholder |
+| `color` | `string` | `'#E1E1E1'` | Background color |
+| `highlightColor` | `string` | `'#F5F5F5'` | Secondary color for shimmer |
+| `duration` | `number` | `1000` | Animation duration in milliseconds |
+| `borderRadius` | `number` | `4` | Border radius |
+| `testID` | `string` | - | Test ID for testing |
+
+---
+
+## Next Steps
+
+- [Theme Provider](/docs/features/theme-provider) - Global placeholder configuration
+- [Babel Plugin](/docs/advanced/babel-plugin) - Eliminate loading states entirely
+- [Prefetching](/docs/getting-started/quick-start#prefetching) - Preload icons

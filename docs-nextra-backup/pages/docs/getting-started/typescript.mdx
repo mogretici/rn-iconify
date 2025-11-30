@@ -1,0 +1,174 @@
+# TypeScript
+
+rn-iconify provides full TypeScript support with autocomplete for all 268,000+ icons.
+
+## Autocomplete
+
+Each icon component has its own type that provides autocomplete for valid icon names:
+
+```tsx
+import { Mdi } from 'rn-iconify';
+
+<Mdi name="home" />     // ✅ Valid
+<Mdi name="invalid" />  // ❌ TypeScript error
+```
+
+![TypeScript Autocomplete](/autocomplete.gif)
+
+## Type Exports
+
+Import icon name types for use in your own components:
+
+```tsx copy
+import { Mdi, type MdiIconName } from 'rn-iconify';
+import { Heroicons, type HeroiconsIconName } from 'rn-iconify';
+import { Lucide, type LucideIconName } from 'rn-iconify';
+import { Ph, type PhIconName } from 'rn-iconify';
+```
+
+## Typed Props
+
+Create components with typed icon props:
+
+```tsx copy
+import { Mdi, type MdiIconName } from 'rn-iconify';
+
+interface TabBarIconProps {
+  name: MdiIconName;
+  focused: boolean;
+}
+
+function TabBarIcon({ name, focused }: TabBarIconProps) {
+  return (
+    <Mdi
+      name={name}
+      size={24}
+      color={focused ? 'blue' : 'gray'}
+    />
+  );
+}
+
+// Usage
+<TabBarIcon name="home" focused={true} />     // ✅ Valid
+<TabBarIcon name="invalid" focused={true} />  // ❌ TypeScript error
+```
+
+## Cross-Set Generic Wrapper
+
+Create a generic icon component that works with multiple icon sets:
+
+```tsx copy
+import { Mdi, Heroicons, type MdiIconName, type HeroiconsIconName } from 'rn-iconify';
+
+type AppIcon =
+  | { set: 'mdi'; name: MdiIconName }
+  | { set: 'heroicons'; name: HeroiconsIconName };
+
+interface IconProps extends Omit<AppIcon, 'set' | 'name'> {
+  set: AppIcon['set'];
+  name: string;
+  size?: number;
+  color?: string;
+}
+
+function Icon({ set, name, ...props }: IconProps) {
+  switch (set) {
+    case 'mdi':
+      return <Mdi name={name as MdiIconName} {...props} />;
+    case 'heroicons':
+      return <Heroicons name={name as HeroiconsIconName} {...props} />;
+  }
+}
+
+// Usage
+<Icon set="mdi" name="home" size={24} />
+<Icon set="heroicons" name="user" size={24} />
+```
+
+## Why Per-Component Types?
+
+Unlike some icon libraries that use a single union type for all icons, rn-iconify uses per-component types:
+
+| Approach | IDE Performance | Autocomplete | TypeScript |
+|----------|-----------------|--------------|------------|
+| Single Union (200K+ items) | ❌ Very Slow | ❌ Slow | ❌ Crashes |
+| Per-Component (~7K max) | ✅ Fast | ✅ Instant | ✅ Works |
+
+This design ensures your IDE stays responsive even with 268,000+ icons available.
+
+## Strict Mode
+
+rn-iconify is fully compatible with TypeScript strict mode:
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true
+  }
+}
+```
+
+## IDE Support
+
+rn-iconify works great with:
+
+- **VS Code** - Full autocomplete with IntelliSense
+- **WebStorm** - Complete type inference
+- **Neovim** - With TypeScript LSP
+- **Any TypeScript-aware editor**
+
+## Best Practices
+
+### 1. Use Type Imports
+
+Always use `type` for type-only imports to avoid bundling issues:
+
+```tsx
+// ✅ Good
+import { Mdi, type MdiIconName } from 'rn-iconify';
+
+// ❌ Avoid (may cause bundling issues)
+import { Mdi, MdiIconName } from 'rn-iconify';
+```
+
+### 2. Create Icon Constants
+
+For commonly used icons, create typed constants:
+
+```tsx copy
+import type { MdiIconName } from 'rn-iconify';
+
+export const AppIcons = {
+  home: 'home' as MdiIconName,
+  settings: 'cog' as MdiIconName,
+  profile: 'account' as MdiIconName,
+  search: 'magnify' as MdiIconName,
+} as const;
+```
+
+### 3. Use Icon Aliases for Type Safety
+
+For the best type safety, use the [Icon Aliases](/features/icon-aliases) feature:
+
+```tsx copy
+import { createIconAliases } from 'rn-iconify';
+
+const { Icon } = createIconAliases({
+  aliases: {
+    back: 'mdi:arrow-left',
+    forward: 'mdi:arrow-right',
+    home: 'mdi:home',
+  } as const,
+});
+
+// Full autocomplete for alias names
+<Icon name="back" />     // ✅ Autocomplete works
+<Icon name="invalid" />  // ❌ TypeScript error
+```
+
+## Next Steps
+
+- [Icon Aliases](/features/icon-aliases) - Type-safe custom icon names
+- [Theme Provider](/features/theme-provider) - Global styling
+- [API Reference](/api-reference/types) - All type exports

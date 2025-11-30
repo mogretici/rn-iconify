@@ -1,0 +1,287 @@
+# Icon Aliases
+
+Create custom, type-safe icon names that map to any icon from any icon set.
+
+## Why Use Aliases?
+
+- **Consistent naming**: Use `back` instead of `mdi:arrow-left`
+- **Easy swapping**: Change icons app-wide from one place
+- **Type safety**: Full autocomplete for your custom names
+- **Design system**: Create a semantic icon vocabulary
+
+## Basic Usage
+
+```tsx copy
+import { createIconAliases } from 'rn-iconify';
+
+const { Icon } = createIconAliases({
+  aliases: {
+    back: 'mdi:arrow-left',
+    forward: 'mdi:arrow-right',
+    home: 'mdi:home',
+    settings: 'mdi:cog',
+    user: 'heroicons:user',
+    search: 'lucide:search',
+  } as const,
+});
+
+// Usage
+<Icon name="back" size={24} />
+<Icon name="home" color="blue" />
+<Icon name="settings" />
+```
+
+## Type Safety
+
+The `as const` assertion enables full autocomplete:
+
+```tsx
+<Icon name="back" />     // ✅ Valid
+<Icon name="home" />     // ✅ Valid
+<Icon name="invalid" />  // ❌ TypeScript error
+```
+
+![Alias Autocomplete](/alias-autocomplete.gif)
+
+## Mixing Icon Sets
+
+Aliases can reference any icon set:
+
+```tsx copy
+const { Icon } = createIconAliases({
+  aliases: {
+    // Material Design Icons
+    home: 'mdi:home',
+    menu: 'mdi:menu',
+
+    // Heroicons
+    user: 'heroicons:user',
+    cog: 'heroicons:cog-6-tooth',
+
+    // Lucide
+    camera: 'lucide:camera',
+    image: 'lucide:image',
+
+    // Phosphor
+    heart: 'ph:heart-fill',
+    star: 'ph:star-fill',
+  } as const,
+});
+```
+
+## Configuration Options
+
+```tsx copy
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    user: 'heroicons:user',
+  } as const,
+
+  // Default props for all aliased icons
+  defaultProps: {
+    size: 24,
+    color: '#333',
+  },
+});
+```
+
+## Multiple Alias Sets
+
+Create different alias sets for different parts of your app:
+
+```tsx copy
+// Navigation icons
+const { Icon: NavIcon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    explore: 'mdi:compass',
+    profile: 'mdi:account',
+    settings: 'mdi:cog',
+  } as const,
+});
+
+// Action icons
+const { Icon: ActionIcon } = createIconAliases({
+  aliases: {
+    add: 'mdi:plus',
+    edit: 'mdi:pencil',
+    delete: 'mdi:delete',
+    share: 'mdi:share',
+  } as const,
+});
+
+// Usage
+<NavIcon name="home" />
+<ActionIcon name="add" />
+```
+
+## With Theme Provider
+
+Combine with theme provider for global styling:
+
+```tsx copy
+import { IconThemeProvider, createIconAliases } from 'rn-iconify';
+
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',
+    user: 'heroicons:user',
+  } as const,
+});
+
+function App() {
+  return (
+    <IconThemeProvider theme={{ size: 24, color: '#333' }}>
+      <Icon name="home" />  {/* Inherits theme values */}
+    </IconThemeProvider>
+  );
+}
+```
+
+## Semantic Icon System
+
+Create a semantic design system:
+
+```tsx copy
+const { Icon } = createIconAliases({
+  aliases: {
+    // Navigation
+    navBack: 'mdi:arrow-left',
+    navForward: 'mdi:arrow-right',
+    navClose: 'mdi:close',
+    navMenu: 'mdi:menu',
+
+    // Actions
+    actionAdd: 'mdi:plus',
+    actionEdit: 'mdi:pencil',
+    actionDelete: 'mdi:delete',
+    actionSave: 'mdi:content-save',
+
+    // Status
+    statusSuccess: 'mdi:check-circle',
+    statusError: 'mdi:alert-circle',
+    statusWarning: 'mdi:alert',
+    statusInfo: 'mdi:information',
+
+    // Social
+    socialTwitter: 'mdi:twitter',
+    socialFacebook: 'mdi:facebook',
+    socialInstagram: 'mdi:instagram',
+  } as const,
+});
+```
+
+## Easy Icon Swapping
+
+Change icons app-wide from one place:
+
+```tsx copy
+// Before: Using Heroicons style
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'heroicons:home',
+    user: 'heroicons:user',
+  } as const,
+});
+
+// After: Switched to Material Design
+const { Icon } = createIconAliases({
+  aliases: {
+    home: 'mdi:home',        // Changed
+    user: 'mdi:account',     // Changed
+  } as const,
+});
+
+// All <Icon name="home" /> throughout your app now use MDI
+```
+
+## TypeScript Integration
+
+Export types for use in your components:
+
+```tsx copy
+import { createIconAliases } from 'rn-iconify';
+
+const aliases = {
+  home: 'mdi:home',
+  user: 'heroicons:user',
+  settings: 'mdi:cog',
+} as const;
+
+const { Icon } = createIconAliases({ aliases });
+
+// Export the type
+export type AppIconName = keyof typeof aliases;
+
+// Use in component props
+interface ButtonProps {
+  icon: AppIconName;
+  label: string;
+}
+
+function IconButton({ icon, label }: ButtonProps) {
+  return (
+    <TouchableOpacity>
+      <Icon name={icon} />
+      <Text>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+```
+
+## Best Practices
+
+### 1. Use Semantic Names
+
+```tsx
+// ✅ Good - semantic
+aliases: {
+  actionDelete: 'mdi:delete',
+  navBack: 'mdi:arrow-left',
+}
+
+// ❌ Avoid - non-semantic
+aliases: {
+  trashCan: 'mdi:delete',
+  leftArrow: 'mdi:arrow-left',
+}
+```
+
+### 2. Centralize Definitions
+
+Create a single file for all aliases:
+
+```tsx copy
+// src/icons.ts
+import { createIconAliases } from 'rn-iconify';
+
+export const { Icon } = createIconAliases({
+  aliases: {
+    // All app icons defined here
+  } as const,
+});
+
+export type AppIconName = keyof typeof aliases;
+```
+
+### 3. Document Icon Usage
+
+```tsx copy
+const { Icon } = createIconAliases({
+  aliases: {
+    /** Primary navigation - bottom tab bar */
+    home: 'mdi:home',
+    /** User profile and account settings */
+    user: 'heroicons:user',
+    /** App configuration and preferences */
+    settings: 'mdi:cog',
+  } as const,
+});
+```
+
+## Next Steps
+
+- [Theme Provider](/docs/features/theme-provider) - Global icon styling
+- [React Navigation](/docs/features/react-navigation) - Use aliases in navigation
+- [TypeScript](/docs/getting-started/typescript) - Type system details

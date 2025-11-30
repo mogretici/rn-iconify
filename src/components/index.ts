@@ -2,7 +2,7 @@
  * Icon Set Components
  * Auto-generated - do not edit manually
  *
- * 212 icon sets available
+ * 200+ icon sets available
  */
 
 export { Mdi, type MdiIconName } from './Mdi';
@@ -232,3 +232,54 @@ export { Wi, type WiIconName } from './Wi';
 export { Wpf, type WpfIconName } from './Wpf';
 export { Zmdi, type ZmdiIconName } from './Zmdi';
 export { Zondicons, type ZondiconsIconName } from './Zondicons';
+
+// Props type aliases for popular icon sets (convenience types)
+import type { IconProps } from '../types';
+import type { MdiIconName } from './Mdi';
+import type { HeroiconsIconName } from './Heroicons';
+import type { LucideIconName } from './Lucide';
+import type { PhIconName } from './Ph';
+import type { TablerIconName } from './Tabler';
+import type { FeatherIconName } from './Feather';
+import type { BiIconName } from './Bi';
+import type { Fa6SolidIconName } from './Fa6Solid';
+import type { Fa6RegularIconName } from './Fa6Regular';
+import type { Fa6BrandsIconName } from './Fa6Brands';
+import type { IonIconName } from './Ion';
+import type { RiIconName } from './Ri';
+
+/** Props for Mdi icon component */
+export type MdiProps = IconProps<MdiIconName>;
+
+/** Props for Heroicons icon component */
+export type HeroiconsProps = IconProps<HeroiconsIconName>;
+
+/** Props for Lucide icon component */
+export type LucideProps = IconProps<LucideIconName>;
+
+/** Props for Ph (Phosphor) icon component */
+export type PhProps = IconProps<PhIconName>;
+
+/** Props for Tabler icon component */
+export type TablerProps = IconProps<TablerIconName>;
+
+/** Props for Feather icon component */
+export type FeatherProps = IconProps<FeatherIconName>;
+
+/** Props for Bi (Bootstrap Icons) icon component */
+export type BiProps = IconProps<BiIconName>;
+
+/** Props for Fa6Solid icon component */
+export type Fa6SolidProps = IconProps<Fa6SolidIconName>;
+
+/** Props for Fa6Regular icon component */
+export type Fa6RegularProps = IconProps<Fa6RegularIconName>;
+
+/** Props for Fa6Brands icon component */
+export type Fa6BrandsProps = IconProps<Fa6BrandsIconName>;
+
+/** Props for Ion (Ionicons) icon component */
+export type IonProps = IconProps<IonIconName>;
+
+/** Props for Ri (Remix Icon) icon component */
+export type RiProps = IconProps<RiIconName>;

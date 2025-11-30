@@ -1,0 +1,353 @@
+---
+id: custom-server
+title: Custom Server
+sidebar_position: 3
+description: Self-host your own Iconify server
+keywords: [server, self-hosted, private, docker, api]
+---
+
+Configure rn-iconify to use a custom Iconify API server for faster loading, offline support, or enterprise requirements.
+
+
+## Why Use a Custom Server?
+
+- **Faster loading**: Server in your region/network
+- **Offline/air-gapped**: No external network required
+- **Enterprise**: Compliance with network policies
+- **Custom icons**: Serve your own icon sets
+
+## Configuration
+
+Set the Iconify API server URL using `configure`:
+
+```tsx
+import { configure } from 'rn-iconify';
+
+// Configure before using any icons
+configure({
+  api: {
+    apiUrl: 'https://your-iconify-server.com',
+  },
+});
+```
+
+## Self-Hosted Iconify API
+
+### Docker Setup
+
+Run the official Iconify API server:
+
+```bash
+docker run -d \
+  --name iconify-api \
+  -p 3000:3000 \
+  iconify/api
+```
+
+Then configure rn-iconify:
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  api: {
+    apiUrl: 'http://localhost:3000',
+  },
+});
+```
+
+### Production Docker Compose
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  iconify-api:
+    image: iconify/api
+    ports:
+      - "3000:3000"
+    volumes:
+      - iconify-cache:/app/cache
+    restart: unless-stopped
+    environment:
+      - ICONIFY_SOURCE=full
+
+volumes:
+  iconify-cache:
+```
+
+### Custom Icon Sets
+
+Add your own icons to the server:
+
+```bash
+# Create custom icon set
+mkdir -p icons/my-icons
+
+# Add icon JSON files
+cat > icons/my-icons/icons.json << 'EOF'
+{
+  "prefix": "my",
+  "icons": {
+    "logo": {
+      "body": "<path d=\"M12 2L2 7l10 5 10-5-10-5z\"/>"
+    },
+    "custom-icon": {
+      "body": "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+    }
+  },
+  "width": 24,
+  "height": 24
+}
+EOF
+
+# Mount to Docker container
+docker run -d \
+  -p 3000:3000 \
+  -v $(pwd)/icons:/app/icons \
+  iconify/api
+```
+
+Use custom icons:
+
+```tsx
+import { Icon } from 'rn-iconify';
+
+// Use your custom icon set
+<Icon name="my:logo" size={24} />
+<Icon name="my:custom-icon" size={24} />
+```
+
+## Network Configuration
+
+### Timeout and Retries
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  api: {
+    apiUrl: 'https://your-server.com',
+    timeout: 10000, // 10 seconds
+    retries: 3,
+    retryDelay: 1000, // 1 second between retries
+  },
+});
+```
+
+### Custom Headers
+
+Add custom headers (for authentication, etc.):
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  api: {
+    apiUrl: 'https://api.company.com/icons',
+    headers: {
+      'Authorization': 'Bearer your-token',
+      'X-API-Key': 'your-api-key',
+    },
+  },
+});
+```
+
+## Enterprise Setup
+
+### Internal CDN
+
+Host icon assets on your CDN:
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  api: {
+    apiUrl: 'https://cdn.company.com/iconify',
+  },
+});
+```
+
+### Air-Gapped Environments
+
+For completely offline environments:
+
+1. **Bundle all icons** using Babel plugin:
+```js
+// babel.config.js
+['rn-iconify/babel', {
+  include: ['mdi:*', 'heroicons:*'],
+}],
+```
+
+2. **Or use offline bundles**:
+```tsx
+import { loadOfflineBundle } from 'rn-iconify';
+import iconBundle from './icon-bundle.json';
+
+loadOfflineBundle(iconBundle);
+```
+
+## Server Health Check
+
+Verify server connectivity:
+
+```tsx
+import { checkAPIHealth } from 'rn-iconify';
+
+async function verifyIconServer() {
+  const isHealthy = await checkAPIHealth();
+
+  if (!isHealthy) {
+    console.error('Icon server unreachable');
+    // Fall back to bundled icons or show error
+  }
+
+  console.log('Icon server is healthy');
+}
+```
+
+## Monitoring with Performance API
+
+Monitor icon loading from your server:
+
+```tsx
+import { PerformanceMonitor, enablePerformanceMonitoring } from 'rn-iconify';
+
+// Enable monitoring
+enablePerformanceMonitoring();
+
+// Subscribe to load events
+PerformanceMonitor.subscribe((event) => {
+  console.log(`Loaded ${event.iconName} in ${event.duration}ms`);
+
+  if (event.type === 'error') {
+    console.error(`Failed to load ${event.iconName}:`, event.error);
+  }
+});
+```
+
+## Cache Configuration
+
+Configure caching behavior:
+
+```tsx
+import { configure } from 'rn-iconify';
+
+configure({
+  cache: {
+    // Max icons in memory
+    maxMemoryItems: 500,
+
+    // Enable disk cache (MMKV)
+    enableDiskCache: true,
+
+    // Disk cache key prefix
+    diskCachePrefix: 'rn-iconify:',
+  },
+});
+```
+
+## Development vs Production
+
+```tsx
+import { configure } from 'rn-iconify';
+
+if (__DEV__) {
+  // Local server for development
+  configure({
+    api: {
+      apiUrl: 'http://localhost:3000',
+    },
+  });
+} else {
+  // Production CDN
+  configure({
+    api: {
+      apiUrl: 'https://icons.company.com',
+    },
+  });
+}
+```
+
+## API Compatibility
+
+Custom servers must implement the Iconify API v3 endpoints:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /{prefix}.json` | Full icon set |
+| `GET /{prefix}/{name}.json` | Single icon |
+| `GET /{prefix}?icons={names}` | Multiple icons |
+
+:::info
+  The official Iconify API Docker image implements all required endpoints.
+:::
+
+## Get Current Configuration
+
+Check the current configuration:
+
+```tsx
+import { getConfiguration } from 'rn-iconify';
+
+const config = getConfiguration();
+console.log('API URL:', config.api.apiUrl);
+console.log('Timeout:', config.api.timeout);
+```
+
+## Reset Configuration
+
+Reset to default configuration:
+
+```tsx
+import { resetConfiguration } from 'rn-iconify';
+
+resetConfiguration();
+```
+
+## Troubleshooting
+
+### CORS Errors
+
+Configure server CORS headers:
+
+```nginx
+# nginx.conf
+location /iconify/ {
+  add_header Access-Control-Allow-Origin *;
+  add_header Access-Control-Allow-Methods "GET, OPTIONS";
+}
+```
+
+### Connection Refused
+
+Check server is running and accessible:
+
+```bash
+curl http://localhost:3000/mdi.json?icons=home
+```
+
+### Icons Not Loading
+
+Enable verbose logging:
+
+```tsx
+import { configure, enablePerformanceMonitoring } from 'rn-iconify';
+
+// Enable performance monitoring for debugging
+enablePerformanceMonitoring();
+
+// Check API health
+import { checkAPIHealth } from 'rn-iconify';
+const isHealthy = await checkAPIHealth();
+console.log('API healthy:', isHealthy);
+```
+
+## Next Steps
+
+- [Offline Bundles](/docs/advanced/offline-bundles) - Full offline support
+- [Babel Plugin](/docs/advanced/babel-plugin) - Build-time bundling
+- [Architecture](/docs/advanced/architecture) - Understanding the system
