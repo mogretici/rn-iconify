@@ -37,6 +37,8 @@
     "lib",
     "bin",
     "babel.js",
+    "README.md",
+    "assets",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__"
