@@ -153,7 +153,8 @@ export type {
   ResolvedConfig,
 } from './config';
 
-// Network Utilities
+// Network Utilities - import fetchIcon for internal use
+import { fetchIcon } from './network/IconifyAPI';
 export {
   fetchIcon,
   fetchIconsBatch,
@@ -267,10 +268,7 @@ export type {
 export async function prefetchIcons(
   iconNames: string[]
 ): Promise<{ success: string[]; failed: string[] }> {
-  const { CacheManager: cache } = await import('./cache/CacheManager');
-  const { fetchIcon: fetch } = await import('./network/IconifyAPI');
-
-  return cache.prefetch(iconNames, fetch);
+  return CacheManager.prefetch(iconNames, fetchIcon);
 }
 
 /**
