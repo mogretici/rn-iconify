@@ -3,12 +3,13 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'rn-iconify | Icons for React Native',
+  title: 'rn-iconify',
   titleDelimiter: '·',
-  tagline: '268,000+ icons for React Native',
+  tagline:
+    '268,000+ icons for React Native with native MMKV caching and full TypeScript autocomplete',
   favicon: 'img/favicon.svg',
 
-  url: 'https://mogretici.github.io',
+  url: 'https://rn-iconify.vercel.app',
   baseUrl: '/',
 
   organizationName: 'mogretici',
@@ -26,6 +27,43 @@ const config: Config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
+
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'keywords',
+        content:
+          'react-native, icons, iconify, svg, typescript, mmkv, material-design, heroicons, lucide, phosphor, tabler, fontawesome',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'author',
+        content: 'mogretici',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'canonical',
+        href: 'https://rn-iconify.vercel.app',
+      },
+    },
+  ],
+
+  metadata: [
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: 'rn-iconify - 268,000+ Icons for React Native' },
+    {
+      name: 'twitter:description',
+      content:
+        'Native MMKV caching, full TypeScript autocomplete, 200+ icon sets. Built for performance.',
+    },
+    { name: 'og:type', content: 'website' },
+    { name: 'og:site_name', content: 'rn-iconify' },
+  ],
 
   presets: [
     [
@@ -45,6 +83,7 @@ const config: Config = {
         sitemap: {
           changefreq: 'weekly' as const,
           priority: 0.5,
+          filename: 'sitemap.xml',
         },
       } satisfies Preset.Options,
     ],
@@ -53,7 +92,7 @@ const config: Config = {
   themes: ['@docusaurus/theme-mermaid'],
 
   themeConfig: {
-    image: 'img/social-card.png',
+    image: 'img/social-card.jpg',
 
     colorMode: {
       defaultMode: 'light',
@@ -62,9 +101,9 @@ const config: Config = {
     },
 
     announcementBar: {
-      id: 'v1-release',
+      id: 'v2-release',
       content:
-        '🎉 rn-iconify v1.0.0 is released! Check out the <a href="/docs/getting-started/installation">documentation</a>',
+        '🎉 rn-iconify v2.0.0 is released! Theme, Animations, Navigation helpers and more. <a href="/docs/getting-started/installation">Get started</a>',
       backgroundColor: '#3b82f6',
       textColor: '#ffffff',
       isCloseable: true,

@@ -490,7 +490,7 @@ When upgrading rn-iconify versions, you may want to clear the cache:
 import { CacheManager } from 'rn-iconify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LIBRARY_VERSION = '1.0.0'; // Update when you upgrade rn-iconify
+const LIBRARY_VERSION = '2.0.0'; // Update when you upgrade rn-iconify
 
 async function checkCacheMigration() {
   const storedVersion = await AsyncStorage.getItem('rn-iconify-version');

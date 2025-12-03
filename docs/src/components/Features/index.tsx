@@ -12,20 +12,32 @@ const features: Feature[] = [
   {
     icon: '📦',
     title: '200+ Icon Sets',
-    description: 'Material Design, Heroicons, Lucide, Phosphor, and more',
-    gradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+    description: '268,000+ icons from Material, Heroicons, Lucide, Phosphor & more',
+    gradient: 'linear-gradient(135deg, #667eea, #764ba2)',
+  },
+  {
+    icon: '💫',
+    title: 'Loading States',
+    description: 'Skeleton, pulse & shimmer placeholders',
+    gradient: 'linear-gradient(135deg, #f093fb, #f5576c)',
+  },
+  {
+    icon: '⚡',
+    title: '30x Faster Cache',
+    description: 'Native MMKV caching beats AsyncStorage',
+    gradient: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+  },
+  {
+    icon: '📏',
+    title: '~50KB Core',
+    description: 'Lightweight bundle, icons loaded on demand',
+    gradient: 'linear-gradient(135deg, #43e97b, #38f9d7)',
   },
   {
     icon: '🔷',
     title: 'TypeScript',
-    description: 'Full autocomplete for 268,000+ icons',
+    description: 'Full autocomplete for all icons',
     gradient: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
-  },
-  {
-    icon: '⚡',
-    title: 'MMKV Cache',
-    description: '30x faster than AsyncStorage',
-    gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)',
   },
   {
     icon: '🔧',
@@ -34,7 +46,7 @@ const features: Feature[] = [
     gradient: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
   },
   {
-    icon: '🎨',
+    icon: '🎭',
     title: 'Theme Provider',
     description: 'Global styling with React Context',
     gradient: 'linear-gradient(135deg, #10b981, #06b6d4)',
@@ -69,6 +81,54 @@ const features: Feature[] = [
     description: 'Create semantic names for your icons',
     gradient: 'linear-gradient(135deg, #f472b6, #ec4899)',
   },
+  {
+    icon: '🔍',
+    title: 'Icon Explorer',
+    description: 'Browse & search icons in dev mode',
+    gradient: 'linear-gradient(135deg, #a855f7, #6366f1)',
+  },
+  {
+    icon: '📊',
+    title: 'Performance Monitor',
+    description: 'Track load times & cache hit rates',
+    gradient: 'linear-gradient(135deg, #f97316, #eab308)',
+  },
+  {
+    icon: '🚀',
+    title: 'Prefetch Icons',
+    description: "Preload icons before they're needed",
+    gradient: 'linear-gradient(135deg, #22d3ee, #818cf8)',
+  },
+  {
+    icon: '⚙️',
+    title: 'CLI Tools',
+    description: 'Analyze usage & generate bundles',
+    gradient: 'linear-gradient(135deg, #78716c, #a8a29e)',
+  },
+  {
+    icon: '🔌',
+    title: 'TurboModule',
+    description: 'Native JSI for zero-overhead caching',
+    gradient: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
+  },
+  {
+    icon: '📡',
+    title: 'Batch Fetching',
+    description: 'Multiple icons in a single request',
+    gradient: 'linear-gradient(135deg, #84cc16, #22c55e)',
+  },
+  {
+    icon: '🔄',
+    title: 'Request Deduplication',
+    description: 'Prevents duplicate concurrent requests',
+    gradient: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+  },
+  {
+    icon: '🌐',
+    title: 'Custom Icon Server',
+    description: 'Self-host your own Iconify API',
+    gradient: 'linear-gradient(135deg, #7c3aed, #c026d3)',
+  },
 ];
 
 function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
@@ -77,8 +137,10 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
       <div className={styles.iconWrapper} style={{ background: feature.gradient }}>
         <span className={styles.icon}>{feature.icon}</span>
       </div>
-      <h3 className={styles.cardTitle}>{feature.title}</h3>
-      <p className={styles.cardDescription}>{feature.description}</p>
+      <div className={styles.cardContent}>
+        <h3 className={styles.cardTitle}>{feature.title}</h3>
+        <p className={styles.cardDescription}>{feature.description}</p>
+      </div>
     </div>
   );
 }

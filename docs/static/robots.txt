@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mogretici.github.io/rn-iconify/sitemap.xml
+Sitemap: https://rn-iconify.vercel.app/sitemap.xml
 
 Crawl-delay: 1

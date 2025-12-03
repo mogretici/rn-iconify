@@ -1,6 +1,6 @@
 {
   "name": "rn-iconify",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "268,000+ Iconify icons for React Native with native MMKV caching and full TypeScript autocomplete",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
@@ -59,13 +59,23 @@
   },
   "keywords": [
     "react-native",
+    "react-native-icons",
     "icons",
     "iconify",
     "svg",
+    "svg-icons",
+    "icon-library",
+    "icon-component",
+    "typescript",
+    "mmkv",
+    "cache",
     "material-design",
     "heroicons",
     "lucide",
     "phosphor",
+    "tabler",
+    "fontawesome",
+    "fluent-icons",
     "feather",
     "vector-icons"
   ],
@@ -78,7 +88,7 @@
   "bugs": {
     "url": "https://github.com/mogretici/rn-iconify/issues"
   },
-  "homepage": "https://github.com/mogretici/rn-iconify#readme",
+  "homepage": "https://rn-iconify.vercel.app",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -117,7 +127,6 @@
     "react-native-mmkv": "^3.0.0",
     "react-native-svg": "^15.0.0",
     "react-test-renderer": "^18.2.0",
-    "ts-node": "^10.9.0",
     "tsx": "^4.20.6",
     "typescript": "^5.4.0"
   },
