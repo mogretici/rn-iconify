@@ -45,24 +45,48 @@ const config: Config = {
       },
     },
     {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:title',
+        content: 'rn-iconify - 268,000+ Icons for React Native',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:description',
+        content:
+          'Native MMKV caching, full TypeScript autocomplete, 200+ icon sets. Built for performance.',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:type',
+        content: 'website',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:site_name',
+        content: 'rn-iconify',
+      },
+    },
+    {
       tagName: 'link',
       attributes: {
         rel: 'canonical',
         href: 'https://rn-iconify.vercel.app',
       },
     },
-  ],
-
-  metadata: [
-    { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: 'rn-iconify - 268,000+ Icons for React Native' },
-    {
-      name: 'twitter:description',
-      content:
-        'Native MMKV caching, full TypeScript autocomplete, 200+ icon sets. Built for performance.',
-    },
-    { name: 'og:type', content: 'website' },
-    { name: 'og:site_name', content: 'rn-iconify' },
   ],
 
   presets: [
