@@ -260,7 +260,7 @@ export async function generateBundle(
   options: BabelPluginOptions,
   projectRoot: string
 ): Promise<void> {
-  const { outputPath = '.rn-iconify-cache', verbose = false } = options;
+  const { outputPath = 'node_modules/.cache/rn-iconify', verbose = false } = options;
 
   if (iconNames.length === 0) {
     if (verbose) {

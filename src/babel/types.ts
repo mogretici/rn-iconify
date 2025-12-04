@@ -24,7 +24,7 @@ export interface BabelPluginOptions {
 
   /**
    * Output directory for the generated cache
-   * @default '.rn-iconify-cache'
+   * @default 'node_modules/.cache/rn-iconify'
    */
   outputPath?: string;
 

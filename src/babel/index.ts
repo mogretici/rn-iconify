@@ -21,7 +21,6 @@
  *     ['rn-iconify/babel', {
  *       include: ['mdi:*', 'heroicons:*'],
  *       exclude: ['mdi:test-*'],
- *       outputPath: '.rn-iconify-cache',
  *       verbose: true,
  *     }]
  *   ],
