@@ -1,6 +1,6 @@
 <a href="https://rn-iconify.vercel.app">
 <p align="center">
-  <img src="./assets/logo.gif" alt="rn-iconify" width="400" />
+  <img src="https://raw.githubusercontent.com/mogretici/rn-iconify/main/assets/logo.gif" alt="rn-iconify" width="400" />
 </p>
 
 <h2 align="center">Everything you need for icons</h2>

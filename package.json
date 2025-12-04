@@ -1,6 +1,6 @@
 {
   "name": "rn-iconify",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "268,000+ Iconify icons for React Native with native MMKV caching and full TypeScript autocomplete",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
