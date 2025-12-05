@@ -10,6 +10,7 @@ const sidebars: SidebarsConfig = {
         'getting-started/installation',
         'getting-started/quick-start',
         'getting-started/typescript',
+        'changelog',
       ],
     },
     {
@@ -49,6 +50,7 @@ const sidebars: SidebarsConfig = {
         'api-reference/hooks',
         'api-reference/utilities',
         'api-reference/types',
+        'api-reference/icon-sets',
       ],
     },
   ],

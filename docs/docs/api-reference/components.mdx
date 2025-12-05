@@ -60,6 +60,12 @@ interface IconProps {
   /** Additional styles */
   style?: StyleProp<ViewStyle>;
 
+  /**
+   * NativeWind/Tailwind CSS class names
+   * Only works in projects with NativeWind configured
+   */
+  className?: string;
+
   /** Called when icon loads */
   onLoad?: () => void;
 
@@ -71,6 +77,26 @@ interface IconProps {
 
   /** Test identifier */
   testID?: string;
+
+  // Press/Touch props
+
+  /** Called when icon is pressed (wraps icon in Pressable) */
+  onPress?: () => void;
+
+  /** Called when icon is long pressed */
+  onLongPress?: () => void;
+
+  /** Called when press starts */
+  onPressIn?: () => void;
+
+  /** Called when press ends */
+  onPressOut?: () => void;
+
+  /** Whether press is disabled */
+  disabled?: boolean;
+
+  /** Style applied when icon is pressed */
+  pressedStyle?: StyleProp<ViewStyle>;
 
   // Animation props (can also use AnimatedIcon wrapper)
 
@@ -113,9 +139,55 @@ Animation props can be used directly on icon components, or you can use the `Ani
 | `placeholderColor` | `'#E1E1E1'` |
 | `placeholderDuration` | `1000` |
 | `fallbackDelay` | `0` |
+| `className` | `undefined` |
+| `onPress` | `undefined` |
+| `disabled` | `false` |
+| `pressedStyle` | `undefined` |
 | `animate` | `undefined` |
 | `animationDelay` | `0` |
 | `autoPlay` | `true` |
+
+### Pressable Icons
+
+When `onPress` or `onLongPress` is provided, the icon is automatically wrapped in a `Pressable` component:
+
+```tsx
+import { Mdi } from 'rn-iconify';
+
+// Simple press handler
+<Mdi name="close" size={24} onPress={() => console.log('pressed')} />
+
+// With pressed style feedback
+<Mdi
+  name="settings"
+  size={24}
+  onPress={() => navigation.navigate('Settings')}
+  pressedStyle={{ opacity: 0.5, transform: [{ scale: 0.95 }] }}
+/>
+
+// Disabled state
+<Mdi
+  name="trash"
+  size={24}
+  onPress={handleDelete}
+  disabled={!canDelete}
+/>
+```
+
+### NativeWind Support
+
+Icons support `className` prop for NativeWind/Tailwind CSS styling:
+
+```tsx
+import { Mdi } from 'rn-iconify';
+
+// Requires NativeWind to be configured in your project
+<Mdi name="home" className="w-6 h-6 text-blue-500" />
+```
+
+:::note
+The `className` prop only works in projects with [NativeWind](https://www.nativewind.dev/) properly configured.
+:::
 
 ---
 

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet, Animated, Pressable } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { CacheManager } from './cache/CacheManager';
 import { fetchIcon } from './network/IconifyAPI';
@@ -32,6 +32,7 @@ export function IconRenderer({
   width: propWidth,
   height: propHeight,
   style,
+  className,
   rotate = 0,
   flip,
   fallback,
@@ -43,6 +44,13 @@ export function IconRenderer({
   onError,
   accessibilityLabel,
   testID,
+  // Press props
+  onPress,
+  onLongPress,
+  onPressIn,
+  onPressOut,
+  disabled,
+  pressedStyle,
   // Animation props
   animate,
   animationDuration,
@@ -186,15 +194,44 @@ export function IconRenderer({
   // Determine if we should show placeholder/fallback
   const shouldShowPlaceholder = (state === 'loading' && showFallback) || state === 'error';
 
+  // Check if icon should be pressable
+  const isPressable = !!(onPress || onLongPress);
+
+  // NativeWind className support - conditional spread to avoid TS errors
+  const nativeWindProps = className ? { className } : {};
+
+  /**
+   * Wraps content with Pressable if onPress/onLongPress is provided
+   */
+  const wrapWithPressable = (content: React.ReactNode) => {
+    if (!isPressable) return content;
+
+    return (
+      <Pressable
+        onPress={onPress}
+        onLongPress={onLongPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityState={{ disabled }}
+        style={({ pressed }) => [pressed && pressedStyle]}
+      >
+        {content}
+      </Pressable>
+    );
+  };
+
   // Render placeholder or fallback during loading/error
   if (shouldShowPlaceholder) {
     // Priority: placeholder > fallback
     if (placeholder !== undefined) {
-      return (
+      return wrapWithPressable(
         <View
           style={[{ width: iconWidth, height: iconHeight }, style]}
           accessibilityLabel={accessibilityLabel}
           testID={testID}
+          {...nativeWindProps}
         >
           <PlaceholderFactory
             type={placeholder}
@@ -209,11 +246,12 @@ export function IconRenderer({
 
     // Fallback for backwards compatibility (deprecated)
     if (fallback) {
-      return (
+      return wrapWithPressable(
         <View
           style={[{ width: iconWidth, height: iconHeight }, style]}
           accessibilityLabel={accessibilityLabel}
           testID={testID}
+          {...nativeWindProps}
         >
           {fallback}
         </View>
@@ -221,11 +259,12 @@ export function IconRenderer({
     }
 
     // Return empty view if no placeholder/fallback
-    return (
+    return wrapWithPressable(
       <View
         style={[{ width: iconWidth, height: iconHeight }, style]}
         accessibilityLabel={accessibilityLabel}
         testID={testID}
+        {...nativeWindProps}
       />
     );
   }
@@ -234,7 +273,7 @@ export function IconRenderer({
   if (colorizedSvg) {
     // Render with animation wrapper if animation is enabled
     if (hasAnimation) {
-      return (
+      return wrapWithPressable(
         <Animated.View
           style={[
             styles.container,
@@ -245,6 +284,7 @@ export function IconRenderer({
           accessibilityLabel={accessibilityLabel}
           accessibilityRole="image"
           testID={testID}
+          {...nativeWindProps}
         >
           <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
         </Animated.View>
@@ -252,7 +292,7 @@ export function IconRenderer({
     }
 
     // Render without animation
-    return (
+    return wrapWithPressable(
       <View
         style={[
           styles.container,
@@ -262,6 +302,7 @@ export function IconRenderer({
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="image"
         testID={testID}
+        {...nativeWindProps}
       >
         <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
       </View>
@@ -270,11 +311,12 @@ export function IconRenderer({
 
   // Show placeholder immediately if set (no delay), otherwise empty view
   if (placeholder !== undefined && state === 'loading') {
-    return (
+    return wrapWithPressable(
       <View
         style={[{ width: iconWidth, height: iconHeight }, style]}
         accessibilityLabel={accessibilityLabel}
         testID={testID}
+        {...nativeWindProps}
       >
         <PlaceholderFactory
           type={placeholder}
@@ -288,11 +330,12 @@ export function IconRenderer({
   }
 
   // Return empty view while loading (before fallback delay)
-  return (
+  return wrapWithPressable(
     <View
       style={[{ width: iconWidth, height: iconHeight }, style]}
       accessibilityLabel={accessibilityLabel}
       testID={testID}
+      {...nativeWindProps}
     />
   );
 }
