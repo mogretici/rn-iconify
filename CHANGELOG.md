@@ -1,3 +1,11 @@
+## [2.1.1](https://github.com/mogretici/rn-iconify/compare/v2.1.0...v2.1.1) (2026-01-07)
+
+### Bug Fixes
+
+- add `CLAUDE.md`, update test types, improve caching, CLI, and API handling ([8505d7a](https://github.com/mogretici/rn-iconify/commit/8505d7af945a383e93272b4e812876fa6efa5311))
+- bump dependencies and update version ([2da32e2](https://github.com/mogretici/rn-iconify/commit/2da32e23b93e447208798331c9d24b9a6b064e0d))
+- bump dependencies and update version ([90cde1d](https://github.com/mogretici/rn-iconify/commit/90cde1db1b4a6fb73e6a18c2274f9bb6e9cf0a05))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
