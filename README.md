@@ -51,7 +51,13 @@ Native MMKV caching, full TypeScript autocomplete, and seamless React Navigation
   &nbsp;
   <a href="https://rn-iconify.vercel.app"><img src="https://img.shields.io/badge/♿_Accessibility-A11y-14b8a6?style=for-the-badge" alt="Accessibility" /></a>
   &nbsp;
-  <a href="https://rn-iconify.vercel.app"><img src="https://img.shields.io/badge/+12_more_features-→-lightgreen?style=for-the-badge&labelColor=lightgreen" alt="+12 more features" /></a>
+  <a href="https://rn-iconify.vercel.app"><img src="https://img.shields.io/badge/👆_Pressable-onPress-f97316?style=for-the-badge" alt="Pressable" /></a>
+</p>
+
+<p align="center">
+  <a href="https://rn-iconify.vercel.app"><img src="https://img.shields.io/badge/🎨_NativeWind-className-06b6d4?style=for-the-badge" alt="NativeWind" /></a>
+  &nbsp;
+  <a href="https://rn-iconify.vercel.app"><img src="https://img.shields.io/badge/+10_more_features-→-lightgreen?style=for-the-badge&labelColor=lightgreen" alt="+10 more features" /></a>
 </p>
 
 <p align="center">

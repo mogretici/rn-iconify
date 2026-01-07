@@ -113,6 +113,81 @@ export interface IconProps<T extends string = string> {
    */
   testID?: string;
 
+  // ─────────────────────────────────────────────────────────────────
+  // Press/Touch Props
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Called when the icon is pressed.
+   * When provided, the icon is automatically wrapped in a Pressable component.
+   *
+   * @example
+   * ```tsx
+   * <Mdi name="close" onPress={() => console.log('pressed')} />
+   * ```
+   */
+  onPress?: () => void;
+
+  /**
+   * Called when the icon is long pressed.
+   * When provided (along with or without onPress), the icon is wrapped in Pressable.
+   */
+  onLongPress?: () => void;
+
+  /**
+   * Called when press starts (finger down).
+   */
+  onPressIn?: () => void;
+
+  /**
+   * Called when press ends (finger up).
+   */
+  onPressOut?: () => void;
+
+  /**
+   * Whether the icon press is disabled.
+   * Only applicable when onPress or onLongPress is provided.
+   * @default false
+   */
+  disabled?: boolean;
+
+  /**
+   * Style applied to the icon when pressed.
+   * Only applicable when onPress or onLongPress is provided.
+   * If not provided, no visual feedback is shown on press.
+   *
+   * @example
+   * ```tsx
+   * <Mdi
+   *   name="settings"
+   *   onPress={() => {}}
+   *   pressedStyle={{ opacity: 0.5, transform: [{ scale: 0.95 }] }}
+   * />
+   * ```
+   */
+  pressedStyle?: StyleProp<ViewStyle>;
+
+  // ─────────────────────────────────────────────────────────────────
+  // NativeWind Support
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * NativeWind/Tailwind CSS class names for styling.
+   * Only works in projects with NativeWind configured.
+   *
+   * @example
+   * ```tsx
+   * <Mdi name="home" className="w-6 h-6 text-blue-500" />
+   * ```
+   *
+   * @see https://www.nativewind.dev/
+   */
+  className?: string;
+
+  // ─────────────────────────────────────────────────────────────────
+  // Animation Props
+  // ─────────────────────────────────────────────────────────────────
+
   /**
    * Animation to apply to the icon
    * Can be a preset ('spin', 'pulse', 'bounce', 'shake', 'ping', 'wiggle')

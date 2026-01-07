@@ -1,0 +1,290 @@
+---
+id: icon-sets
+title: Icon Sets Reference
+sidebar_position: 5
+description: Complete reference for all available icon sets with prefixes, icon counts, and usage examples
+keywords: [icon sets, prefixes, mdi, heroicons, fontawesome, lucide, phosphor]
+---
+
+# Icon Sets Reference
+
+Complete reference for all available icon sets in rn-iconify.
+
+## Understanding Icon Prefixes
+
+Each icon set has a unique **prefix** used internally by the Iconify API. When using the generic `Icon` component with aliases, you'll need to know these prefixes.
+
+```tsx
+// Component approach (prefix handled automatically)
+import { Mdi } from 'rn-iconify';
+<Mdi name="home" />
+
+// Generic Icon with aliases
+import { Icon, IconAliasProvider, createIconAliases } from 'rn-iconify';
+
+const aliases = createIconAliases({
+  home: { prefix: 'mdi', name: 'home' }, // prefix: 'mdi'
+});
+```
+
+## Popular Icon Sets
+
+### Material Design Icons (Mdi)
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Mdi` |
+| **Prefix** | `mdi` |
+| **Icon Count** | 7,447+ |
+| **Style** | Filled, Outlined |
+
+```tsx
+import { Mdi } from 'rn-iconify';
+
+<Mdi name="home" size={24} color="blue" />
+<Mdi name="account" size={24} />
+<Mdi name="cog" size={24} />
+```
+
+[Browse all MDI icons](https://icon-sets.iconify.design/mdi/)
+
+---
+
+### Heroicons
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Heroicons` |
+| **Prefix** | `heroicons` |
+| **Icon Count** | 1,288+ |
+| **Style** | Outline, Solid |
+
+```tsx
+import { Heroicons } from 'rn-iconify';
+
+<Heroicons name="home" size={24} />
+<Heroicons name="user" size={24} />
+<Heroicons name="cog-6-tooth" size={24} />
+```
+
+[Browse all Heroicons](https://icon-sets.iconify.design/heroicons/)
+
+---
+
+### Lucide
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Lucide` |
+| **Prefix** | `lucide` |
+| **Icon Count** | 1,650+ |
+| **Style** | Outline |
+
+```tsx
+import { Lucide } from 'rn-iconify';
+
+<Lucide name="home" size={24} />
+<Lucide name="user" size={24} />
+<Lucide name="settings" size={24} />
+```
+
+[Browse all Lucide icons](https://icon-sets.iconify.design/lucide/)
+
+---
+
+### Phosphor (Ph)
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Ph` |
+| **Prefix** | `ph` |
+| **Icon Count** | 9,072+ |
+| **Style** | Regular, Bold, Fill, Duotone, Light, Thin |
+
+```tsx
+import { Ph } from 'rn-iconify';
+
+<Ph name="house" size={24} />
+<Ph name="user" size={24} />
+<Ph name="gear" size={24} />
+```
+
+[Browse all Phosphor icons](https://icon-sets.iconify.design/ph/)
+
+---
+
+### Tabler
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Tabler` |
+| **Prefix** | `tabler` |
+| **Icon Count** | 5,963+ |
+| **Style** | Outline, Filled |
+
+```tsx
+import { Tabler } from 'rn-iconify';
+
+<Tabler name="home" size={24} />
+<Tabler name="user" size={24} />
+<Tabler name="settings" size={24} />
+```
+
+[Browse all Tabler icons](https://icon-sets.iconify.design/tabler/)
+
+---
+
+### Feather
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Feather` |
+| **Prefix** | `feather` |
+| **Icon Count** | 287 |
+| **Style** | Outline |
+
+```tsx
+import { Feather } from 'rn-iconify';
+
+<Feather name="home" size={24} />
+<Feather name="user" size={24} />
+<Feather name="settings" size={24} />
+```
+
+[Browse all Feather icons](https://icon-sets.iconify.design/feather/)
+
+---
+
+## FontAwesome 6
+
+:::warning Important
+FontAwesome 6 is split into **3 separate icon sets** based on style. There is no single `Fa6` component.
+:::
+
+### Fa6Solid (Filled Icons)
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Fa6Solid` |
+| **Prefix** | `fa6-solid` |
+| **Icon Count** | 1,413+ |
+| **Style** | Solid/Filled |
+
+```tsx
+import { Fa6Solid } from 'rn-iconify';
+
+<Fa6Solid name="house" size={24} />
+<Fa6Solid name="user" size={24} />
+<Fa6Solid name="gear" size={24} />
+```
+
+[Browse all FA6 Solid icons](https://icon-sets.iconify.design/fa6-solid/)
+
+### Fa6Regular (Outline Icons)
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Fa6Regular` |
+| **Prefix** | `fa6-regular` |
+| **Icon Count** | 163+ |
+| **Style** | Regular/Outline |
+
+```tsx
+import { Fa6Regular } from 'rn-iconify';
+
+<Fa6Regular name="heart" size={24} />
+<Fa6Regular name="star" size={24} />
+<Fa6Regular name="bell" size={24} />
+```
+
+[Browse all FA6 Regular icons](https://icon-sets.iconify.design/fa6-regular/)
+
+### Fa6Brands (Brand Logos)
+
+| Property | Value |
+|----------|-------|
+| **Component** | `Fa6Brands` |
+| **Prefix** | `fa6-brands` |
+| **Icon Count** | 506+ |
+| **Style** | Brand Logos |
+
+```tsx
+import { Fa6Brands } from 'rn-iconify';
+
+<Fa6Brands name="github" size={24} />
+<Fa6Brands name="twitter" size={24} />
+<Fa6Brands name="apple" size={24} />
+```
+
+[Browse all FA6 Brands icons](https://icon-sets.iconify.design/fa6-brands/)
+
+---
+
+## Other Popular Sets
+
+| Component | Prefix | Icon Count | Description |
+|-----------|--------|------------|-------------|
+| `Bi` | `bi` | 2,050+ | Bootstrap Icons |
+| `Ri` | `ri` | 2,860+ | Remix Icon |
+| `Carbon` | `carbon` | 2,139+ | IBM Carbon Design |
+| `Ion` | `ion` | 1,356+ | Ionicons |
+| `Octicon` | `octicon` | 626+ | GitHub Octicons |
+| `SimpleIcons` | `simple-icons` | 3,124+ | Brand/Company logos |
+| `Fluent` | `fluent` | 16,549+ | Microsoft Fluent UI |
+| `AntDesign` | `ant-design` | 831+ | Ant Design Icons |
+| `MaterialSymbols` | `material-symbols` | 18,765+ | Google Material Symbols |
+| `Solar` | `solar` | 7,446+ | Solar Icon Set |
+| `Iconoir` | `iconoir` | 1,584+ | Iconoir |
+
+---
+
+## Finding Icon Names
+
+### Using Iconify Search
+
+1. Visit [icon-sets.iconify.design](https://icon-sets.iconify.design/)
+2. Search for the icon you need
+3. Copy the icon name (without prefix)
+
+### Using Icon Explorer
+
+rn-iconify includes a built-in Icon Explorer for development:
+
+```tsx
+import { IconExplorer } from 'rn-iconify';
+
+// In your dev screen
+<IconExplorer
+  iconSets={['mdi', 'heroicons', 'lucide']}
+  onSelect={(icon) => {
+    console.log(`Selected: ${icon.prefix}:${icon.name}`);
+  }}
+/>
+```
+
+---
+
+## Full Icon Set List
+
+rn-iconify includes **200+** icon sets. For the complete list, see the [Iconify Icon Sets Directory](https://icon-sets.iconify.design/).
+
+All icon sets from Iconify are available:
+
+```tsx
+// Import any icon set
+import {
+  Mdi,           // Material Design Icons
+  Heroicons,     // Heroicons
+  Lucide,        // Lucide
+  Ph,            // Phosphor
+  Tabler,        // Tabler
+  Feather,       // Feather
+  Fa6Solid,      // FontAwesome 6 Solid
+  Fa6Regular,    // FontAwesome 6 Regular
+  Fa6Brands,     // FontAwesome 6 Brands
+  Bi,            // Bootstrap Icons
+  Ri,            // Remix Icon
+  Ion,           // Ionicons
+  // ... 200+ more
+} from 'rn-iconify';
+```

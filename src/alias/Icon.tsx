@@ -43,6 +43,7 @@ export function Icon({
   width,
   height,
   style,
+  className,
   rotate,
   flip,
   fallback,
@@ -54,6 +55,21 @@ export function Icon({
   onError,
   accessibilityLabel,
   testID,
+  // Press props
+  onPress,
+  onLongPress,
+  onPressIn,
+  onPressOut,
+  disabled,
+  pressedStyle,
+  // Animation props
+  animate,
+  animationDuration,
+  animationLoop,
+  animationEasing,
+  animationDelay,
+  autoPlay,
+  onAnimationComplete,
 }: GenericIconProps) {
   // Get theme defaults
   const { theme } = useIconTheme();
@@ -93,6 +109,7 @@ export function Icon({
       width={width}
       height={height}
       style={style}
+      className={className}
       rotate={mergedRotate}
       flip={mergedFlip}
       fallback={fallback}
@@ -104,6 +121,21 @@ export function Icon({
       onError={onError}
       accessibilityLabel={accessibilityLabel ?? name}
       testID={testID}
+      // Press props
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      disabled={disabled}
+      pressedStyle={pressedStyle}
+      // Animation props
+      animate={animate}
+      animationDuration={animationDuration}
+      animationLoop={animationLoop}
+      animationEasing={animationEasing}
+      animationDelay={animationDelay}
+      autoPlay={autoPlay}
+      onAnimationComplete={onAnimationComplete}
     />
   );
 }

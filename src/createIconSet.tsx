@@ -61,6 +61,7 @@ export function createIconSet<T extends string>(
     width,
     height,
     style,
+    className,
     rotate,
     flip,
     fallback,
@@ -72,6 +73,13 @@ export function createIconSet<T extends string>(
     onError,
     accessibilityLabel,
     testID,
+    // Press props
+    onPress,
+    onLongPress,
+    onPressIn,
+    onPressOut,
+    disabled,
+    pressedStyle,
     // Animation props
     animate,
     animationDuration,
@@ -117,6 +125,7 @@ export function createIconSet<T extends string>(
         width={width}
         height={height}
         style={style}
+        className={className}
         rotate={mergedRotate}
         flip={mergedFlip}
         fallback={fallback}
@@ -128,6 +137,14 @@ export function createIconSet<T extends string>(
         onError={onError}
         accessibilityLabel={accessibilityLabel ?? name}
         testID={testID}
+        // Press props
+        onPress={onPress}
+        onLongPress={onLongPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        disabled={disabled}
+        pressedStyle={pressedStyle}
+        // Animation props
         animate={animate}
         animationDuration={animationDuration}
         animationLoop={animationLoop}
