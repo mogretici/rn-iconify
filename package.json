@@ -57,7 +57,7 @@
     "prepare": "husky",
     "prepublishOnly": "bob build",
     "generate-components": "tsx scripts/generate-components.ts",
-    "release": "npm run build && npm publish"
+    "semantic-release": "semantic-release"
   },
   "keywords": [
     "react-native",
@@ -112,6 +112,8 @@
     "@commitlint/config-conventional": "^19.0.0",
     "@react-native/babel-preset": "^0.82.1",
     "@react-native/eslint-config": "^0.74.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@testing-library/react-native": "^12.0.0",
     "@types/jest": "^29.5.0",
     "@types/react": "^18.2.0",
@@ -129,6 +131,7 @@
     "react-native-mmkv": "^3.0.0",
     "react-native-svg": "^15.0.0",
     "react-test-renderer": "^18.2.0",
+    "semantic-release": "^25.0.2",
     "tsx": "^4.20.6",
     "typescript": "^5.4.0"
   },
