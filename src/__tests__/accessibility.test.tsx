@@ -17,6 +17,11 @@ import {
   getHighContrastAlternative,
   calculateTouchTargetPadding,
 } from '../accessibility';
+import type {
+  AccessibilityContextValue,
+  ResolvedAccessibilityConfig,
+  UseAccessibleIconOutput,
+} from '../accessibility';
 
 describe('Accessibility Utils', () => {
   describe('defaultLabelGenerator', () => {
@@ -133,14 +138,14 @@ describe('DEFAULT_ACCESSIBILITY_CONFIG', () => {
 
 describe('AccessibilityProvider', () => {
   // Helper component to test hooks
-  function TestConsumer({ testFn }: { testFn: (context: any) => void }) {
+  function TestConsumer({ testFn }: { testFn: (context: AccessibilityContextValue) => void }) {
     const context = useAccessibilityContext();
     testFn(context);
     return <View testID="consumer" />;
   }
 
   it('provides default config', () => {
-    let receivedConfig: any = null;
+    let receivedConfig: ResolvedAccessibilityConfig | null = null;
 
     render(
       <AccessibilityProvider>
@@ -148,12 +153,12 @@ describe('AccessibilityProvider', () => {
       </AccessibilityProvider>
     );
 
-    expect(receivedConfig.autoLabels).toBe(true);
-    expect(receivedConfig.defaultRole).toBe('image');
+    expect(receivedConfig!.autoLabels).toBe(true);
+    expect(receivedConfig!.defaultRole).toBe('image');
   });
 
   it('merges custom config with defaults', () => {
-    let receivedConfig: any = null;
+    let receivedConfig: ResolvedAccessibilityConfig | null = null;
 
     render(
       <AccessibilityProvider config={{ autoLabels: false, minTouchTargetSize: 48 }}>
@@ -161,13 +166,13 @@ describe('AccessibilityProvider', () => {
       </AccessibilityProvider>
     );
 
-    expect(receivedConfig.autoLabels).toBe(false);
-    expect(receivedConfig.minTouchTargetSize).toBe(48);
-    expect(receivedConfig.defaultRole).toBe('image'); // Default unchanged
+    expect(receivedConfig!.autoLabels).toBe(false);
+    expect(receivedConfig!.minTouchTargetSize).toBe(48);
+    expect(receivedConfig!.defaultRole).toBe('image'); // Default unchanged
   });
 
   it('provides getLabel function', () => {
-    let getLabel: any = null;
+    let getLabel: AccessibilityContextValue['getLabel'] | null = null;
 
     render(
       <AccessibilityProvider>
@@ -175,12 +180,12 @@ describe('AccessibilityProvider', () => {
       </AccessibilityProvider>
     );
 
-    expect(getLabel('mdi:home')).toBe('home icon');
-    expect(getLabel('mdi:home', 'Custom Label')).toBe('Custom Label');
+    expect(getLabel!('mdi:home')).toBe('home icon');
+    expect(getLabel!('mdi:home', 'Custom Label')).toBe('Custom Label');
   });
 
   it('getLabel returns undefined when autoLabels disabled', () => {
-    let getLabel: any = null;
+    let getLabel: AccessibilityContextValue['getLabel'] | null = null;
 
     render(
       <AccessibilityProvider config={{ autoLabels: false }}>
@@ -188,11 +193,11 @@ describe('AccessibilityProvider', () => {
       </AccessibilityProvider>
     );
 
-    expect(getLabel('mdi:home')).toBeUndefined();
+    expect(getLabel!('mdi:home')).toBeUndefined();
   });
 
   it('provides getContrastColor function', () => {
-    let getContrastColor: any = null;
+    let getContrastColor: AccessibilityContextValue['getContrastColor'] | null = null;
 
     render(
       <AccessibilityProvider config={{ highContrast: true }}>
@@ -200,11 +205,11 @@ describe('AccessibilityProvider', () => {
       </AccessibilityProvider>
     );
 
-    expect(getContrastColor('#CCCCCC')).toBe('#000000');
+    expect(getContrastColor!('#CCCCCC')).toBe('#000000');
   });
 
   it('getContrastColor returns original when highContrast disabled', () => {
-    let getContrastColor: any = null;
+    let getContrastColor: AccessibilityContextValue['getContrastColor'] | null = null;
 
     render(
       <AccessibilityProvider config={{ highContrast: false }}>
@@ -212,11 +217,11 @@ describe('AccessibilityProvider', () => {
       </AccessibilityProvider>
     );
 
-    expect(getContrastColor('#CCCCCC')).toBe('#CCCCCC');
+    expect(getContrastColor!('#CCCCCC')).toBe('#CCCCCC');
   });
 
   it('provides shouldDisableAnimations function', () => {
-    let shouldDisableAnimations: any = null;
+    let shouldDisableAnimations: AccessibilityContextValue['shouldDisableAnimations'] | null = null;
 
     render(
       <AccessibilityProvider>
@@ -225,12 +230,12 @@ describe('AccessibilityProvider', () => {
     );
 
     expect(typeof shouldDisableAnimations).toBe('function');
-    expect(shouldDisableAnimations()).toBe(false);
+    expect(shouldDisableAnimations!()).toBe(false);
   });
 
   it('provides setConfig function', () => {
-    let setConfig: any = null;
-    let config: any = null;
+    let setConfig: AccessibilityContextValue['setConfig'] | null = null;
+    let config: ResolvedAccessibilityConfig | null = null;
 
     const TestSetConfig = () => {
       const ctx = useAccessibilityContext();
@@ -245,17 +250,17 @@ describe('AccessibilityProvider', () => {
       </AccessibilityProvider>
     );
 
-    expect(config.autoLabels).toBe(true);
+    expect(config!.autoLabels).toBe(true);
 
     act(() => {
-      setConfig({ autoLabels: false });
+      setConfig!({ autoLabels: false });
     });
   });
 });
 
 describe('useAccessibility', () => {
   it('returns null outside provider', () => {
-    let result: any = 'not-null';
+    let result: AccessibilityContextValue | null | string = 'not-null';
 
     function TestComponent() {
       result = useAccessibility();
@@ -267,7 +272,7 @@ describe('useAccessibility', () => {
   });
 
   it('returns context inside provider', () => {
-    let result: any = null;
+    let result: AccessibilityContextValue | null = null;
 
     function TestComponent() {
       result = useAccessibility();
@@ -300,7 +305,7 @@ describe('useAccessibilityContext', () => {
 
 describe('useAccessibleIcon', () => {
   it('returns default props without provider', () => {
-    let result: any = null;
+    let result: UseAccessibleIconOutput | null = null;
 
     function TestComponent() {
       result = useAccessibleIcon({
@@ -313,15 +318,15 @@ describe('useAccessibleIcon', () => {
 
     render(<TestComponent />);
 
-    expect(result.accessibilityProps.accessible).toBe(true);
-    expect(result.accessibilityProps.accessibilityRole).toBe('image');
-    expect(result.adjustedColor).toBe('#000000');
-    expect(result.touchTargetPadding).toBe(0);
-    expect(result.shouldDisableAnimations).toBe(false);
+    expect(result!.accessibilityProps.accessible).toBe(true);
+    expect(result!.accessibilityProps.accessibilityRole).toBe('image');
+    expect(result!.adjustedColor).toBe('#000000');
+    expect(result!.touchTargetPadding).toBe(0);
+    expect(result!.shouldDisableAnimations).toBe(false);
   });
 
   it('generates accessibility label with provider', () => {
-    let result: any = null;
+    let result: UseAccessibleIconOutput | null = null;
 
     function TestComponent() {
       result = useAccessibleIcon({
@@ -336,11 +341,11 @@ describe('useAccessibleIcon', () => {
       </AccessibilityProvider>
     );
 
-    expect(result.accessibilityProps.accessibilityLabel).toBe('home icon');
+    expect(result!.accessibilityProps.accessibilityLabel).toBe('home icon');
   });
 
   it('uses custom label when provided', () => {
-    let result: any = null;
+    let result: UseAccessibleIconOutput | null = null;
 
     function TestComponent() {
       result = useAccessibleIcon({
@@ -356,11 +361,11 @@ describe('useAccessibleIcon', () => {
       </AccessibilityProvider>
     );
 
-    expect(result.accessibilityProps.accessibilityLabel).toBe('Go home');
+    expect(result!.accessibilityProps.accessibilityLabel).toBe('Go home');
   });
 
   it('calculates touch target padding for interactive icons', () => {
-    let result: any = null;
+    let result: UseAccessibleIconOutput | null = null;
 
     function TestComponent() {
       result = useAccessibleIcon({
@@ -377,11 +382,11 @@ describe('useAccessibleIcon', () => {
       </AccessibilityProvider>
     );
 
-    expect(result.touchTargetPadding).toBe(10);
+    expect(result!.touchTargetPadding).toBe(10);
   });
 
   it('adjusts color for high contrast', () => {
-    let result: any = null;
+    let result: UseAccessibleIconOutput | null = null;
 
     function TestComponent() {
       result = useAccessibleIcon({
@@ -398,11 +403,11 @@ describe('useAccessibleIcon', () => {
       </AccessibilityProvider>
     );
 
-    expect(result.adjustedColor).toBe('#000000');
+    expect(result!.adjustedColor).toBe('#000000');
   });
 
   it('hides from accessibility when accessibilityElementsHidden', () => {
-    let result: any = null;
+    let result: UseAccessibleIconOutput | null = null;
 
     function TestComponent() {
       result = useAccessibleIcon({
@@ -418,7 +423,7 @@ describe('useAccessibleIcon', () => {
       </AccessibilityProvider>
     );
 
-    expect(result.accessibilityProps.accessible).toBe(false);
-    expect(result.accessibilityProps.accessibilityLabel).toBeUndefined();
+    expect(result!.accessibilityProps.accessible).toBe(false);
+    expect(result!.accessibilityProps.accessibilityLabel).toBeUndefined();
   });
 });

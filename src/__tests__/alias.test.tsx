@@ -12,11 +12,20 @@ import {
   createIconAliases,
   defineAliases,
 } from '../alias';
+import type { IconAliasContextValue } from '../alias';
 import { IconThemeProvider } from '../theme';
+
+interface MockIconRendererProps {
+  iconName: string;
+  size: number;
+  color: string;
+  accessibilityLabel?: string;
+  testID?: string;
+}
 
 // Mock IconRenderer to avoid actual icon fetching
 jest.mock('../IconRenderer', () => ({
-  IconRenderer: ({ iconName, size, color, accessibilityLabel, testID }: any) => {
+  IconRenderer: ({ iconName, size, color, accessibilityLabel, testID }: MockIconRendererProps) => {
     const { Text } = require('react-native');
     return (
       <Text testID={testID || 'icon'} accessibilityLabel={accessibilityLabel}>
@@ -34,7 +43,7 @@ describe('Icon Alias System', () => {
         menu: 'heroicons:bars-3',
       };
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -52,7 +61,7 @@ describe('Icon Alias System', () => {
     });
 
     it('resolves full icon names without aliases', () => {
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -72,7 +81,7 @@ describe('Icon Alias System', () => {
       const parentAliases = { back: 'mdi:arrow-left' };
       const childAliases = { menu: 'heroicons:bars-3' };
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -94,7 +103,7 @@ describe('Icon Alias System', () => {
       const parentAliases = { back: 'mdi:arrow-left' };
       const childAliases = { menu: 'heroicons:bars-3' };
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -116,7 +125,7 @@ describe('Icon Alias System', () => {
     it('isAlias returns correct values', () => {
       const aliases = { back: 'mdi:arrow-left' };
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -134,7 +143,7 @@ describe('Icon Alias System', () => {
     });
 
     it('registerAliases adds runtime aliases', () => {
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -300,7 +309,7 @@ describe('Icon Alias System', () => {
         } as const,
       });
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -357,7 +366,7 @@ describe('Icon Alias System', () => {
         back: 'mdi:arrow-left',
       });
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -375,7 +384,7 @@ describe('Icon Alias System', () => {
 
   describe('Default context (no provider)', () => {
     it('resolves full icon names', () => {
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -391,7 +400,7 @@ describe('Icon Alias System', () => {
 
   describe('Edge cases', () => {
     it('handles empty alias name', () => {
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -411,7 +420,7 @@ describe('Icon Alias System', () => {
       const parentAliases = { back: 'mdi:arrow-left' };
       const childAliases = { back: 'heroicons:arrow-left' };
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;
@@ -435,7 +444,7 @@ describe('Icon Alias System', () => {
         numeric: 'simple-icons:500px',
       };
 
-      let contextValue: any;
+      let contextValue!: IconAliasContextValue;
       function Consumer() {
         contextValue = useIconAliasContext();
         return null;

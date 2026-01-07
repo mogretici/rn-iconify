@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-12-04
+
+### Fixed
+
+- Fixed memory leak in `anySignal()` - event listeners now properly cleaned up
+- Fixed timer leak in CLI bundle command - timeout now cleared in all code paths
+- Fixed bundle validation in `CacheManager.loadBundle()` - invalid icons now skipped with warning
+- Removed non-existent `bin` folder from package.json files array
+
+### Added
+
+- SVG transformation support (rotate, flip) in CLI bundle command
+- Improved error messages for invalid bundle icons in development mode
+
+### Changed
+
+- Updated default cache output path to `node_modules/.cache/rn-iconify`
+- Added `sideEffects: false` to package.json for better tree-shaking
+
+---
+
 ## [2.0.0] - 2025-12-03
 
 ### Added

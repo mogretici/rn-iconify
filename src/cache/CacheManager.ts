@@ -74,9 +74,22 @@ class CacheManagerImpl {
     }
 
     this.bundledIcons = new Map();
+    let skippedCount = 0;
 
     for (const [iconName, data] of Object.entries(bundle.icons)) {
-      this.bundledIcons.set(iconName, data.svg);
+      // Validate icon data has a valid SVG string
+      if (data && typeof data.svg === 'string' && data.svg.length > 0) {
+        this.bundledIcons.set(iconName, data.svg);
+      } else {
+        skippedCount++;
+        if (__DEV__) {
+          console.warn(`[rn-iconify] Skipping invalid icon in bundle: ${iconName}`);
+        }
+      }
+    }
+
+    if (__DEV__ && skippedCount > 0) {
+      console.warn(`[rn-iconify] Skipped ${skippedCount} invalid icons in bundle`);
     }
 
     this.bundledIconsInitialized = true;

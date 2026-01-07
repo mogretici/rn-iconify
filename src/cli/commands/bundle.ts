@@ -20,6 +20,52 @@ const ICONIFY_API = 'https://api.iconify.design';
 const FETCH_TIMEOUT = 30000;
 
 /**
+ * Icon data from Iconify API
+ */
+interface IconData {
+  body: string;
+  width?: number;
+  height?: number;
+  left?: number;
+  top?: number;
+  rotate?: number;
+  hFlip?: boolean;
+  vFlip?: boolean;
+}
+
+/**
+ * Build SVG string from Iconify icon data with transformation support
+ */
+function buildSvgFromIconData(data: IconData, width: number, height: number): string {
+  const left = data.left ?? 0;
+  const top = data.top ?? 0;
+  const viewBox = `${left} ${top} ${width} ${height}`;
+
+  // Apply transformations (rotate, hFlip, vFlip)
+  let body = data.body;
+  const transforms: string[] = [];
+
+  if (data.rotate) {
+    const rotation = data.rotate * 90;
+    transforms.push(`rotate(${rotation} ${width / 2} ${height / 2})`);
+  }
+
+  if (data.hFlip || data.vFlip) {
+    const scaleX = data.hFlip ? -1 : 1;
+    const scaleY = data.vFlip ? -1 : 1;
+    const translateX = data.hFlip ? width : 0;
+    const translateY = data.vFlip ? height : 0;
+    transforms.push(`translate(${translateX} ${translateY}) scale(${scaleX} ${scaleY})`);
+  }
+
+  if (transforms.length > 0) {
+    body = `<g transform="${transforms.join(' ')}">${body}</g>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`;
+}
+
+/**
  * Fetch multiple icons with batching
  */
 async function fetchIcons(
@@ -45,10 +91,10 @@ async function fetchIcons(
 
   // Fetch each prefix batch
   for (const [prefix, names] of byPrefix) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
+    try {
       // Sort names alphabetically (Iconify best practice)
       const sortedNames = [...names].sort();
       const url = `${ICONIFY_API}/${prefix}.json?icons=${sortedNames.join(',')}`;
@@ -58,7 +104,6 @@ async function fetchIcons(
       }
 
       const response = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeout);
 
       if (!response.ok) {
         console.error(`  Failed to fetch ${prefix}: ${response.status}`);
@@ -76,8 +121,7 @@ async function fetchIcons(
         if (iconData) {
           const width = iconData.width ?? defaultWidth;
           const height = iconData.height ?? defaultHeight;
-          const body = iconData.body;
-          const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">${body}</svg>`;
+          const svg = buildSvgFromIconData(iconData, width, height);
 
           results[`${prefix}:${name}`] = { svg, width, height };
         } else if (verbose) {
@@ -92,6 +136,8 @@ async function fetchIcons(
         console.error(`  Error fetching ${prefix}:`, error);
       }
       processed += names.length;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

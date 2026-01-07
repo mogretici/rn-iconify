@@ -19,6 +19,12 @@ import {
   DEFAULT_PREVIEW_CONFIG,
   DEFAULT_EXPLORER_CONFIG,
 } from '../explorer';
+import type {
+  ExplorerConfig,
+  ExplorerContextValue,
+  ResolvedExplorerConfig,
+  IconSetInfo,
+} from '../explorer';
 
 // Mock Clipboard and Alert
 jest.spyOn(Clipboard, 'setString').mockImplementation(() => {});
@@ -156,46 +162,52 @@ describe('DEFAULT_EXPLORER_CONFIG', () => {
 });
 
 describe('useExplorer', () => {
-  function TestComponent({ config, testFn }: { config?: any; testFn: (ctx: any) => void }) {
+  function TestComponent({
+    config,
+    testFn,
+  }: {
+    config?: Partial<ExplorerConfig>;
+    testFn: (ctx: ExplorerContextValue) => void;
+  }) {
     const explorer = useExplorer(config);
     testFn(explorer);
     return <View testID="test" />;
   }
 
   it('returns initial state', () => {
-    let state: any = null;
+    let state: ExplorerContextValue | null = null;
 
     render(<TestComponent testFn={(ctx) => (state = ctx)} />);
 
-    expect(state.query).toBe('');
-    expect(state.results).toEqual([]);
-    expect(state.selectedIcon).toBeNull();
-    expect(state.activeIconSet).toBeNull();
+    expect(state!.query).toBe('');
+    expect(state!.results).toEqual([]);
+    expect(state!.selectedIcon).toBeNull();
+    expect(state!.activeIconSet).toBeNull();
     // isLoading may be true initially when fetching icons
-    expect(typeof state.isLoading).toBe('boolean');
-    expect(state.error).toBeNull();
+    expect(typeof state!.isLoading).toBe('boolean');
+    expect(state!.error).toBeNull();
   });
 
   it('provides config', () => {
-    let config: any = null;
+    let config: ResolvedExplorerConfig | null = null;
 
     render(<TestComponent testFn={(ctx) => (config = ctx.config)} />);
 
-    expect(config.maxResults).toBe(100);
-    expect(config.preview).toBeDefined();
+    expect(config!.maxResults).toBe(100);
+    expect(config!.preview).toBeDefined();
   });
 
   it('provides iconSets', () => {
-    let iconSets: any = null;
+    let iconSets: IconSetInfo[] | null = null;
 
     render(<TestComponent testFn={(ctx) => (iconSets = ctx.iconSets)} />);
 
     expect(Array.isArray(iconSets)).toBe(true);
-    expect(iconSets.length).toBeGreaterThan(0);
+    expect(iconSets!.length).toBeGreaterThan(0);
   });
 
   it('provides setQuery action', () => {
-    let setQuery: any = null;
+    let setQuery: ExplorerContextValue['setQuery'] | null = null;
     let query: string = '';
 
     function TestSetQuery() {
@@ -210,13 +222,13 @@ describe('useExplorer', () => {
     expect(query).toBe('');
 
     act(() => {
-      setQuery('home');
+      setQuery!('home');
     });
   });
 
   it('provides selectIcon action', () => {
-    let selectIcon: any = null;
-    let selectedIcon: any = null;
+    let selectIcon: ExplorerContextValue['selectIcon'] | null = null;
+    let selectedIcon: string | null = null;
 
     function TestSelectIcon() {
       const explorer = useExplorer();
@@ -230,12 +242,12 @@ describe('useExplorer', () => {
     expect(selectedIcon).toBeNull();
 
     act(() => {
-      selectIcon('mdi:home');
+      selectIcon!('mdi:home');
     });
   });
 
   it('provides filterByIconSet action', () => {
-    let filterByIconSet: any = null;
+    let filterByIconSet: ExplorerContextValue['filterByIconSet'] | null = null;
 
     render(<TestComponent testFn={(ctx) => (filterByIconSet = ctx.filterByIconSet)} />);
 
@@ -243,7 +255,7 @@ describe('useExplorer', () => {
   });
 
   it('provides setPreviewSize action', () => {
-    let setPreviewSize: any = null;
+    let setPreviewSize: ExplorerContextValue['setPreviewSize'] | null = null;
 
     render(<TestComponent testFn={(ctx) => (setPreviewSize = ctx.setPreviewSize)} />);
 
@@ -251,7 +263,7 @@ describe('useExplorer', () => {
   });
 
   it('provides setPreviewColor action', () => {
-    let setPreviewColor: any = null;
+    let setPreviewColor: ExplorerContextValue['setPreviewColor'] | null = null;
 
     render(<TestComponent testFn={(ctx) => (setPreviewColor = ctx.setPreviewColor)} />);
 
@@ -259,7 +271,7 @@ describe('useExplorer', () => {
   });
 
   it('provides reset action', () => {
-    let reset: any = null;
+    let reset: ExplorerContextValue['reset'] | null = null;
 
     render(<TestComponent testFn={(ctx) => (reset = ctx.reset)} />);
 
@@ -267,7 +279,7 @@ describe('useExplorer', () => {
   });
 
   it('respects custom config', () => {
-    let config: any = null;
+    let config: ResolvedExplorerConfig | null = null;
 
     render(
       <TestComponent
@@ -276,12 +288,12 @@ describe('useExplorer', () => {
       />
     );
 
-    expect(config.maxResults).toBe(50);
-    expect(config.initialQuery).toBe('home');
+    expect(config!.maxResults).toBe(50);
+    expect(config!.initialQuery).toBe('home');
   });
 
   it('filters iconSets when specified', () => {
-    let iconSets: any = null;
+    let iconSets: IconSetInfo[] | null = null;
 
     render(
       <TestComponent
@@ -290,8 +302,8 @@ describe('useExplorer', () => {
       />
     );
 
-    expect(iconSets.length).toBe(2);
-    expect(iconSets.every((set: any) => ['mdi', 'heroicons'].includes(set.prefix))).toBe(true);
+    expect(iconSets!.length).toBe(2);
+    expect(iconSets!.every((set) => ['mdi', 'heroicons'].includes(set.prefix))).toBe(true);
   });
 
   describe('copyIconCode', () => {
@@ -300,7 +312,7 @@ describe('useExplorer', () => {
     });
 
     it('copies JSX to clipboard', () => {
-      let copyIconCode: any = null;
+      let copyIconCode: ExplorerContextValue['copyIconCode'] | null = null;
 
       function TestCopyCode() {
         const explorer = useExplorer();
@@ -311,14 +323,14 @@ describe('useExplorer', () => {
       render(<TestCopyCode />);
 
       act(() => {
-        copyIconCode('mdi:home', 'jsx');
+        copyIconCode!('mdi:home', 'jsx');
       });
 
       expect(Clipboard.setString).toHaveBeenCalledWith(expect.stringContaining('<Mdi name="home"'));
     });
 
     it('copies import statement when format is import', () => {
-      let copyIconCode: any = null;
+      let copyIconCode: ExplorerContextValue['copyIconCode'] | null = null;
 
       function TestCopyCode() {
         const explorer = useExplorer();
@@ -329,7 +341,7 @@ describe('useExplorer', () => {
       render(<TestCopyCode />);
 
       act(() => {
-        copyIconCode('mdi:home', 'import');
+        copyIconCode!('mdi:home', 'import');
       });
 
       expect(Clipboard.setString).toHaveBeenCalledWith(expect.stringContaining('import { Mdi }'));
@@ -337,7 +349,7 @@ describe('useExplorer', () => {
 
     it('calls onCopyCode callback', () => {
       const onCopyCode = jest.fn();
-      let copyIconCode: any = null;
+      let copyIconCode: ExplorerContextValue['copyIconCode'] | null = null;
 
       function TestCopyCode() {
         const explorer = useExplorer({ onCopyCode });
@@ -348,14 +360,14 @@ describe('useExplorer', () => {
       render(<TestCopyCode />);
 
       act(() => {
-        copyIconCode('mdi:home', 'jsx');
+        copyIconCode!('mdi:home', 'jsx');
       });
 
       expect(onCopyCode).toHaveBeenCalled();
     });
 
     it('shows alert when no callback provided', () => {
-      let copyIconCode: any = null;
+      let copyIconCode: ExplorerContextValue['copyIconCode'] | null = null;
 
       function TestCopyCode() {
         const explorer = useExplorer();
@@ -366,7 +378,7 @@ describe('useExplorer', () => {
       render(<TestCopyCode />);
 
       act(() => {
-        copyIconCode('mdi:home', 'jsx');
+        copyIconCode!('mdi:home', 'jsx');
       });
 
       expect(Alert.alert).toHaveBeenCalledWith('Copied!', 'Icon code copied to clipboard');

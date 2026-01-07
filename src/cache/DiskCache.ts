@@ -1,14 +1,53 @@
 /**
  * Disk cache using MMKV for persistent icon storage
  * Provides fast synchronous access via JSI
+ *
+ * Supports both react-native-mmkv v3.x and v4.x
  */
 
-import { MMKV } from 'react-native-mmkv';
+import * as MMKVModule from 'react-native-mmkv';
+
+/**
+ * MMKV storage interface (compatible with both v3 and v4)
+ */
+interface MMKVStorage {
+  getString(key: string): string | undefined;
+  set(key: string, value: string | number | boolean): void;
+  getNumber(key: string): number | undefined;
+  contains(key: string): boolean;
+  delete(key: string): void;
+  clearAll(): void;
+  getAllKeys(): string[];
+}
+
+/**
+ * Create MMKV instance compatible with both v3.x and v4.x
+ *
+ * v3.x: import { MMKV } from 'react-native-mmkv' → new MMKV({ id: '...' })
+ * v4.x: import { createMMKV } from 'react-native-mmkv' → createMMKV({ id: '...' })
+ */
+function createStorage(id: string): MMKVStorage {
+  const config = { id };
+
+  // v4.x: createMMKV function exists
+  if ('createMMKV' in MMKVModule && typeof MMKVModule.createMMKV === 'function') {
+    return MMKVModule.createMMKV(config) as MMKVStorage;
+  }
+
+  // v3.x: MMKV is a constructor
+  if ('MMKV' in MMKVModule && typeof MMKVModule.MMKV === 'function') {
+    const MMKVClass = MMKVModule.MMKV as new (config: { id: string }) => MMKVStorage;
+    return new MMKVClass(config);
+  }
+
+  throw new Error(
+    '[rn-iconify] Could not initialize MMKV storage. ' +
+      'Please ensure react-native-mmkv (v3.x or v4.x) is properly installed.'
+  );
+}
 
 // MMKV instance for icon cache
-const storage = new MMKV({
-  id: 'rn-iconify-cache',
-});
+const storage = createStorage('rn-iconify-cache');
 
 // Cache metadata storage
 const META_KEY_PREFIX = '__meta:';

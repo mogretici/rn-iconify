@@ -62,18 +62,40 @@ async function fetchWithTimeout(
 
 /**
  * Combine multiple AbortSignals into one
+ * Properly cleans up event listeners to prevent memory leaks
  */
 function anySignal(signals: AbortSignal[]): AbortSignal {
   const controller = new AbortController();
 
+  // Check if any signal is already aborted
   for (const signal of signals) {
     if (signal.aborted) {
       controller.abort();
       return controller.signal;
     }
-
-    signal.addEventListener('abort', () => controller.abort(), { once: true });
   }
+
+  // Create abort handlers that we can clean up
+  const abortHandlers: Array<{ signal: AbortSignal; handler: () => void }> = [];
+
+  const cleanup = () => {
+    for (const { signal, handler } of abortHandlers) {
+      signal.removeEventListener('abort', handler);
+    }
+    abortHandlers.length = 0;
+  };
+
+  for (const signal of signals) {
+    const handler = () => {
+      cleanup();
+      controller.abort();
+    };
+    abortHandlers.push({ signal, handler });
+    signal.addEventListener('abort', handler);
+  }
+
+  // Also cleanup when our controller aborts (from timeout)
+  controller.signal.addEventListener('abort', cleanup, { once: true });
 
   return controller.signal;
 }

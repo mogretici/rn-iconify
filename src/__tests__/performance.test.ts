@@ -9,6 +9,7 @@ import {
   getPerformanceReport,
   printPerformanceReport,
 } from '../performance';
+import type { IconLoadEvent } from '../performance';
 import { resetConfiguration } from '../config';
 
 describe('PerformanceMonitor', () => {
@@ -260,7 +261,7 @@ describe('PerformanceMonitor', () => {
     });
 
     it('subscribes to events', () => {
-      const events: any[] = [];
+      const events: IconLoadEvent[] = [];
       const unsubscribe = PerformanceMonitor.subscribe((event) => {
         events.push(event);
       });
@@ -274,7 +275,7 @@ describe('PerformanceMonitor', () => {
     });
 
     it('unsubscribe stops events', () => {
-      const events: any[] = [];
+      const events: IconLoadEvent[] = [];
       const unsubscribe = PerformanceMonitor.subscribe((event) => {
         events.push(event);
       });
