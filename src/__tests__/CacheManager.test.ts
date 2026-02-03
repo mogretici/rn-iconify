@@ -170,4 +170,94 @@ describe('CacheManager', () => {
       expect(result.failed).toEqual(['mdi:settings']);
     });
   });
+
+  describe('loadBundle', () => {
+    it('should load valid bundle icons', () => {
+      const bundle = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: {
+          'mdi:home': { svg: '<svg>home</svg>', width: 24, height: 24 },
+          'mdi:settings': { svg: '<svg>settings</svg>', width: 24, height: 24 },
+        },
+        count: 2,
+      };
+
+      const loaded = CacheManager.loadBundle(bundle);
+
+      expect(loaded).toBe(2);
+      expect(CacheManager.hasBundled('mdi:home')).toBe(true);
+      expect(CacheManager.hasBundled('mdi:settings')).toBe(true);
+    });
+
+    it('should return 0 for invalid bundle', () => {
+      const loaded = CacheManager.loadBundle({ version: '0.5.0', icons: {}, count: 0, generatedAt: '' });
+
+      expect(loaded).toBe(0);
+    });
+
+    it('should skip invalid icons in bundle', () => {
+      const bundle = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: {
+          'mdi:home': { svg: '<svg>home</svg>', width: 24, height: 24 },
+          'mdi:empty': { svg: '', width: 24, height: 24 },
+        },
+        count: 2,
+      };
+
+      const loaded = CacheManager.loadBundle(bundle);
+
+      expect(loaded).toBe(1);
+      expect(CacheManager.hasBundled('mdi:home')).toBe(true);
+      expect(CacheManager.hasBundled('mdi:empty')).toBe(false);
+    });
+  });
+
+  describe('warmup', () => {
+    it('should load disk cache into memory', () => {
+      (DiskCache.keys as jest.Mock).mockReturnValue(['mdi:home', 'mdi:settings']);
+      (DiskCache.get as jest.Mock).mockImplementation((key: string) => {
+        if (key === 'mdi:home') return '<svg>home</svg>';
+        if (key === 'mdi:settings') return '<svg>settings</svg>';
+        return null;
+      });
+
+      CacheManager.warmup();
+
+      expect(MemoryCache.get('mdi:home')).toBe('<svg>home</svg>');
+      expect(MemoryCache.get('mdi:settings')).toBe('<svg>settings</svg>');
+    });
+
+    it('should respect maxIcons limit', () => {
+      const keys = Array.from({ length: 200 }, (_, i) => `mdi:icon-${i}`);
+      (DiskCache.keys as jest.Mock).mockReturnValue(keys);
+      (DiskCache.get as jest.Mock).mockReturnValue('<svg/>');
+
+      CacheManager.warmup(50);
+
+      // Should only have loaded 50 icons
+      expect(DiskCache.get).toHaveBeenCalledTimes(50);
+    });
+
+    it('should not overwrite existing memory cache entries', () => {
+      MemoryCache.set('mdi:home', '<svg>memory-version</svg>');
+      (DiskCache.keys as jest.Mock).mockReturnValue(['mdi:home']);
+      (DiskCache.get as jest.Mock).mockReturnValue('<svg>disk-version</svg>');
+
+      CacheManager.warmup();
+
+      // Memory version should be preserved
+      expect(MemoryCache.get('mdi:home')).toBe('<svg>memory-version</svg>');
+    });
+  });
+
+  describe('reportIconUsage', () => {
+    it('should not throw in non-DEV environment', () => {
+      expect(() => {
+        CacheManager.reportIconUsage('mdi:home');
+      }).not.toThrow();
+    });
+  });
 });

@@ -666,3 +666,78 @@ describe('Collector State Management', () => {
     expect(collector.getIconNames()).not.toContain('mdi:home');
   });
 });
+
+describe('Auto-Inject Plugin Option', () => {
+  beforeEach(() => {
+    jest.clearAllTimers();
+    resetPluginState();
+    collector.initialize({});
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    resetPluginState();
+  });
+
+  it('accepts autoInject option without errors', () => {
+    const code = `
+      import { Mdi } from 'rn-iconify';
+      export function App() {
+        return <Mdi name="home" />;
+      }
+    `;
+
+    // Should not throw with autoInject option
+    const result = transform(code, { autoInject: true });
+    expect(result).toBeTruthy();
+    expect(collector.getIconNames()).toContain('mdi:home');
+  });
+
+  it('accepts autoInject: false option', () => {
+    const code = `
+      import { Mdi } from 'rn-iconify';
+      export function App() {
+        return <Mdi name="home" />;
+      }
+    `;
+
+    const result = transform(code, { autoInject: false });
+    expect(result).toBeTruthy();
+    expect(collector.getIconNames()).toContain('mdi:home');
+  });
+
+  it('does not inject when no bundle exists (first build)', () => {
+    const code = `
+      import { Mdi } from 'rn-iconify';
+      export function App() {
+        return <Mdi name="home" />;
+      }
+    `;
+
+    const result = transform(code);
+
+    // On first build, no bundle exists, so no injection
+    // The output should not contain _rnIconifyLoadBundle
+    expect(result?.code).not.toContain('_rnIconifyLoadBundle');
+  });
+
+  it('still collects icons with autoInject enabled', () => {
+    const code = `
+      import { Mdi, Heroicons } from 'rn-iconify';
+      export function App() {
+        return (
+          <>
+            <Mdi name="home" />
+            <Heroicons name="user" />
+          </>
+        );
+      }
+    `;
+
+    transform(code, { autoInject: true });
+
+    const icons = collector.getIconNames();
+    expect(icons).toContain('mdi:home');
+    expect(icons).toContain('heroicons:user');
+  });
+});

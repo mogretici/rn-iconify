@@ -11,6 +11,8 @@ import {
   isBundleValid,
   groupIconsByPrefix,
   buildSvg,
+  readExistingBundle,
+  getNewIconNames,
 } from '../babel/cache-writer';
 
 // Mock fetch
@@ -479,6 +481,147 @@ describe('Cache Writer', () => {
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('[rn-iconify]'));
 
       consoleSpy.mockRestore();
+    });
+
+    it('uses .rn-iconify as default output path', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          prefix: 'mdi',
+          icons: { home: { body: '<path/>' } },
+        }),
+      });
+
+      await generateBundle(['mdi:home'], {}, '/project');
+
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        expect.stringContaining('.rn-iconify'),
+        expect.any(String),
+        'utf-8'
+      );
+    });
+
+    it('performs incremental fetch with existing bundle', async () => {
+      const existingBundle = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: { 'mdi:home': { svg: '<svg>home</svg>', width: 24, height: 24 } },
+        count: 1,
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          prefix: 'mdi',
+          icons: { settings: { body: '<path d="settings"/>' } },
+        }),
+      });
+
+      await generateBundle(['mdi:home', 'mdi:settings'], {}, '/project', existingBundle);
+
+      // Should only fetch mdi:settings (home already exists)
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const fetchUrl = mockFetch.mock.calls[0][0] as string;
+      expect(fetchUrl).toContain('settings');
+      expect(fetchUrl).not.toContain('home');
+    });
+
+    it('skips fetch when all icons already bundled', async () => {
+      const existingBundle = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: { 'mdi:home': { svg: '<svg/>', width: 24, height: 24 } },
+        count: 1,
+      };
+
+      await generateBundle(['mdi:home'], {}, '/project', existingBundle);
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('readExistingBundle', () => {
+    it('reads valid bundle from disk', () => {
+      const bundle = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: { 'mdi:home': { svg: '<svg/>', width: 24, height: 24 } },
+        count: 1,
+      };
+
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(bundle));
+
+      const result = readExistingBundle('/path/icons.json');
+
+      expect(result).not.toBeNull();
+      expect(result!.count).toBe(1);
+      expect(result!.icons['mdi:home']).toBeDefined();
+    });
+
+    it('returns null for missing file', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(false);
+
+      const result = readExistingBundle('/path/icons.json');
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for invalid JSON', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue('not json');
+
+      const result = readExistingBundle('/path/icons.json');
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for wrong version', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({ version: '0.5.0', icons: {}, count: 0 })
+      );
+
+      const result = readExistingBundle('/path/icons.json');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getNewIconNames', () => {
+    it('returns all icons when no existing bundle', () => {
+      const result = getNewIconNames(['mdi:home', 'mdi:settings'], null);
+
+      expect(result).toEqual(['mdi:home', 'mdi:settings']);
+    });
+
+    it('filters out existing icons', () => {
+      const existing = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: { 'mdi:home': { svg: '<svg/>', width: 24, height: 24 } },
+        count: 1,
+      };
+
+      const result = getNewIconNames(['mdi:home', 'mdi:settings'], existing);
+
+      expect(result).toEqual(['mdi:settings']);
+    });
+
+    it('returns empty array when all icons exist', () => {
+      const existing = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: {
+          'mdi:home': { svg: '<svg/>', width: 24, height: 24 },
+          'mdi:settings': { svg: '<svg/>', width: 24, height: 24 },
+        },
+        count: 2,
+      };
+
+      const result = getNewIconNames(['mdi:home', 'mdi:settings'], existing);
+
+      expect(result).toEqual([]);
     });
   });
 });

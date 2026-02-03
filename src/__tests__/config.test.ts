@@ -240,4 +240,62 @@ describe('ConfigManager', () => {
       expect(listener).not.toHaveBeenCalled();
     });
   });
+
+  describe('DefaultsConfig', () => {
+    it('has correct default values', () => {
+      expect(DEFAULT_CONFIG.defaults.placeholder).toBe(false);
+      expect(DEFAULT_CONFIG.defaults.fadeIn).toBe(true);
+      expect(DEFAULT_CONFIG.defaults.fadeInDuration).toBe(150);
+    });
+
+    it('updates defaults configuration', () => {
+      configure({
+        defaults: {
+          placeholder: 'skeleton',
+          fadeInDuration: 300,
+        },
+      });
+
+      const config = ConfigManager.getDefaultsConfig();
+      expect(config.placeholder).toBe('skeleton');
+      expect(config.fadeInDuration).toBe(300);
+      expect(config.fadeIn).toBe(true); // Unchanged
+    });
+
+    it('allows disabling fade-in', () => {
+      configure({
+        defaults: {
+          fadeIn: false,
+        },
+      });
+
+      const config = ConfigManager.getDefaultsConfig();
+      expect(config.fadeIn).toBe(false);
+    });
+
+    it('resets defaults to original values', () => {
+      configure({
+        defaults: {
+          placeholder: 'pulse',
+          fadeIn: false,
+          fadeInDuration: 500,
+        },
+      });
+
+      resetConfiguration();
+
+      const config = ConfigManager.getDefaultsConfig();
+      expect(config.placeholder).toBe(false);
+      expect(config.fadeIn).toBe(true);
+      expect(config.fadeInDuration).toBe(150);
+    });
+
+    it('getConfiguration includes defaults', () => {
+      const config = getConfiguration();
+      expect(config).toHaveProperty('defaults');
+      expect(config.defaults).toHaveProperty('placeholder');
+      expect(config.defaults).toHaveProperty('fadeIn');
+      expect(config.defaults).toHaveProperty('fadeInDuration');
+    });
+  });
 });
