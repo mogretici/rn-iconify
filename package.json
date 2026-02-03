@@ -28,15 +28,19 @@
       "types": "./lib/typescript/animated/index.d.ts",
       "import": "./lib/module/animated/index.js",
       "require": "./lib/commonjs/animated/index.js"
+    },
+    "./metro": {
+      "types": "./lib/typescript/metro/index.d.ts",
+      "import": "./lib/module/metro/index.js",
+      "require": "./lib/commonjs/metro/index.js"
     }
   },
-  "bin": {
-    "rn-iconify": "./lib/commonjs/cli/index.js"
-  },
+  "bin": "./lib/commonjs/cli/index.js",
   "files": [
     "src",
     "lib",
     "babel.js",
+    "metro.js",
     "README.md",
     "assets",
     "!**/__tests__",

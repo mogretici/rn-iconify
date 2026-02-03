@@ -10,6 +10,7 @@ import { CacheManager } from './cache/CacheManager';
 import { fetchIcon } from './network/IconifyAPI';
 import { PlaceholderFactory } from './placeholder';
 import { useIconAnimation } from './animated/useIconAnimation';
+import { ConfigManager } from './config';
 import type { IconRendererProps, IconLoadingState } from './types';
 
 /**
@@ -60,13 +61,25 @@ export function IconRenderer({
   autoPlay = true,
   onAnimationComplete,
 }: IconRendererProps) {
+  // Resolve defaults from config
+  const defaultsConfig = ConfigManager.getDefaultsConfig();
+  const effectivePlaceholder = placeholder !== undefined
+    ? placeholder
+    : (defaultsConfig.placeholder !== false ? defaultsConfig.placeholder : undefined);
+  const fadeIn = defaultsConfig.fadeIn;
+  const fadeInDuration = defaultsConfig.fadeInDuration;
+
   const [svg, setSvg] = useState<string | null>(null);
   const [state, setState] = useState<IconLoadingState>('idle');
   const [showFallback, setShowFallback] = useState(false);
+  const [wasCacheHit, setWasCacheHit] = useState(false);
   const mountedRef = useRef(true);
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const isLoadingRef = useRef(false); // Track loading state for closure
+  const isLoadingRef = useRef(false);
+
+  // Fade-in animation value
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Calculate dimensions
   const iconWidth = propWidth ?? size;
@@ -99,7 +112,9 @@ export function IconRenderer({
       if (mountedRef.current) {
         setSvg(cached);
         setState('loaded');
+        setWasCacheHit(true);
         isLoadingRef.current = false;
+        fadeAnim.setValue(1); // No fade for cache hits
         onLoad?.();
       }
       return;
@@ -108,15 +123,15 @@ export function IconRenderer({
     // 2. Set loading state and start fallback timer
     setState('loading');
     isLoadingRef.current = true;
+    setWasCacheHit(false);
 
     if (fallbackDelay > 0) {
       fallbackTimerRef.current = setTimeout(() => {
-        // Use ref instead of state to avoid stale closure
         if (mountedRef.current && isLoadingRef.current) {
           setShowFallback(true);
         }
       }, fallbackDelay);
-    } else if (fallback) {
+    } else if (fallback || effectivePlaceholder !== undefined) {
       setShowFallback(true);
     }
 
@@ -125,17 +140,28 @@ export function IconRenderer({
       const fetchedSvg = await fetchIcon(iconName, abortControllerRef.current.signal);
 
       if (mountedRef.current) {
-        // Store in cache
         CacheManager.set(iconName, fetchedSvg);
 
         setSvg(fetchedSvg);
         setState('loaded');
         isLoadingRef.current = false;
         setShowFallback(false);
+
+        // Fade-in for non-cached icons
+        if (fadeIn) {
+          fadeAnim.setValue(0);
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: fadeInDuration,
+            useNativeDriver: true,
+          }).start();
+        } else {
+          fadeAnim.setValue(1);
+        }
+
         onLoad?.();
       }
     } catch (error) {
-      // Ignore abort errors
       if (error instanceof Error && error.name === 'AbortError') {
         return;
       }
@@ -145,7 +171,7 @@ export function IconRenderer({
         onError?.(error instanceof Error ? error : new Error(String(error)));
       }
     }
-  }, [iconName, fallback, fallbackDelay, onLoad, onError]); // Removed 'state' from deps
+  }, [iconName, fallback, fallbackDelay, onLoad, onError, effectivePlaceholder, fadeIn, fadeInDuration, fadeAnim]);
 
   // Effect to load icon
   useEffect(() => {
@@ -194,6 +220,9 @@ export function IconRenderer({
   // Determine if we should show placeholder/fallback
   const shouldShowPlaceholder = (state === 'loading' && showFallback) || state === 'error';
 
+  // Whether to use fade-in wrapper (only for non-cached, non-animated icons)
+  const useFadeIn = fadeIn && !wasCacheHit && state === 'loaded' && !hasAnimation;
+
   // Check if icon should be pressable
   const isPressable = !!(onPress || onLongPress);
 
@@ -224,8 +253,8 @@ export function IconRenderer({
 
   // Render placeholder or fallback during loading/error
   if (shouldShowPlaceholder) {
-    // Priority: placeholder > fallback
-    if (placeholder !== undefined) {
+    // Priority: effectivePlaceholder (includes config default) > fallback
+    if (effectivePlaceholder !== undefined) {
       return wrapWithPressable(
         <View
           style={[{ width: iconWidth, height: iconHeight }, style]}
@@ -234,7 +263,7 @@ export function IconRenderer({
           {...nativeWindProps}
         >
           <PlaceholderFactory
-            type={placeholder}
+            type={effectivePlaceholder}
             width={iconWidth}
             height={iconHeight}
             color={placeholderColor}
@@ -291,7 +320,25 @@ export function IconRenderer({
       );
     }
 
-    // Render without animation
+    // Render without animation (with optional fade-in)
+    if (useFadeIn) {
+      return wrapWithPressable(
+        <Animated.View
+          style={[
+            styles.container,
+            { width: iconWidth, height: iconHeight, transform: transformStyle, opacity: fadeAnim },
+            style,
+          ]}
+          accessibilityLabel={accessibilityLabel}
+          accessibilityRole="image"
+          testID={testID}
+          {...nativeWindProps}
+        >
+          <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
+        </Animated.View>
+      );
+    }
+
     return wrapWithPressable(
       <View
         style={[
@@ -310,7 +357,7 @@ export function IconRenderer({
   }
 
   // Show placeholder immediately if set (no delay), otherwise empty view
-  if (placeholder !== undefined && state === 'loading') {
+  if (effectivePlaceholder !== undefined && state === 'loading') {
     return wrapWithPressable(
       <View
         style={[{ width: iconWidth, height: iconHeight }, style]}
@@ -319,7 +366,7 @@ export function IconRenderer({
         {...nativeWindProps}
       >
         <PlaceholderFactory
-          type={placeholder}
+          type={effectivePlaceholder}
           width={iconWidth}
           height={iconHeight}
           color={placeholderColor}

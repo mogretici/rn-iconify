@@ -150,6 +150,7 @@ export type {
   IconifyAPIConfig,
   CacheConfig,
   PerformanceConfig,
+  DefaultsConfig,
   ResolvedConfig,
 } from './config';
 

@@ -8,6 +8,7 @@ import type {
   IconifyAPIConfig,
   CacheConfig,
   PerformanceConfig,
+  DefaultsConfig,
   ResolvedConfig,
 } from './types';
 import { DEFAULT_CONFIG } from './types';
@@ -84,6 +85,13 @@ export const ConfigManager = {
   },
 
   /**
+   * Get defaults configuration
+   */
+  getDefaultsConfig(): Required<DefaultsConfig> {
+    return currentConfig.defaults;
+  },
+
+  /**
    * Update configuration
    * Merges with existing configuration
    */
@@ -92,6 +100,7 @@ export const ConfigManager = {
       api: deepMerge(currentConfig.api, config.api ?? {}),
       cache: deepMerge(currentConfig.cache, config.cache ?? {}),
       performance: deepMerge(currentConfig.performance, config.performance ?? {}),
+      defaults: deepMerge(currentConfig.defaults, config.defaults ?? {}),
     };
 
     // Notify listeners

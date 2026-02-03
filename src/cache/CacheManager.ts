@@ -46,6 +46,11 @@ class CacheManagerImpl {
   private bundledIconsInitialized = false;
 
   /**
+   * Guard to prevent reporting icons during bundle load
+   */
+  private isLoadingBundle = false;
+
+  /**
    * Initialize bundled icons from the Babel plugin cache
    * This should be called automatically on first access
    */
@@ -73,11 +78,11 @@ class CacheManagerImpl {
       return 0;
     }
 
+    this.isLoadingBundle = true;
     this.bundledIcons = new Map();
     let skippedCount = 0;
 
     for (const [iconName, data] of Object.entries(bundle.icons)) {
-      // Validate icon data has a valid SVG string
       if (data && typeof data.svg === 'string' && data.svg.length > 0) {
         this.bundledIcons.set(iconName, data.svg);
       } else {
@@ -93,6 +98,11 @@ class CacheManagerImpl {
     }
 
     this.bundledIconsInitialized = true;
+
+    // Warmup memory cache from disk cache
+    this.warmup();
+
+    this.isLoadingBundle = false;
     return this.bundledIcons.size;
   }
 
@@ -155,6 +165,11 @@ class CacheManagerImpl {
   set(iconName: string, svg: string): void {
     MemoryCache.set(iconName, svg);
     DiskCache.set(iconName, svg);
+
+    // Report to Metro dev server for dynamic icon learning
+    if (!this.isLoadingBundle) {
+      this.reportIconUsage(iconName);
+    }
   }
 
   /**
@@ -345,6 +360,60 @@ class CacheManagerImpl {
       } catch {
         // Ignore errors
       }
+    }
+  }
+
+  /**
+   * Warmup memory cache by loading recent disk cache entries
+   * Called automatically at the end of loadBundle()
+   *
+   * @param maxIcons Maximum number of icons to load into memory
+   */
+  warmup(maxIcons: number = 100): void {
+    try {
+      const keys = DiskCache.keys();
+      const toLoad = keys.slice(0, maxIcons);
+
+      let loaded = 0;
+      for (const key of toLoad) {
+        if (!MemoryCache.has(key)) {
+          const svg = DiskCache.get(key);
+          if (svg) {
+            MemoryCache.set(key, svg);
+            loaded++;
+          }
+        }
+      }
+
+      if (__DEV__ && loaded > 0) {
+        console.log(`[rn-iconify] Warmed up ${loaded} icons from disk cache`);
+      }
+    } catch {
+      // Warmup is best-effort, don't fail
+    }
+  }
+
+  /**
+   * Report icon usage to Metro dev server (DEV only)
+   * Fire-and-forget POST to the Metro middleware
+   */
+  reportIconUsage(iconName: string): void {
+    if (typeof __DEV__ === 'undefined' || !__DEV__) return;
+    if (this.isLoadingBundle) return;
+
+    try {
+      // Use global fetch if available (React Native)
+      if (typeof fetch === 'function') {
+        fetch('http://localhost:8081/__rn_iconify_log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ icon: iconName }),
+        }).catch(() => {
+          // Silently ignore - Metro server might not have the plugin
+        });
+      }
+    } catch {
+      // Silently ignore
     }
   }
 }

@@ -66,6 +66,30 @@ export interface CacheConfig {
 }
 
 /**
+ * Default icon rendering configuration
+ */
+export interface DefaultsConfig {
+  /**
+   * Default placeholder to show while loading icons
+   * Set to false to explicitly disable
+   * @default undefined (no placeholder - non-breaking)
+   */
+  placeholder?: 'skeleton' | 'pulse' | 'shimmer' | false;
+
+  /**
+   * Enable fade-in transition for non-cached icons
+   * @default true
+   */
+  fadeIn?: boolean;
+
+  /**
+   * Fade-in animation duration in milliseconds
+   * @default 150
+   */
+  fadeInDuration?: number;
+}
+
+/**
  * Performance monitoring configuration
  */
 export interface PerformanceConfig {
@@ -112,6 +136,11 @@ export interface IconifyConfig {
    * Performance monitoring configuration
    */
   performance?: PerformanceConfig;
+
+  /**
+   * Default icon rendering configuration
+   */
+  defaults?: DefaultsConfig;
 }
 
 /**
@@ -121,6 +150,7 @@ export interface ResolvedConfig {
   api: Required<IconifyAPIConfig>;
   cache: Required<CacheConfig>;
   performance: Required<PerformanceConfig>;
+  defaults: Required<DefaultsConfig>;
 }
 
 /**
@@ -145,5 +175,10 @@ export const DEFAULT_CONFIG: ResolvedConfig = {
     trackLoadTimes: true,
     trackCacheStats: true,
     maxHistorySize: 1000,
+  },
+  defaults: {
+    placeholder: false,
+    fadeIn: true,
+    fadeInDuration: 150,
   },
 };
