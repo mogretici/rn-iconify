@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/mogretici/rn-iconify/compare/v2.1.1...v2.2.0) (2026-02-03)
+
+### Features
+
+- **babel:** add project scanner, incremental bundles, and auto-inject ([d9d86f1](https://github.com/mogretici/rn-iconify/commit/d9d86f1c5123710c95aab13dc37a0511af2b16ea))
+- **metro:** add dev server plugin, warmup, fade-in, and package exports ([e89eb4c](https://github.com/mogretici/rn-iconify/commit/e89eb4c1aec5e3f666b278c7c17753e2c51946bb))
+
 ## [2.1.1](https://github.com/mogretici/rn-iconify/compare/v2.1.0...v2.1.1) (2026-01-07)
 
 ### Bug Fixes
