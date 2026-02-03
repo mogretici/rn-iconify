@@ -24,7 +24,7 @@ export interface BabelPluginOptions {
 
   /**
    * Output directory for the generated cache
-   * @default 'node_modules/.cache/rn-iconify'
+   * @default '.rn-iconify'
    */
   outputPath?: string;
 
@@ -39,6 +39,14 @@ export interface BabelPluginOptions {
    * @default false
    */
   disabled?: boolean;
+
+  /**
+   * Auto-inject loadOfflineBundle call when bundle exists
+   * When true, the plugin will automatically inject import and load
+   * statements for the generated icon bundle.
+   * @default true
+   */
+  autoInject?: boolean;
 }
 
 /**
