@@ -1,3 +1,9 @@
+## [2.2.1](https://github.com/mogretici/rn-iconify/compare/v2.2.0...v2.2.1) (2026-02-04)
+
+### Bug Fixes
+
+- resolve project root, scanner validation, and multi-worker dedup ([ddecd27](https://github.com/mogretici/rn-iconify/commit/ddecd27c45abbad4bb661d1568d94c76070e2292))
+
 # [2.2.0](https://github.com/mogretici/rn-iconify/compare/v2.1.1...v2.2.0) (2026-02-03)
 
 ### Features
