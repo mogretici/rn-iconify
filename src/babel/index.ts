@@ -45,6 +45,7 @@ export {
   VALID_PREFIXES,
   getFilenameFromState,
   getFilenameFromFile,
+  getRootFromFile,
 } from './types';
 
 /**

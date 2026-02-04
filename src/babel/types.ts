@@ -158,6 +158,32 @@ export function getFilenameFromFile(file: unknown): string {
 }
 
 /**
+ * Type guard to check if an object has opts.root
+ */
+function hasOptsWithRoot(obj: unknown): obj is { opts: { root: string } } {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'opts' in obj &&
+    typeof (obj as Record<string, unknown>).opts === 'object' &&
+    (obj as Record<string, unknown>).opts !== null &&
+    'root' in ((obj as Record<string, unknown>).opts as object) &&
+    typeof (obj as Record<string, { root: unknown }>).opts.root === 'string'
+  );
+}
+
+/**
+ * Helper to safely extract project root from BabelFile object
+ * Babel sets file.opts.root from babel.config.js location
+ */
+export function getRootFromFile(file: unknown): string | undefined {
+  if (hasOptsWithRoot(file)) {
+    return file.opts.root;
+  }
+  return undefined;
+}
+
+/**
  * Collected icon information
  */
 export interface CollectedIcon {

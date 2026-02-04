@@ -3,8 +3,11 @@
  * Tests actual Babel transformations with the rn-iconify plugin
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import * as babel from '@babel/core';
 import { createRnIconifyPlugin, resetPluginState, collector } from '../babel';
+import { acquireScanLock, releaseScanLock, isScanLockActive } from '../babel/plugin';
 
 // Use fake timers to prevent async bundle generation from keeping Jest open
 jest.useFakeTimers();
@@ -642,6 +645,26 @@ describe('Collector State Management', () => {
     expect(collector.hasIcons()).toBe(false);
   });
 
+  it('resets projectRoot on resetPluginState', () => {
+    collector.initialize({});
+    transform(`
+      import { Mdi } from 'rn-iconify';
+      export function A() { return <Mdi name="home" />; }
+    `);
+
+    resetPluginState();
+
+    collector.initialize({});
+    const result = transform(`
+      import { Mdi } from 'rn-iconify';
+      export function B() { return <Mdi name="settings" />; }
+    `);
+
+    expect(result).toBeTruthy();
+    expect(collector.getIconNames()).toContain('mdi:settings');
+    expect(collector.getIconNames()).not.toContain('mdi:home');
+  });
+
   it('handles multiple build cycles', () => {
     // First build
     collector.initialize({});
@@ -739,5 +762,62 @@ describe('Auto-Inject Plugin Option', () => {
     const icons = collector.getIconNames();
     expect(icons).toContain('mdi:home');
     expect(icons).toContain('heroicons:user');
+  });
+});
+
+describe('Scan Lock', () => {
+  const lockDir = path.join(__dirname, '.test-lock-dir');
+  const lockPath = path.join(lockDir, '.scan-lock');
+
+  beforeEach(() => {
+    if (fs.existsSync(lockDir)) {
+      fs.rmSync(lockDir, { recursive: true });
+    }
+    fs.mkdirSync(lockDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(lockDir)) {
+      fs.rmSync(lockDir, { recursive: true });
+    }
+  });
+
+  it('acquires lock when no lock exists', () => {
+    expect(acquireScanLock(lockPath)).toBe(true);
+    expect(fs.existsSync(lockPath)).toBe(true);
+  });
+
+  it('fails to acquire lock when already held', () => {
+    acquireScanLock(lockPath);
+    expect(acquireScanLock(lockPath)).toBe(false);
+  });
+
+  it('releases lock successfully', () => {
+    acquireScanLock(lockPath);
+    releaseScanLock(lockPath);
+    expect(fs.existsSync(lockPath)).toBe(false);
+  });
+
+  it('can re-acquire lock after release', () => {
+    acquireScanLock(lockPath);
+    releaseScanLock(lockPath);
+    expect(acquireScanLock(lockPath)).toBe(true);
+  });
+
+  it('detects active lock', () => {
+    acquireScanLock(lockPath);
+    expect(isScanLockActive(lockPath)).toBe(true);
+  });
+
+  it('reports inactive when no lock file', () => {
+    expect(isScanLockActive(lockPath)).toBe(false);
+  });
+
+  it('reports inactive for stale lock', () => {
+    acquireScanLock(lockPath);
+    // Set mtime to 60s ago
+    const past = new Date(Date.now() - 60000);
+    fs.utimesSync(lockPath, past, past);
+    expect(isScanLockActive(lockPath, 30000)).toBe(false);
   });
 });

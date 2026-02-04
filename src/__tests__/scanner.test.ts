@@ -207,6 +207,79 @@ describe('Scanner', () => {
       expect(icons).toContain('mdi:dynamic-icon');
     });
 
+    it('filters out icon names with trailing backslashes', () => {
+      mockReaddirSync.mockImplementation((dir: string) => {
+        if (dir === '/project') {
+          return [createDirent('App.tsx', false)];
+        }
+        return [];
+      });
+
+      mockReadFileSync.mockImplementation((filePath: string) => {
+        if (filePath === path.join('/project', 'App.tsx')) {
+          return `
+            import { Mdi } from 'rn-iconify';
+            export function App() {
+              return <Mdi name="home\\" />;
+            }
+          `;
+        }
+        return '';
+      });
+
+      const icons = scanProjectForIcons('/project');
+      expect(icons).not.toContain('mdi:home\\');
+      expect(icons).toHaveLength(0);
+    });
+
+    it('filters out icon names with spaces', () => {
+      mockReaddirSync.mockImplementation((dir: string) => {
+        if (dir === '/project') {
+          return [createDirent('App.tsx', false)];
+        }
+        return [];
+      });
+
+      mockReadFileSync.mockImplementation((filePath: string) => {
+        if (filePath === path.join('/project', 'App.tsx')) {
+          return `
+            import { Mdi } from 'rn-iconify';
+            export function App() {
+              return <Mdi name="home icon" />;
+            }
+          `;
+        }
+        return '';
+      });
+
+      const icons = scanProjectForIcons('/project');
+      expect(icons).toHaveLength(0);
+    });
+
+    it('filters out invalid prefetchIcons entries', () => {
+      mockReaddirSync.mockImplementation((dir: string) => {
+        if (dir === '/project') {
+          return [createDirent('init.ts', false)];
+        }
+        return [];
+      });
+
+      mockReadFileSync.mockImplementation((filePath: string) => {
+        if (filePath === path.join('/project', 'init.ts')) {
+          return `
+            import { prefetchIcons } from 'rn-iconify';
+            prefetchIcons(['ion:home', 'mdi:settings\\\\', 'bad name:icon']);
+          `;
+        }
+        return '';
+      });
+
+      const icons = scanProjectForIcons('/project');
+      expect(icons).toContain('ion:home');
+      expect(icons).not.toContain('mdi:settings\\');
+      expect(icons).toHaveLength(1);
+    });
+
     it('handles empty project gracefully', () => {
       mockReaddirSync.mockReturnValue([]);
 

@@ -9,6 +9,7 @@
  */
 
 import * as nodePath from 'path';
+import * as fs from 'fs';
 import type { PluginObj, types as BabelTypes, NodePath } from '@babel/core';
 import type { ImportDeclaration } from '@babel/types';
 import type { BabelPluginState, BabelPluginOptions } from './types';
@@ -17,6 +18,7 @@ import {
   VALID_COMPONENTS,
   getFilenameFromState,
   getFilenameFromFile,
+  getRootFromFile,
 } from './types';
 import {
   getComponentName,
@@ -97,6 +99,52 @@ let scannedIcons: string[] = [];
  */
 let existingBundle: IconBundle | null = null;
 
+const SCAN_LOCK_MAX_AGE = 30000; // 30 seconds
+
+/**
+ * Check if a scan lock file exists and is recent
+ */
+function isScanLockActive(lockPath: string, maxAge: number = SCAN_LOCK_MAX_AGE): boolean {
+  try {
+    const stat = fs.statSync(lockPath);
+    return Date.now() - stat.mtimeMs < maxAge;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Acquire the scan lock by writing a timestamp file
+ * Returns true if lock was acquired, false if already held
+ */
+function acquireScanLock(lockPath: string): boolean {
+  if (isScanLockActive(lockPath)) {
+    return false;
+  }
+  try {
+    const dir = nodePath.dirname(lockPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(lockPath, String(Date.now()), { flag: 'wx' });
+    return true;
+  } catch {
+    // Another worker may have created it between our check and write
+    return false;
+  }
+}
+
+/**
+ * Release the scan lock
+ */
+function releaseScanLock(lockPath: string): void {
+  try {
+    fs.unlinkSync(lockPath);
+  } catch {
+    // Already removed or never existed
+  }
+}
+
 /**
  * Create the rn-iconify Babel plugin
  */
@@ -121,24 +169,9 @@ export function createRnIconifyPlugin(babel: {
         hasInjected = false;
         collector.initialize(opts);
 
-        // Detect project root from file
-        const filename = getFilenameFromFile(file);
-        if (filename) {
-          let dir = filename;
-          while (dir !== '/') {
-            dir = dir.substring(0, dir.lastIndexOf('/'));
-            try {
-              require.resolve(`${dir}/package.json`);
-              projectRoot = dir;
-              break;
-            } catch {
-              continue;
-            }
-          }
-          if (!projectRoot) {
-            projectRoot = process.cwd();
-          }
-        }
+        // Detect project root from Babel's root (set from babel.config.js location)
+        const root = getRootFromFile(file);
+        projectRoot = root || process.cwd();
 
         const outputPath = opts.outputPath || '.rn-iconify';
         bundleDirPath = resolveBundleDir(outputPath, projectRoot);
@@ -148,14 +181,26 @@ export function createRnIconifyPlugin(babel: {
         existingBundle = readExistingBundle(bundleJsonPath);
         bundleExists = existingBundle !== null;
 
-        // Run sync scanner to discover all icons in the project
-        try {
-          scannedIcons = scanProjectForIcons(projectRoot, {
-            verbose: opts.verbose,
-          });
-        } catch (error) {
+        // Use file-based lock to prevent duplicate scans across Metro workers
+        const lockPath = nodePath.join(bundleDirPath, '.scan-lock');
+        const lockAcquired = acquireScanLock(lockPath);
+
+        if (lockAcquired) {
+          try {
+            scannedIcons = scanProjectForIcons(projectRoot, {
+              verbose: opts.verbose,
+            });
+          } catch (error) {
+            if (opts.verbose) {
+              console.warn('[rn-iconify] Scanner failed:', error);
+            }
+            scannedIcons = [];
+          } finally {
+            releaseScanLock(lockPath);
+          }
+        } else {
           if (opts.verbose) {
-            console.warn('[rn-iconify] Scanner failed:', error);
+            console.log('[rn-iconify] Scanner skipped (another worker is scanning)');
           }
           scannedIcons = [];
         }
@@ -358,12 +403,16 @@ export function createRnIconifyPlugin(babel: {
   };
 }
 
+// Exported for testing
+export { acquireScanLock, releaseScanLock, isScanLockActive };
+
 /**
  * Reset plugin state (for testing)
  */
 export function resetPluginState(): void {
   processedFiles.clear();
   buildInProgress = false;
+  projectRoot = '';
   hasInjected = false;
   bundleExists = false;
   bundleDirPath = '';

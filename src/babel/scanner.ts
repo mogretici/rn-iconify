@@ -7,6 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { COMPONENT_PREFIX_MAP } from './types';
+import { isValidIconName } from './ast-utils';
 
 /**
  * Scanner options
@@ -137,9 +138,11 @@ function scanFile(
       const componentName = lastNameMatch[1];
       const prefix = COMPONENT_PREFIX_MAP[componentName];
       if (prefix) {
-        icons.push(`${prefix}:${iconName}`);
+        const fullName = `${prefix}:${iconName}`;
+        if (!isValidIconName(fullName)) continue;
+        icons.push(fullName);
         if (verbose) {
-          console.log(`[rn-iconify:scanner] Found ${prefix}:${iconName} in ${filePath}`);
+          console.log(`[rn-iconify:scanner] Found ${fullName} in ${filePath}`);
         }
       }
     }
@@ -155,7 +158,7 @@ function scanFile(
     let itemMatch: RegExpExecArray | null;
     while ((itemMatch = STRING_ITEM_REGEX.exec(arrayContent)) !== null) {
       const iconName = itemMatch[1];
-      if (iconName && iconName.includes(':')) {
+      if (iconName && iconName.includes(':') && isValidIconName(iconName)) {
         icons.push(iconName);
         if (verbose) {
           console.log(`[rn-iconify:scanner] Found prefetch ${iconName} in ${filePath}`);

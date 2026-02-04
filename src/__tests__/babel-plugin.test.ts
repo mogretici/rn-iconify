@@ -8,6 +8,7 @@ import {
   VALID_COMPONENTS,
   VALID_PREFIXES,
   PREFIX_COMPONENT_MAP,
+  getRootFromFile,
 } from '../babel/types';
 import {
   getNodeLocation,
@@ -76,6 +77,30 @@ describe('Babel Plugin Types', () => {
   });
 });
 
+describe('getRootFromFile', () => {
+  it('extracts root from file.opts.root', () => {
+    const file = {
+      opts: { root: '/Users/test/project', filename: '/Users/test/project/src/App.tsx' },
+    };
+    expect(getRootFromFile(file)).toBe('/Users/test/project');
+  });
+
+  it('returns undefined when opts.root is missing', () => {
+    const file = { opts: { filename: '/test/App.tsx' } };
+    expect(getRootFromFile(file)).toBeUndefined();
+  });
+
+  it('returns undefined for null/undefined', () => {
+    expect(getRootFromFile(null)).toBeUndefined();
+    expect(getRootFromFile(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when opts is missing', () => {
+    expect(getRootFromFile({})).toBeUndefined();
+    expect(getRootFromFile({ file: {} })).toBeUndefined();
+  });
+});
+
 describe('AST Utilities', () => {
   describe('matchesPattern', () => {
     it('matches exact patterns', () => {
@@ -130,6 +155,21 @@ describe('AST Utilities', () => {
       expect(isValidIconName('mdi:')).toBe(false);
       expect(isValidIconName(':home')).toBe(false);
       expect(isValidIconName('mdi:home:extra')).toBe(false);
+    });
+
+    it('rejects names with backslashes', () => {
+      expect(isValidIconName('mdi:home\\')).toBe(false);
+      expect(isValidIconName('mdi:arrow\\left')).toBe(false);
+    });
+
+    it('rejects names with spaces', () => {
+      expect(isValidIconName('mdi:home icon')).toBe(false);
+      expect(isValidIconName('foo bar:icon')).toBe(false);
+    });
+
+    it('rejects names with special characters', () => {
+      expect(isValidIconName('mdi:home@2x')).toBe(false);
+      expect(isValidIconName('mdi:icon.name')).toBe(false);
     });
 
     it('rejects non-string values', () => {
