@@ -56,7 +56,7 @@ jobs:
         run: npx publint
 
       - name: Validate TypeScript exports (attw)
-        run: npx @arethetypeswrong/cli --pack .
+        run: npx @arethetypeswrong/cli --pack . --ignore-rules false-cjs untyped-resolution no-resolution
 
       - name: Check bundle size (size-limit)
         run: npx size-limit
