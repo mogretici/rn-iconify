@@ -1,5 +1,21 @@
 # [3.0.0](https://github.com/mogretici/rn-iconify/compare/v2.2.1...v3.0.0) (2026-03-12)
 
+- feat!: core engine rewrite, typed errors, accessibility, performance ([d471692](https://github.com/mogretici/rn-iconify/commit/d471692ceb1487f8aef6df7d74820061e2cd4852))
+
+### Bug Fixes
+
+- **ci:** pin react and react-native dev deps for strict npm ci ([4518430](https://github.com/mogretici/rn-iconify/commit/4518430de8d2dc8bf117bf31b824adb124731903))
+
+### BREAKING CHANGES
+
+- IconRenderer rewritten with useReducer
+  state machine. SVG colorization regex removed for native
+  SvgXml color prop. Rotate prop widened to number.
+  Dev exports moved to rn-iconify/dev.
+  onError receives IconLoadError instead of Error.
+
+# [3.0.0](https://github.com/mogretici/rn-iconify/compare/v2.2.1...v3.0.0) (2026-03-12)
+
 ### BREAKING CHANGES
 
 - **IconRenderer rewrite** — `useReducer` state machine replaces 4 independent `useState` calls. SVG colorization regex removed in favor of `SvgXml` native `color` prop (multi-color icons now render correctly).
