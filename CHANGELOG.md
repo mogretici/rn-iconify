@@ -1,3 +1,9 @@
+## [3.0.1](https://github.com/mogretici/rn-iconify/compare/v3.0.0...v3.0.1) (2026-03-12)
+
+### Bug Fixes
+
+- **ci:** ignore attw node10/esm rules for RN library ([d3fdc69](https://github.com/mogretici/rn-iconify/commit/d3fdc69d5890d09571af09d4ebb250d19245a69e))
+
 # [3.0.0](https://github.com/mogretici/rn-iconify/compare/v2.2.1...v3.0.0) (2026-03-12)
 
 - feat!: core engine rewrite, typed errors, accessibility, performance ([d471692](https://github.com/mogretici/rn-iconify/commit/d471692ceb1487f8aef6df7d74820061e2cd4852))
