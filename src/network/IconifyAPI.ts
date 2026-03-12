@@ -6,6 +6,7 @@
 
 import type { IconifyAPIResponse, IconifyIconData } from '../types';
 import { ConfigManager } from '../config';
+import { IconLoadError } from '../errors';
 
 /**
  * Get current API configuration
@@ -177,15 +178,36 @@ function buildSvg(data: IconifyIconData, defaultWidth = 24, defaultHeight = 24):
  */
 export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise<string> {
   // Check for pending request (deduplication)
+  // If a request is already in flight, reuse it but isolate the abort signal
+  // so that one component's unmount doesn't cancel another's fetch
   const pending = pendingRequests.get(iconName);
   if (pending) {
+    if (signal) {
+      return Promise.race([
+        pending,
+        new Promise<never>((_, reject) => {
+          if (signal.aborted) {
+            reject(new DOMException('Aborted', 'AbortError'));
+            return;
+          }
+          signal.addEventListener(
+            'abort',
+            () => reject(new DOMException('Aborted', 'AbortError')),
+            { once: true }
+          );
+        }),
+      ]);
+    }
     return pending;
   }
 
   // Parse icon name
   const parsed = parseIconName(iconName);
   if (!parsed) {
-    throw new Error(`Invalid icon name format: "${iconName}". Expected "prefix:name" format.`);
+    throw new IconLoadError(
+      'INVALID_NAME',
+      `Invalid icon name format: "${iconName}". Expected "prefix:name" format.`
+    );
   }
 
   const { prefix, name } = parsed;
@@ -211,20 +233,29 @@ export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise
         const response = await fetchWithTimeout(url, { signal });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: Failed to fetch icon "${iconName}"`);
+          if (response.status === 404) {
+            throw new IconLoadError('NOT_FOUND', `Icon "${iconName}" not found (HTTP 404)`);
+          }
+          throw new IconLoadError(
+            'NETWORK',
+            `HTTP ${response.status}: Failed to fetch icon "${iconName}"`
+          );
         }
 
         const data: IconifyAPIResponse = await response.json();
 
         // Validate response structure
         if (!data || typeof data !== 'object' || !data.icons) {
-          throw new Error(`Invalid API response for icon "${iconName}"`);
+          throw new IconLoadError('NETWORK', `Invalid API response for icon "${iconName}"`);
         }
 
         // Check if icon exists in response
         const iconData = data.icons[name];
         if (!iconData) {
-          throw new Error(`Icon "${iconName}" not found in Iconify API response`);
+          throw new IconLoadError(
+            'NOT_FOUND',
+            `Icon "${iconName}" not found in Iconify API response`
+          );
         }
 
         // Build SVG from icon data
@@ -232,7 +263,7 @@ export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise
 
         // Validate SVG output
         if (!isValidSvg(svg)) {
-          throw new Error(`Invalid SVG generated for icon "${iconName}"`);
+          throw new IconLoadError('INVALID_SVG', `Invalid SVG generated for icon "${iconName}"`);
         }
 
         return svg;
@@ -248,7 +279,12 @@ export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise
           }
         }
 
-        lastError = error instanceof Error ? error : new Error(String(error));
+        // Convert timeout aborts to typed error
+        if (error instanceof Error && error.name === 'AbortError' && !signal?.aborted) {
+          lastError = new IconLoadError('TIMEOUT', `Timeout fetching icon "${iconName}"`);
+        } else {
+          lastError = error instanceof Error ? error : new IconLoadError('NETWORK', String(error));
+        }
 
         // Wait before retrying (except on last attempt)
         if (attempt < settings.retries) {
@@ -378,14 +414,19 @@ export async function fetchIconsBatch(
 
 /**
  * Check if Iconify API is reachable
+ * @param timeoutMs Timeout in milliseconds (default: 5000)
  */
-export async function checkAPIHealth(): Promise<boolean> {
+export async function checkAPIHealth(timeoutMs = 5000): Promise<boolean> {
   const settings = getAPISettings();
   try {
-    const response = await fetch(`${settings.baseUrl}/collections`, {
-      method: 'HEAD',
-      headers: settings.headers,
-    });
+    const response = await fetchWithTimeout(
+      `${settings.baseUrl}/collections`,
+      {
+        method: 'HEAD',
+        headers: settings.headers,
+      },
+      timeoutMs
+    );
     return response.ok;
   } catch {
     return false;

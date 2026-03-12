@@ -178,7 +178,12 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
       }
 
       case 'sequence':
-        // For custom sequences, return null and handle separately
+        if (__DEV__) {
+          console.warn(
+            '[rn-iconify] Animation type "sequence" is not yet implemented. ' +
+              'Use individual animation presets (spin, pulse, bounce, shake, ping, wiggle) instead.'
+          );
+        }
         return null;
 
       default:
@@ -286,12 +291,15 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
     });
   }, []);
 
-  // Pause animation (not directly supported, we stop it)
+  // Pause animation
+  // Note: React Native's Animated API does not support true pause/resume.
+  // pause() stops the animation at its current position.
+  // resume() restarts the animation from the beginning.
   const pause = useCallback(() => {
     if (animationRef.current) {
       animationRef.current.stop();
+      animationRef.current = null;
     }
-    // Use queueMicrotask to defer state update (React 19 compatibility)
     queueMicrotask(() => {
       if (mountedRef.current) {
         setState('paused');
@@ -299,7 +307,7 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
     });
   }, []);
 
-  // Resume animation
+  // Resume a paused animation (restarts from beginning due to RN Animated API limitations)
   const resume = useCallback(() => {
     if (state === 'paused') {
       start();
@@ -335,17 +343,20 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
     if (!config) return {};
 
     switch (config.type) {
-      case 'rotate':
+      case 'rotate': {
+        const fromDeg = config.from as number;
+        const toDeg = config.to as number;
         return {
           transform: [
             {
               rotate: rotateValue.interpolate({
-                inputRange: [0, 360],
-                outputRange: ['0deg', '360deg'],
+                inputRange: [fromDeg, toDeg],
+                outputRange: [`${fromDeg}deg`, `${toDeg}deg`],
               }),
             },
           ],
         };
+      }
 
       case 'scale':
         return {

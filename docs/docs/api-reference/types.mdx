@@ -128,7 +128,7 @@ interface IconProps<T extends string = string> {
   style?: StyleProp<ViewStyle>;
 
   /** Rotation in degrees */
-  rotate?: 0 | 90 | 180 | 270;
+  rotate?: number;
 
   /** Flip the icon horizontally, vertically, or both */
   flip?: 'horizontal' | 'vertical' | 'both';
@@ -152,7 +152,7 @@ interface IconProps<T extends string = string> {
   onLoad?: () => void;
 
   /** Called when the icon fails to load */
-  onError?: (error: Error) => void;
+  onError?: (error: IconLoadError | Error) => void;
 
   /** Accessibility label for screen readers */
   accessibilityLabel?: string;
@@ -307,6 +307,46 @@ type PlaceholderType =
   | 'pulse'     // Fading animation
   | 'shimmer'   // Gradient sweep
   | ReactNode;  // Custom component
+```
+
+---
+
+### IconLoadError
+
+Typed error class for icon loading failures. Extends `Error` with a `code` property.
+
+```typescript
+import { IconLoadError } from 'rn-iconify';
+
+type IconErrorCode = 'NOT_FOUND' | 'NETWORK' | 'TIMEOUT' | 'INVALID_SVG' | 'INVALID_NAME';
+
+class IconLoadError extends Error {
+  readonly code: IconErrorCode;
+  readonly name: 'IconLoadError';
+}
+```
+
+#### Usage
+
+```tsx
+<Mdi
+  name="home"
+  onError={(error) => {
+    if (error instanceof IconLoadError) {
+      switch (error.code) {
+        case 'NOT_FOUND':
+          console.warn('Icon not found');
+          break;
+        case 'NETWORK':
+          console.warn('Network error');
+          break;
+        case 'TIMEOUT':
+          console.warn('Request timed out');
+          break;
+      }
+    }
+  }}
+/>
 ```
 
 ---

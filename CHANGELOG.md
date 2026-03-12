@@ -1,3 +1,47 @@
+# [3.0.0](https://github.com/mogretici/rn-iconify/compare/v2.2.1...v3.0.0) (2026-03-12)
+
+### BREAKING CHANGES
+
+- **IconRenderer rewrite** — `useReducer` state machine replaces 4 independent `useState` calls. SVG colorization regex removed in favor of `SvgXml` native `color` prop (multi-color icons now render correctly).
+- **Rotate prop** — `IconRotation` type widened from `0 | 90 | 180 | 270` to `number` (any degree value).
+- **Dev exports moved** — `IconExplorer` and `PerformanceMonitor` runtime exports moved to `rn-iconify/dev`. Type-only exports remain in main entry.
+- **Typed errors** — `onError` callback now receives `IconLoadError` (with `.code: 'NOT_FOUND' | 'NETWORK' | 'TIMEOUT' | 'INVALID_SVG'`) instead of generic `Error`.
+
+### Features
+
+- **React.memo + forwardRef** — All icon components (`createIconSet`, `createIconAliases`) wrapped with `React.memo` and `React.forwardRef` for optimal re-render performance and ref access.
+- **Auto accessibility** — `accessibilityRole="image"` and auto-generated labels on all icons. `shouldDisableAnimations()` respects system reduce motion. Auto 44dp minimum touch target via `hitSlop`.
+- **O(1) LRU cache** — `MemoryCache` rewritten with Map insertion-order LRU. Eviction no longer requires O(n log n) sort.
+- **Typed errors** — New `IconLoadError` class with `code` property for consumer-friendly error handling.
+- **Deep imports** — `import { Mdi } from 'rn-iconify/icons/Mdi'` for per-icon-set tree-shaking.
+- **Dev entry point** — `rn-iconify/dev` for `IconExplorer` and `PerformanceMonitor` (keeps production bundle lean).
+- **Fuzzy matching** — `__DEV__` mode shows "Did you mean X?" for misspelled icon names via Levenshtein distance.
+- **Shimmer gradient** — Placeholder shimmer effect upgraded from single solid bar to 3 staggered opacity bars.
+- **Accessibility** — `isInvertColorsEnabled` replaces incorrect `isBoldTextEnabled` proxy for high contrast detection.
+
+### Bug Fixes
+
+- **Theme infinite loop** — `useState` + `useEffect` anti-pattern replaced with `useMemo` approach. Inline theme props no longer cause infinite re-renders.
+- **Animation rotate** — Interpolation now uses `config.from`/`config.to` instead of hardcoded `[0, 360]`.
+- **Animation sequence** — `__DEV__` warning instead of silent null for unsupported sequence type.
+- **CacheManager** — `loadBundle()` wrapped in `try/finally` to ensure `isLoadingBundle` flag is always reset.
+- **Network abort** — Abort signal isolation for concurrent fetch deduplication.
+- **Babel plugin** — Stale build detection (>60s auto-reset) with `try/finally` cleanup in `post()` hook.
+- **Scanner** — O(n) single-pass regex replaces nested iteration.
+- **CLI** — Version reads from `package.json` instead of hardcoded `'1.0.0'`. Parser uses full 200+ component prefix map.
+
+### Package Quality
+
+- **797 tests** across 25 suites (was 523/20 in v2.2.1)
+- **81% statement coverage** with enforced thresholds
+- **38.5 MB** unpacked (source maps excluded)
+- **publint** — 1 warning (bob tooling limitation)
+- **size-limit** — Full bundle 687 kB, single icon set 36 kB
+- **ESM/CJS** — Proper dual package with `lib/module/package.json` `{"type":"module"}`
+- **Conditional exports** — Nested `import`/`require` types for correct module resolution
+
+---
+
 ## [2.2.1](https://github.com/mogretici/rn-iconify/compare/v2.2.0...v2.2.1) (2026-02-04)
 
 ### Bug Fixes

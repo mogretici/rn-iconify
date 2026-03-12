@@ -1,264 +1,544 @@
 /**
  * IconRenderer - Core component for rendering SVG icons
- * Handles cache lookup, network fetching, and SVG rendering
+ * Handles cache lookup, network fetching, placeholders, and SVG rendering
+ *
+ * v3.0 rewrite:
+ * - useReducer state machine (eliminates impossible states)
+ * - SvgXml color prop (preserves multi-color icons)
+ * - React.memo + React.forwardRef
+ * - Stable loadIcon deps (only iconName triggers refetch)
+ * - Auto 44dp hitSlop for small icons
+ * - Typed IconLoadError
  */
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, StyleSheet, Animated, Pressable } from 'react-native';
+import React, { useEffect, useCallback, useRef, useMemo, useReducer } from 'react';
+import { View, StyleSheet, Animated, Pressable, type ViewStyle } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { CacheManager } from './cache/CacheManager';
 import { fetchIcon } from './network/IconifyAPI';
 import { PlaceholderFactory } from './placeholder';
 import { useIconAnimation } from './animated/useIconAnimation';
 import { ConfigManager } from './config';
-import type { IconRendererProps, IconLoadingState } from './types';
+import { IconLoadError } from './errors';
+import { useAccessibility } from './accessibility/AccessibilityProvider';
+import type { IconRendererProps } from './types';
 
-/**
- * Escape special characters for XML attribute values
- * Prevents XSS attacks when user input is used as color prop
- */
-function escapeXmlAttribute(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+// ---------------------------------------------------------------------------
+// State machine
+// ---------------------------------------------------------------------------
+
+interface IconState {
+  svg: string | null;
+  status: 'idle' | 'loading' | 'loaded' | 'error';
+  showFallback: boolean;
+  wasCacheHit: boolean;
+  error: IconLoadError | Error | null;
 }
 
-export function IconRenderer({
-  iconName,
-  size = 24,
-  color = '#000000',
-  width: propWidth,
-  height: propHeight,
-  style,
-  className,
-  rotate = 0,
-  flip,
-  fallback,
-  fallbackDelay = 0,
-  placeholder,
-  placeholderColor,
-  placeholderDuration,
-  onLoad,
-  onError,
-  accessibilityLabel,
-  testID,
-  // Press props
+type IconAction =
+  | { type: 'CACHE_HIT'; svg: string }
+  | { type: 'FETCH_START' }
+  | { type: 'SHOW_FALLBACK' }
+  | { type: 'FETCH_SUCCESS'; svg: string }
+  | { type: 'FETCH_ERROR'; error: IconLoadError | Error }
+  | { type: 'RESET' };
+
+const initialState: IconState = {
+  svg: null,
+  status: 'idle',
+  showFallback: false,
+  wasCacheHit: false,
+  error: null,
+};
+
+function iconReducer(state: IconState, action: IconAction): IconState {
+  switch (action.type) {
+    case 'CACHE_HIT':
+      return {
+        svg: action.svg,
+        status: 'loaded',
+        showFallback: false,
+        wasCacheHit: true,
+        error: null,
+      };
+    case 'FETCH_START':
+      return {
+        svg: null,
+        status: 'loading',
+        showFallback: false,
+        wasCacheHit: false,
+        error: null,
+      };
+    case 'SHOW_FALLBACK':
+      if (state.status !== 'loading') return state;
+      return { ...state, showFallback: true };
+    case 'FETCH_SUCCESS':
+      return {
+        svg: action.svg,
+        status: 'loaded',
+        showFallback: false,
+        wasCacheHit: false,
+        error: null,
+      };
+    case 'FETCH_ERROR':
+      return {
+        svg: null,
+        status: 'error',
+        showFallback: true,
+        wasCacheHit: false,
+        error: action.error,
+      };
+    case 'RESET':
+      return initialState;
+    default:
+      return state;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PressableWrapper — extracted and memoized
+// ---------------------------------------------------------------------------
+
+interface PressableWrapperProps {
+  onPress?: () => void;
+  onLongPress?: () => void;
+  onPressIn?: () => void;
+  onPressOut?: () => void;
+  disabled?: boolean;
+  pressedStyle?: ViewStyle;
+  hitSlop: number;
+  children: React.ReactNode;
+}
+
+const PressableWrapper = React.memo(function PressableWrapper({
   onPress,
   onLongPress,
   onPressIn,
   onPressOut,
   disabled,
   pressedStyle,
-  // Animation props
-  animate,
-  animationDuration,
-  animationLoop,
-  animationEasing,
-  animationDelay,
-  autoPlay = true,
-  onAnimationComplete,
-}: IconRendererProps) {
-  // Resolve defaults from config
-  const defaultsConfig = ConfigManager.getDefaultsConfig();
-  const effectivePlaceholder = placeholder !== undefined
-    ? placeholder
-    : (defaultsConfig.placeholder !== false ? defaultsConfig.placeholder : undefined);
-  const fadeIn = defaultsConfig.fadeIn;
-  const fadeInDuration = defaultsConfig.fadeInDuration;
+  hitSlop,
+  children,
+}: PressableWrapperProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      disabled={disabled}
+      hitSlop={hitSlop}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      style={pressedStyle ? ({ pressed }) => [pressed && pressedStyle] : undefined}
+    >
+      {children}
+    </Pressable>
+  );
+});
 
-  const [svg, setSvg] = useState<string | null>(null);
-  const [state, setState] = useState<IconLoadingState>('idle');
-  const [showFallback, setShowFallback] = useState(false);
-  const [wasCacheHit, setWasCacheHit] = useState(false);
-  const mountedRef = useRef(true);
-  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const isLoadingRef = useRef(false);
+// ---------------------------------------------------------------------------
+// MIN_TOUCH_TARGET for automatic hitSlop
+// ---------------------------------------------------------------------------
 
-  // Fade-in animation value
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+const MIN_TOUCH_TARGET = 44;
 
-  // Calculate dimensions
-  const iconWidth = propWidth ?? size;
-  const iconHeight = propHeight ?? size;
+// ---------------------------------------------------------------------------
+// IconRenderer component
+// ---------------------------------------------------------------------------
 
-  // Animation hook
-  const { animatedStyle, hasAnimation } = useIconAnimation({
-    animation: animate,
-    duration: animationDuration,
-    loop: animationLoop,
-    easing: animationEasing,
-    delay: animationDelay,
-    autoPlay,
-    onComplete: onAnimationComplete,
-  });
+export const IconRenderer = React.memo(
+  React.forwardRef<View, IconRendererProps>(function IconRenderer(
+    {
+      iconName,
+      size = 24,
+      color = '#000000',
+      width: propWidth,
+      height: propHeight,
+      style,
+      className,
+      rotate = 0,
+      flip,
+      fallback,
+      fallbackDelay = 0,
+      placeholder,
+      placeholderColor,
+      placeholderDuration,
+      onLoad,
+      onError,
+      accessibilityLabel,
+      testID,
+      // Press props
+      onPress,
+      onLongPress,
+      onPressIn,
+      onPressOut,
+      disabled,
+      pressedStyle,
+      // Animation props
+      animate,
+      animationDuration,
+      animationLoop,
+      animationEasing,
+      animationDelay,
+      autoPlay = true,
+      onAnimationComplete,
+    },
+    ref
+  ) {
+    // Resolve defaults from config
+    const defaultsConfig = ConfigManager.getDefaultsConfig();
+    const effectivePlaceholder =
+      placeholder !== undefined
+        ? placeholder
+        : defaultsConfig.placeholder !== false
+          ? defaultsConfig.placeholder
+          : undefined;
+    const fadeIn = defaultsConfig.fadeIn;
+    const fadeInDuration = defaultsConfig.fadeInDuration;
 
-  // Load icon
-  const loadIcon = useCallback(async () => {
-    if (!iconName) return;
+    // State machine
+    const [state, dispatch] = useReducer(iconReducer, initialState);
 
-    // Cancel any previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
+    // Refs for callback stability (these never invalidate loadIcon)
+    const mountedRef = useRef(true);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const onLoadRef = useRef(onLoad);
+    const onErrorRef = useRef(onError);
+    const fallbackRef = useRef(fallback);
+    const effectivePlaceholderRef = useRef(effectivePlaceholder);
 
-    // 1. Check cache first (synchronous)
-    const cached = CacheManager.get(iconName);
-    if (cached) {
-      if (mountedRef.current) {
-        setSvg(cached);
-        setState('loaded');
-        setWasCacheHit(true);
-        isLoadingRef.current = false;
-        fadeAnim.setValue(1); // No fade for cache hits
-        onLoad?.();
-      }
-      return;
-    }
+    // Keep refs up to date
+    onLoadRef.current = onLoad;
+    onErrorRef.current = onError;
+    fallbackRef.current = fallback;
+    effectivePlaceholderRef.current = effectivePlaceholder;
 
-    // 2. Set loading state and start fallback timer
-    setState('loading');
-    isLoadingRef.current = true;
-    setWasCacheHit(false);
+    // Fade-in animation value
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    if (fallbackDelay > 0) {
-      fallbackTimerRef.current = setTimeout(() => {
-        if (mountedRef.current && isLoadingRef.current) {
-          setShowFallback(true);
-        }
-      }, fallbackDelay);
-    } else if (fallback || effectivePlaceholder !== undefined) {
-      setShowFallback(true);
-    }
+    // Calculate dimensions
+    const iconWidth = propWidth ?? size;
+    const iconHeight = propHeight ?? size;
 
-    // 3. Fetch from network
-    try {
-      const fetchedSvg = await fetchIcon(iconName, abortControllerRef.current.signal);
+    // Auto hitSlop for accessibility (44dp minimum touch target)
+    const hitSlop = useMemo(
+      () => Math.max(0, (MIN_TOUCH_TARGET - Math.min(iconWidth, iconHeight)) / 2),
+      [iconWidth, iconHeight]
+    );
 
-      if (mountedRef.current) {
-        CacheManager.set(iconName, fetchedSvg);
+    // Accessibility context (optional — works without AccessibilityProvider)
+    const a11y = useAccessibility();
+    const reduceMotion = a11y?.shouldDisableAnimations() ?? false;
 
-        setSvg(fetchedSvg);
-        setState('loaded');
-        isLoadingRef.current = false;
-        setShowFallback(false);
+    // Auto-generate accessibility label from icon name when not provided
+    const resolvedA11yLabel = accessibilityLabel ?? a11y?.getLabel(iconName);
 
-        // Fade-in for non-cached icons
-        if (fadeIn) {
-          fadeAnim.setValue(0);
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: fadeInDuration,
-            useNativeDriver: true,
-          }).start();
-        } else {
-          fadeAnim.setValue(1);
-        }
+    // Animation hook — disabled when user prefers reduced motion
+    const { animatedStyle, hasAnimation } = useIconAnimation({
+      animation: reduceMotion ? undefined : animate,
+      duration: animationDuration,
+      loop: animationLoop,
+      easing: animationEasing,
+      delay: animationDelay,
+      autoPlay,
+      onComplete: onAnimationComplete,
+    });
 
-        onLoad?.();
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return;
-      }
-      if (mountedRef.current) {
-        setState('error');
-        isLoadingRef.current = false;
-        onError?.(error instanceof Error ? error : new Error(String(error)));
-      }
-    }
-  }, [iconName, fallback, fallbackDelay, onLoad, onError, effectivePlaceholder, fadeIn, fadeInDuration, fadeAnim]);
+    // ------------------------------------------------------------------
+    // loadIcon — deps are only [iconName, fadeIn, fadeInDuration, fadeAnim]
+    // Callbacks and fallback are read from refs → never invalidate this
+    // ------------------------------------------------------------------
+    const loadIcon = useCallback(() => {
+      if (!iconName) return;
 
-  // Effect to load icon
-  useEffect(() => {
-    mountedRef.current = true;
-    loadIcon();
-
-    return () => {
-      mountedRef.current = false;
-      isLoadingRef.current = false;
-      if (fallbackTimerRef.current) {
-        clearTimeout(fallbackTimerRef.current);
-      }
-      // Abort any in-flight requests on unmount
+      // Cancel any previous request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      abortControllerRef.current = new AbortController();
+
+      // Clear previous fallback timer
+      if (fallbackTimerRef.current) {
+        clearTimeout(fallbackTimerRef.current);
+        fallbackTimerRef.current = null;
+      }
+
+      // 1. Check cache first (synchronous)
+      const cached = CacheManager.get(iconName);
+      if (cached) {
+        dispatch({ type: 'CACHE_HIT', svg: cached });
+        fadeAnim.setValue(1); // No fade for cache hits
+        onLoadRef.current?.();
+        return;
+      }
+
+      // 2. Set loading state
+      dispatch({ type: 'FETCH_START' });
+
+      // 3. Start fallback timer or show immediately
+      if (fallbackDelay > 0) {
+        fallbackTimerRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            dispatch({ type: 'SHOW_FALLBACK' });
+          }
+        }, fallbackDelay);
+      } else if (fallbackRef.current || effectivePlaceholderRef.current !== undefined) {
+        dispatch({ type: 'SHOW_FALLBACK' });
+      }
+
+      // 4. Fetch from network (async, fire-and-forget from useCallback's perspective)
+      const controller = abortControllerRef.current;
+      fetchIcon(iconName, controller.signal)
+        .then((fetchedSvg) => {
+          if (!mountedRef.current) return;
+
+          CacheManager.set(iconName, fetchedSvg);
+          dispatch({ type: 'FETCH_SUCCESS', svg: fetchedSvg });
+
+          // Fade-in for non-cached icons
+          if (fadeIn) {
+            fadeAnim.setValue(0);
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: fadeInDuration,
+              useNativeDriver: true,
+            }).start();
+          } else {
+            fadeAnim.setValue(1);
+          }
+
+          onLoadRef.current?.();
+        })
+        .catch((error) => {
+          if (error instanceof Error && error.name === 'AbortError') {
+            return;
+          }
+          if (!mountedRef.current) return;
+
+          const typedError =
+            error instanceof IconLoadError
+              ? error
+              : error instanceof Error
+                ? error
+                : new IconLoadError('NETWORK', String(error));
+
+          dispatch({ type: 'FETCH_ERROR', error: typedError });
+          onErrorRef.current?.(typedError);
+        });
+    }, [iconName, fallbackDelay, fadeIn, fadeInDuration, fadeAnim]);
+
+    // Effect to load icon
+    useEffect(() => {
+      mountedRef.current = true;
+      dispatch({ type: 'RESET' });
+      loadIcon();
+
+      return () => {
+        mountedRef.current = false;
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+        }
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+      };
+    }, [loadIcon]);
+
+    // Memoize transform style calculation
+    const transformStyle = useMemo(() => {
+      const transforms: Array<{ rotate: string } | { scaleX: number } | { scaleY: number }> = [];
+
+      if (rotate !== 0) {
+        transforms.push({ rotate: `${rotate}deg` });
+      }
+
+      if (flip === 'horizontal' || flip === 'both') {
+        transforms.push({ scaleX: -1 });
+      }
+
+      if (flip === 'vertical' || flip === 'both') {
+        transforms.push({ scaleY: -1 });
+      }
+
+      return transforms.length > 0 ? transforms : undefined;
+    }, [rotate, flip]);
+
+    // Determine rendering flags
+    const shouldShowPlaceholder =
+      (state.status === 'loading' && state.showFallback) || state.status === 'error';
+    const useFadeIn = fadeIn && !state.wasCacheHit && state.status === 'loaded' && !hasAnimation;
+    const isPressable = !!(onPress || onLongPress);
+
+    // NativeWind className support
+    const nativeWindProps = className ? { className } : {};
+
+    // ------------------------------------------------------------------
+    // Helper: wrap content with PressableWrapper if interactive
+    // ------------------------------------------------------------------
+    const wrapContent = (content: React.ReactNode) => {
+      if (!isPressable) return content;
+      return (
+        <PressableWrapper
+          onPress={onPress}
+          onLongPress={onLongPress}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
+          disabled={disabled}
+          pressedStyle={pressedStyle as ViewStyle}
+          hitSlop={hitSlop}
+        >
+          {content}
+        </PressableWrapper>
+      );
     };
-  }, [loadIcon]);
 
-  // Memoize transform style calculation
-  const transformStyle = useMemo(() => {
-    const transforms: Array<{ rotate: string } | { scaleX: number } | { scaleY: number }> = [];
+    // ------------------------------------------------------------------
+    // Render: placeholder / fallback during loading or error
+    // ------------------------------------------------------------------
+    if (shouldShowPlaceholder) {
+      if (effectivePlaceholder !== undefined) {
+        return wrapContent(
+          <View
+            ref={ref}
+            style={[{ width: iconWidth, height: iconHeight }, style]}
+            accessibilityLabel={resolvedA11yLabel}
+            accessibilityRole="image"
+            testID={testID}
+            {...nativeWindProps}
+          >
+            <PlaceholderFactory
+              type={effectivePlaceholder}
+              width={iconWidth}
+              height={iconHeight}
+              color={placeholderColor}
+              duration={placeholderDuration}
+            />
+          </View>
+        );
+      }
 
-    if (rotate !== 0) {
-      transforms.push({ rotate: `${rotate}deg` });
-    }
+      if (fallback) {
+        return wrapContent(
+          <View
+            ref={ref}
+            style={[{ width: iconWidth, height: iconHeight }, style]}
+            accessibilityLabel={resolvedA11yLabel}
+            accessibilityRole="image"
+            testID={testID}
+            {...nativeWindProps}
+          >
+            {fallback}
+          </View>
+        );
+      }
 
-    if (flip === 'horizontal' || flip === 'both') {
-      transforms.push({ scaleX: -1 });
-    }
-
-    if (flip === 'vertical' || flip === 'both') {
-      transforms.push({ scaleY: -1 });
-    }
-
-    return transforms.length > 0 ? transforms : undefined;
-  }, [rotate, flip]);
-
-  // Memoize colorized SVG to avoid recalculating on every render
-  const colorizedSvg = useMemo(() => {
-    if (!svg) return null;
-    const safeColor = escapeXmlAttribute(color);
-    return svg.replace(/currentColor/g, safeColor).replace(/<svg/, `<svg fill="${safeColor}"`);
-  }, [svg, color]);
-
-  // Determine if we should show placeholder/fallback
-  const shouldShowPlaceholder = (state === 'loading' && showFallback) || state === 'error';
-
-  // Whether to use fade-in wrapper (only for non-cached, non-animated icons)
-  const useFadeIn = fadeIn && !wasCacheHit && state === 'loaded' && !hasAnimation;
-
-  // Check if icon should be pressable
-  const isPressable = !!(onPress || onLongPress);
-
-  // NativeWind className support - conditional spread to avoid TS errors
-  const nativeWindProps = className ? { className } : {};
-
-  /**
-   * Wraps content with Pressable if onPress/onLongPress is provided
-   */
-  const wrapWithPressable = (content: React.ReactNode) => {
-    if (!isPressable) return content;
-
-    return (
-      <Pressable
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        disabled={disabled}
-        accessibilityRole="button"
-        accessibilityState={{ disabled }}
-        style={({ pressed }) => [pressed && pressedStyle]}
-      >
-        {content}
-      </Pressable>
-    );
-  };
-
-  // Render placeholder or fallback during loading/error
-  if (shouldShowPlaceholder) {
-    // Priority: effectivePlaceholder (includes config default) > fallback
-    if (effectivePlaceholder !== undefined) {
-      return wrapWithPressable(
+      return wrapContent(
         <View
+          ref={ref}
           style={[{ width: iconWidth, height: iconHeight }, style]}
-          accessibilityLabel={accessibilityLabel}
+          accessibilityLabel={resolvedA11yLabel}
+          accessibilityRole="image"
+          testID={testID}
+          {...nativeWindProps}
+        />
+      );
+    }
+
+    // ------------------------------------------------------------------
+    // Render: loaded SVG
+    // Uses SvgXml's native `color` prop instead of regex replacement.
+    // This preserves multi-color icons (color only replaces currentColor).
+    // ------------------------------------------------------------------
+    if (state.svg) {
+      const svgElement = (
+        <SvgXml xml={state.svg} width={iconWidth} height={iconHeight} color={color} />
+      );
+
+      // With animation
+      if (hasAnimation) {
+        return wrapContent(
+          <Animated.View
+            ref={ref as React.Ref<Animated.LegacyRef<View>>}
+            style={[
+              styles.container,
+              {
+                width: iconWidth,
+                height: iconHeight,
+                transform: transformStyle,
+              },
+              style,
+              animatedStyle,
+            ]}
+            accessibilityLabel={resolvedA11yLabel}
+            accessibilityRole="image"
+            testID={testID}
+            {...nativeWindProps}
+          >
+            {svgElement}
+          </Animated.View>
+        );
+      }
+
+      // With fade-in (non-cached network fetch)
+      if (useFadeIn) {
+        return wrapContent(
+          <Animated.View
+            ref={ref as React.Ref<Animated.LegacyRef<View>>}
+            style={[
+              styles.container,
+              {
+                width: iconWidth,
+                height: iconHeight,
+                transform: transformStyle,
+                opacity: fadeAnim,
+              },
+              style,
+            ]}
+            accessibilityLabel={resolvedA11yLabel}
+            accessibilityRole="image"
+            testID={testID}
+            {...nativeWindProps}
+          >
+            {svgElement}
+          </Animated.View>
+        );
+      }
+
+      // Static render (cache hit or fade disabled)
+      return wrapContent(
+        <View
+          ref={ref}
+          style={[
+            styles.container,
+            {
+              width: iconWidth,
+              height: iconHeight,
+              transform: transformStyle,
+            },
+            style,
+          ]}
+          accessibilityLabel={resolvedA11yLabel}
+          accessibilityRole="image"
+          testID={testID}
+          {...nativeWindProps}
+        >
+          {svgElement}
+        </View>
+      );
+    }
+
+    // ------------------------------------------------------------------
+    // Render: initial loading (before fallback delay)
+    // ------------------------------------------------------------------
+    if (effectivePlaceholder !== undefined && state.status === 'loading') {
+      return wrapContent(
+        <View
+          ref={ref}
+          style={[{ width: iconWidth, height: iconHeight }, style]}
+          accessibilityLabel={resolvedA11yLabel}
+          accessibilityRole="image"
           testID={testID}
           {...nativeWindProps}
         >
@@ -273,119 +553,19 @@ export function IconRenderer({
       );
     }
 
-    // Fallback for backwards compatibility (deprecated)
-    if (fallback) {
-      return wrapWithPressable(
-        <View
-          style={[{ width: iconWidth, height: iconHeight }, style]}
-          accessibilityLabel={accessibilityLabel}
-          testID={testID}
-          {...nativeWindProps}
-        >
-          {fallback}
-        </View>
-      );
-    }
-
-    // Return empty view if no placeholder/fallback
-    return wrapWithPressable(
+    // Empty view while loading
+    return wrapContent(
       <View
+        ref={ref}
         style={[{ width: iconWidth, height: iconHeight }, style]}
-        accessibilityLabel={accessibilityLabel}
+        accessibilityLabel={resolvedA11yLabel}
+        accessibilityRole="image"
         testID={testID}
         {...nativeWindProps}
       />
     );
-  }
-
-  // Render icon
-  if (colorizedSvg) {
-    // Render with animation wrapper if animation is enabled
-    if (hasAnimation) {
-      return wrapWithPressable(
-        <Animated.View
-          style={[
-            styles.container,
-            { width: iconWidth, height: iconHeight, transform: transformStyle },
-            style,
-            animatedStyle,
-          ]}
-          accessibilityLabel={accessibilityLabel}
-          accessibilityRole="image"
-          testID={testID}
-          {...nativeWindProps}
-        >
-          <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
-        </Animated.View>
-      );
-    }
-
-    // Render without animation (with optional fade-in)
-    if (useFadeIn) {
-      return wrapWithPressable(
-        <Animated.View
-          style={[
-            styles.container,
-            { width: iconWidth, height: iconHeight, transform: transformStyle, opacity: fadeAnim },
-            style,
-          ]}
-          accessibilityLabel={accessibilityLabel}
-          accessibilityRole="image"
-          testID={testID}
-          {...nativeWindProps}
-        >
-          <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
-        </Animated.View>
-      );
-    }
-
-    return wrapWithPressable(
-      <View
-        style={[
-          styles.container,
-          { width: iconWidth, height: iconHeight, transform: transformStyle },
-          style,
-        ]}
-        accessibilityLabel={accessibilityLabel}
-        accessibilityRole="image"
-        testID={testID}
-        {...nativeWindProps}
-      >
-        <SvgXml xml={colorizedSvg} width={iconWidth} height={iconHeight} />
-      </View>
-    );
-  }
-
-  // Show placeholder immediately if set (no delay), otherwise empty view
-  if (effectivePlaceholder !== undefined && state === 'loading') {
-    return wrapWithPressable(
-      <View
-        style={[{ width: iconWidth, height: iconHeight }, style]}
-        accessibilityLabel={accessibilityLabel}
-        testID={testID}
-        {...nativeWindProps}
-      >
-        <PlaceholderFactory
-          type={effectivePlaceholder}
-          width={iconWidth}
-          height={iconHeight}
-          color={placeholderColor}
-          duration={placeholderDuration}
-        />
-      </View>
-    );
-  }
-
-  // Return empty view while loading (before fallback delay)
-  return wrapWithPressable(
-    <View
-      style={[{ width: iconWidth, height: iconHeight }, style]}
-      accessibilityLabel={accessibilityLabel}
-      testID={testID}
-      {...nativeWindProps}
-    />
-  );
-}
+  })
+);
 
 const styles = StyleSheet.create({
   container: {

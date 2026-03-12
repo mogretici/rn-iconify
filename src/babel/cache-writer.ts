@@ -303,9 +303,7 @@ export function writeBundleToFile(bundle: IconBundle, outputPath: string, verbos
  * Resolve the bundle directory path
  */
 export function resolveBundleDir(outputPath: string, projectRoot: string): string {
-  return path.isAbsolute(outputPath)
-    ? outputPath
-    : path.join(projectRoot, outputPath);
+  return path.isAbsolute(outputPath) ? outputPath : path.join(projectRoot, outputPath);
 }
 
 /**
@@ -345,9 +343,15 @@ export async function generateBundle(
     }
 
     // Fetch only new icons
-    const newBundle = newIconNames.length > 0
-      ? await fetchAndCreateBundle(newIconNames, options)
-      : { version: '1.0.0', generatedAt: new Date().toISOString(), icons: {}, count: 0 } as IconBundle;
+    const newBundle =
+      newIconNames.length > 0
+        ? await fetchAndCreateBundle(newIconNames, options)
+        : ({
+            version: '1.0.0',
+            generatedAt: new Date().toISOString(),
+            icons: {},
+            count: 0,
+          } as IconBundle);
 
     // Merge with existing bundle
     const mergedIcons = {

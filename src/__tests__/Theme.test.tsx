@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { render, renderHook } from '@testing-library/react-native';
+import { render, renderHook, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import {
   IconThemeProvider,
@@ -332,6 +332,211 @@ describe('Theme System', () => {
       );
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('setTheme with updater function', () => {
+    it('accepts an updater function that receives current theme', () => {
+      let capturedTheme: IconTheme = {} as IconTheme;
+
+      function Consumer() {
+        const { theme, setTheme } = React.useContext(IconThemeContext);
+        capturedTheme = theme;
+        return (
+          <Text
+            testID="trigger"
+            onPress={() => setTheme((prev) => ({ ...prev, size: (prev.size ?? 24) + 8 }))}
+          >
+            Theme
+          </Text>
+        );
+      }
+
+      const { getByTestId } = render(
+        <IconThemeProvider theme={{ size: 24 }}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      expect(capturedTheme.size).toBe(24);
+
+      act(() => {
+        getByTestId('trigger').props.onPress();
+      });
+
+      expect(capturedTheme.size).toBe(32);
+    });
+
+    it('updater function receives override theme when one exists', () => {
+      let capturedTheme: IconTheme = {} as IconTheme;
+
+      function Consumer() {
+        const { theme, setTheme } = React.useContext(IconThemeContext);
+        capturedTheme = theme;
+        return (
+          <>
+            <Text testID="set-direct" onPress={() => setTheme({ size: 40 })}>
+              Direct
+            </Text>
+            <Text
+              testID="set-updater"
+              onPress={() => setTheme((prev) => ({ ...prev, size: (prev.size ?? 24) + 10 }))}
+            >
+              Updater
+            </Text>
+          </>
+        );
+      }
+
+      const { getByTestId } = render(
+        <IconThemeProvider theme={{ size: 24 }}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      // First, set a direct override
+      act(() => {
+        getByTestId('set-direct').props.onPress();
+      });
+      expect(capturedTheme.size).toBe(40);
+
+      // Now use updater - it should receive the override (40), not external (24)
+      act(() => {
+        getByTestId('set-updater').props.onPress();
+      });
+      expect(capturedTheme.size).toBe(50);
+    });
+
+    it('setTheme with direct value object works via provider', () => {
+      let capturedTheme: IconTheme = {} as IconTheme;
+
+      function Consumer() {
+        const { theme, setTheme } = React.useContext(IconThemeContext);
+        capturedTheme = theme;
+        return (
+          <Text testID="trigger" onPress={() => setTheme({ size: 48, color: 'green' })}>
+            Theme
+          </Text>
+        );
+      }
+
+      const { getByTestId } = render(
+        <IconThemeProvider theme={{ size: 24 }}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      expect(capturedTheme.size).toBe(24);
+
+      act(() => {
+        getByTestId('trigger').props.onPress();
+      });
+
+      expect(capturedTheme.size).toBe(48);
+      expect(capturedTheme.color).toBe('green');
+    });
+  });
+
+  describe('External theme change clearing override', () => {
+    it('clears override when external theme prop changes', () => {
+      let capturedTheme: IconTheme = {} as IconTheme;
+
+      function Consumer() {
+        const { theme, setTheme } = React.useContext(IconThemeContext);
+        capturedTheme = theme;
+        return (
+          <Text testID="trigger" onPress={() => setTheme({ size: 99 })}>
+            Theme
+          </Text>
+        );
+      }
+
+      const { getByTestId, rerender } = render(
+        <IconThemeProvider theme={{ size: 24, color: 'blue' }}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      // Set an override via setTheme
+      act(() => {
+        getByTestId('trigger').props.onPress();
+      });
+      expect(capturedTheme.size).toBe(99);
+
+      // Change the external theme prop - this should clear the override
+      rerender(
+        <IconThemeProvider theme={{ size: 36, color: 'red' }}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      // Override should be cleared, so theme should reflect the new external theme
+      expect(capturedTheme.size).toBe(36);
+      expect(capturedTheme.color).toBe('red');
+    });
+
+    it('handles external theme change when no override is set', () => {
+      let capturedTheme: IconTheme = {} as IconTheme;
+
+      function Consumer() {
+        const { theme } = React.useContext(IconThemeContext);
+        capturedTheme = theme;
+        return null;
+      }
+
+      const { rerender } = render(
+        <IconThemeProvider theme={{ size: 24 }}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      expect(capturedTheme.size).toBe(24);
+
+      // Change external theme without ever calling setTheme
+      // This exercises the branch where overrideTheme is null
+      rerender(
+        <IconThemeProvider theme={{ size: 36 }}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      expect(capturedTheme.size).toBe(36);
+    });
+
+    it('does not clear override when external theme prop stays the same', () => {
+      let capturedTheme: IconTheme = {} as IconTheme;
+      const stableTheme = { size: 24, color: 'blue' };
+
+      function Consumer() {
+        const { theme, setTheme } = React.useContext(IconThemeContext);
+        capturedTheme = theme;
+        return (
+          <Text testID="trigger" onPress={() => setTheme({ size: 99 })}>
+            Theme
+          </Text>
+        );
+      }
+
+      const { getByTestId, rerender } = render(
+        <IconThemeProvider theme={stableTheme}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      // Set an override
+      act(() => {
+        getByTestId('trigger').props.onPress();
+      });
+      expect(capturedTheme.size).toBe(99);
+
+      // Re-render with the same theme object reference - override should persist
+      rerender(
+        <IconThemeProvider theme={stableTheme}>
+          <Consumer />
+        </IconThemeProvider>
+      );
+
+      expect(capturedTheme.size).toBe(99);
     });
   });
 });

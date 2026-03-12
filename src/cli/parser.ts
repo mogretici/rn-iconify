@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { IconUsage, AnalysisResult } from './types';
+import { COMPONENT_PREFIX_MAP } from '../babel/types';
 
 /**
  * File extensions to analyze
@@ -27,32 +28,6 @@ const PATTERNS = {
 
   // String icon names in arrays or objects: 'mdi:home' or "mdi:home"
   iconString: /['"](\w+:[^'"]+)['"]/g,
-};
-
-/**
- * Map of component names to icon prefixes
- */
-const COMPONENT_PREFIX_MAP: Record<string, string> = {
-  Mdi: 'mdi',
-  MdiLight: 'mdi-light',
-  Heroicons: 'heroicons',
-  Lucide: 'lucide',
-  Ph: 'ph',
-  Feather: 'feather',
-  Tabler: 'tabler',
-  Bi: 'bi',
-  Fa6Solid: 'fa6-solid',
-  Fa6Regular: 'fa6-regular',
-  Fa6Brands: 'fa6-brands',
-  Fa7Solid: 'fa7-solid',
-  Ri: 'ri',
-  Carbon: 'carbon',
-  Fluent: 'fluent',
-  MaterialSymbols: 'material-symbols',
-  Solar: 'solar',
-  Ion: 'ion',
-  AntDesign: 'ant-design',
-  // Add more mappings as needed
 };
 
 /**

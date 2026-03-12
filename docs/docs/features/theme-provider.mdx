@@ -40,7 +40,7 @@ function App() {
 | `placeholder` | `ReactNode \| 'shimmer' \| 'pulse' \| 'skeleton'` | - | Default placeholder while loading |
 | `placeholderColor` | `string` | `'#E1E1E1'` | Placeholder background color |
 | `placeholderDuration` | `number` | `1000` | Placeholder animation duration (ms) |
-| `rotate` | `0 \| 90 \| 180 \| 270` | `0` | Default rotation for all icons |
+| `rotate` | `number` | `0` | Default rotation for all icons (any degree value) |
 | `flip` | `'horizontal' \| 'vertical' \| 'both'` | - | Default flip direction |
 | `fallbackDelay` | `number` | `0` | Delay before showing fallback (ms) |
 
@@ -64,6 +64,10 @@ function App() {
   );
 }
 ```
+
+:::tip v3.0 Improvement
+The theme provider was rewritten in v3.0 to use `useMemo` instead of `useState` + `useEffect`. Inline theme objects like `theme={{ size: 20 }}` no longer cause infinite re-render loops. You can safely remove any `useMemo` workarounds you may have added.
+:::
 
 ## Override Theme Values
 

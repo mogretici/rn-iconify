@@ -36,7 +36,7 @@ function MyComponent() {
 | `name` | `string` | **required** | Icon name (with autocomplete) |
 | `size` | `number` | `24` | Icon width and height |
 | `color` | `string` | `'#000000'` | Icon color |
-| `rotate` | `0 \| 90 \| 180 \| 270` | `0` | Rotation angle |
+| `rotate` | `number` | `0` | Rotation angle in degrees (any value accepted) |
 | `flip` | `'horizontal' \| 'vertical' \| 'both'` | - | Flip direction |
 | `style` | `ViewStyle` | - | Additional styles |
 
@@ -108,6 +108,10 @@ import { Mdi } from 'rn-iconify';
 <Mdi name="arrow-right" flip="vertical" />    // Mirror vertically
 <Mdi name="arrow-right" flip="both" />        // Mirror both
 ```
+
+:::tip
+The `rotate` prop accepts any degree value, not just multiples of 90. For example, `rotate={45}` produces a 45-degree diagonal rotation.
+:::
 
 ## Loading States
 

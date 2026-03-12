@@ -4,9 +4,10 @@ import type { PlaceholderType } from '../placeholder/types';
 import type { AnimationType, AnimationEasing } from '../animated/types';
 
 /**
- * Icon transformation rotation values
+ * Icon transformation rotation values (degrees)
+ * Accepts any number for arbitrary rotation angles
  */
-export type IconRotation = 0 | 90 | 180 | 270;
+export type IconRotation = number;
 
 /**
  * Icon flip direction

@@ -4,9 +4,9 @@
  */
 
 import React from 'react';
+import { type View } from 'react-native';
 import { IconRenderer } from '../IconRenderer';
-import { useIconTheme } from '../theme';
-import { DEFAULT_ICON_THEME } from '../theme/types';
+import { useMergedIconProps } from '../theme';
 import { IconAliasProvider as BaseProvider } from './IconAliasContext';
 import type {
   IconAliasMap,
@@ -122,67 +122,29 @@ export function createIconAliases<T extends IconAliasMap>(
 
   /**
    * Type-safe Icon component with alias support
+   * Uses rest spread to forward ALL props (press, animation, className, etc.)
    */
-  function TypedIcon({
-    name,
-    size,
-    color,
-    width,
-    height,
-    style,
-    rotate,
-    flip,
-    fallback,
-    fallbackDelay,
-    placeholder,
-    placeholderColor,
-    placeholderDuration,
-    onLoad,
-    onError,
-    accessibilityLabel,
-    testID,
-  }: GenericIconProps<AliasName<T>>) {
-    // Get theme defaults
-    const { theme } = useIconTheme();
+  const TypedIcon = React.memo(
+    React.forwardRef<View, GenericIconProps<AliasName<T>>>(function TypedIcon(
+      { name, accessibilityLabel, ...restProps },
+      ref
+    ) {
+      // Resolve the icon name
+      const resolvedName = resolve(name);
 
-    // Resolve the icon name
-    const resolvedName = resolve(name);
+      // Merge with theme defaults (memoized internally)
+      const mergedProps = useMergedIconProps(restProps);
 
-    // Merge props with theme defaults
-    const mergedSize = size ?? theme.size ?? DEFAULT_ICON_THEME.size;
-    const mergedColor = color ?? theme.color ?? DEFAULT_ICON_THEME.color;
-    const mergedRotate = rotate ?? theme.rotate ?? DEFAULT_ICON_THEME.rotate;
-    const mergedFlip = flip ?? theme.flip;
-    const mergedFallbackDelay =
-      fallbackDelay ?? theme.fallbackDelay ?? DEFAULT_ICON_THEME.fallbackDelay;
-    const mergedPlaceholder = placeholder ?? theme.placeholder;
-    const mergedPlaceholderColor =
-      placeholderColor ?? theme.placeholderColor ?? DEFAULT_ICON_THEME.placeholderColor;
-    const mergedPlaceholderDuration =
-      placeholderDuration ?? theme.placeholderDuration ?? DEFAULT_ICON_THEME.placeholderDuration;
-
-    return (
-      <IconRenderer
-        iconName={resolvedName}
-        size={mergedSize}
-        color={mergedColor}
-        width={width}
-        height={height}
-        style={style}
-        rotate={mergedRotate}
-        flip={mergedFlip}
-        fallback={fallback}
-        fallbackDelay={mergedFallbackDelay}
-        placeholder={mergedPlaceholder}
-        placeholderColor={mergedPlaceholderColor}
-        placeholderDuration={mergedPlaceholderDuration}
-        onLoad={onLoad}
-        onError={onError}
-        accessibilityLabel={accessibilityLabel ?? name}
-        testID={testID}
-      />
-    );
-  }
+      return (
+        <IconRenderer
+          ref={ref}
+          iconName={resolvedName}
+          accessibilityLabel={accessibilityLabel ?? name}
+          {...mergedProps}
+        />
+      );
+    })
+  );
 
   TypedIcon.displayName = 'TypedIcon';
 

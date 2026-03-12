@@ -1,15 +1,12 @@
 /**
- * Simple in-memory cache for icon SVG data
- * Provides instant synchronous access to recently used icons
+ * LRU in-memory cache for icon SVG data
+ * Uses Map insertion-order trick for O(1) eviction:
+ * - get() deletes and re-inserts to move entry to tail
+ * - eviction removes from head (oldest) in O(1)
  */
 
-interface CacheEntry {
-  svg: string;
-  timestamp: number;
-}
-
 class MemoryCacheImpl {
-  private cache = new Map<string, CacheEntry>();
+  private cache = new Map<string, string>();
   private maxSize: number;
 
   constructor(maxSize = 500) {
@@ -18,31 +15,36 @@ class MemoryCacheImpl {
 
   /**
    * Get icon SVG from memory cache
+   * Moves the entry to the tail (most recently used)
    * @returns SVG string or null if not cached
    */
   get(iconName: string): string | null {
-    const entry = this.cache.get(iconName);
-    if (entry) {
-      // Update timestamp for LRU
-      entry.timestamp = Date.now();
-      return entry.svg;
+    const svg = this.cache.get(iconName);
+    if (svg !== undefined) {
+      // Move to tail by delete + re-insert (Map preserves insertion order)
+      this.cache.delete(iconName);
+      this.cache.set(iconName, svg);
+      return svg;
     }
     return null;
   }
 
   /**
    * Store icon SVG in memory cache
+   * Evicts oldest entries if cache is at capacity
    */
   set(iconName: string, svg: string): void {
+    // If key already exists, delete first to refresh position
+    if (this.cache.has(iconName)) {
+      this.cache.delete(iconName);
+    }
+
     // Evict oldest entries if cache is full
     if (this.cache.size >= this.maxSize) {
       this.evictOldest();
     }
 
-    this.cache.set(iconName, {
-      svg,
-      timestamp: Date.now(),
-    });
+    this.cache.set(iconName, svg);
   }
 
   /**
@@ -81,22 +83,17 @@ class MemoryCacheImpl {
   }
 
   /**
-   * Evict the oldest entries to make room for new ones
+   * Evict the oldest 20% of entries
+   * O(1) per removal using Map's insertion order (head = oldest)
    */
   private evictOldest(): void {
-    // Remove 20% of oldest entries
     const entriesToRemove = Math.ceil(this.maxSize * 0.2);
-    const entries = Array.from(this.cache.entries());
+    let removed = 0;
 
-    // Sort by timestamp (oldest first)
-    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-
-    // Remove oldest entries
-    for (let i = 0; i < entriesToRemove && i < entries.length; i++) {
-      const entry = entries[i];
-      if (entry) {
-        this.cache.delete(entry[0]);
-      }
+    for (const key of this.cache.keys()) {
+      if (removed >= entriesToRemove) break;
+      this.cache.delete(key);
+      removed++;
     }
   }
 }

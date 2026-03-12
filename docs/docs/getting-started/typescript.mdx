@@ -91,6 +91,25 @@ function Icon({ set, name, ...props }: IconProps) {
 <Icon set="heroicons" name="user" size={24} />
 ```
 
+## Tree-Shaking with Deep Imports
+
+Import only the icon sets you need for smaller bundles:
+
+```tsx
+// Instead of importing everything:
+import { Mdi, Heroicons } from 'rn-iconify';
+
+// Import individual sets:
+import { Mdi } from 'rn-iconify/icons/Mdi';
+import { Heroicons } from 'rn-iconify/icons/Heroicons';
+```
+
+This ensures your bundler only includes the icon set components you actually use. Type autocomplete works identically with deep imports.
+
+:::tip
+Deep imports are especially useful in monorepos or when you only use 1-2 icon sets. The main `rn-iconify` entry re-exports all 200+ sets, while deep imports give you just what you need.
+:::
+
 ## Why Per-Component Types?
 
 Unlike some icon libraries that use a single union type for all icons, rn-iconify uses per-component types:

@@ -1,17 +1,30 @@
 /**
  * Shimmer Placeholder Component
- * Animated gradient sweep effect while icon is loading
+ * Animated gradient-like sweep effect while icon is loading
+ *
+ * Uses 3 overlapping bars with staggered opacity to simulate a gradient,
+ * without requiring any external gradient library.
  */
 
-import React, { memo, useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef, useMemo } from 'react';
 import { Animated, StyleSheet, View, Easing } from 'react-native';
 import { DEFAULT_PLACEHOLDER_CONFIG } from './types';
 import type { PlaceholderProps } from './types';
 
 /**
- * Shimmer placeholder - animated light sweep effect
- * Provides prominent visual feedback during loading
- * Uses translateX animation for smooth performance
+ * Bar configuration for the gradient-like shimmer
+ * Each bar has a different width and opacity, staggered in time
+ */
+const SHIMMER_BARS = [
+  { widthFactor: 0.5, opacity: 0.15, delay: 0 },
+  { widthFactor: 0.35, opacity: 0.3, delay: 0.15 },
+  { widthFactor: 0.2, opacity: 0.5, delay: 0.3 },
+] as const;
+
+/**
+ * Shimmer placeholder - animated gradient-like sweep effect
+ * 3 overlapping bars create a soft gradient without native dependencies
+ * Uses translateX animation for smooth 60fps performance
  */
 function ShimmerComponent({
   width,
@@ -22,35 +35,50 @@ function ShimmerComponent({
   borderRadius = DEFAULT_PLACEHOLDER_CONFIG.borderRadius,
   testID,
 }: PlaceholderProps): React.ReactElement {
-  const translateX = useRef(new Animated.Value(-width)).current;
+  // One Animated.Value per bar for staggered animation
+  const bar0 = useRef(new Animated.Value(-width)).current;
+  const bar1 = useRef(new Animated.Value(-width)).current;
+  const bar2 = useRef(new Animated.Value(-width)).current;
+  const bars = useMemo(() => [bar0, bar1, bar2], [bar0, bar1, bar2]);
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
-    // Reset animation when width changes
-    translateX.setValue(-width);
+    // Reset all bars
+    for (const bar of bars) {
+      bar.setValue(-width);
+    }
 
-    // Create looping shimmer animation
-    animationRef.current = Animated.loop(
-      Animated.timing(translateX, {
-        toValue: width,
-        duration: duration,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
+    // Create staggered looping animations
+    const animations = SHIMMER_BARS.map((config, i) =>
+      Animated.loop(
+        Animated.sequence([
+          // Stagger delay
+          ...(config.delay > 0 ? [Animated.delay(duration * config.delay)] : []),
+          Animated.timing(bars[i], {
+            toValue: width,
+            duration: duration * (1 - config.delay),
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          // Reset for next loop iteration
+          Animated.timing(bars[i], {
+            toValue: -width,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ])
+      )
     );
 
+    animationRef.current = Animated.parallel(animations);
     animationRef.current.start();
 
     return () => {
-      // Clean up animation on unmount
       if (animationRef.current) {
         animationRef.current.stop();
       }
     };
-  }, [translateX, width, duration]);
-
-  // Calculate shimmer bar width (30% of container width)
-  const shimmerWidth = Math.max(width * 0.3, 20);
+  }, [bars, width, duration]);
 
   return (
     <View
@@ -68,17 +96,21 @@ function ShimmerComponent({
       accessibilityElementsHidden
       importantForAccessibility="no"
     >
-      <Animated.View
-        style={[
-          styles.shimmer,
-          {
-            width: shimmerWidth,
-            height,
-            backgroundColor: highlightColor,
-            transform: [{ translateX }],
-          },
-        ]}
-      />
+      {SHIMMER_BARS.map((config, i) => (
+        <Animated.View
+          key={i}
+          style={[
+            styles.shimmer,
+            {
+              width: Math.max(width * config.widthFactor, 12),
+              height,
+              backgroundColor: highlightColor,
+              opacity: config.opacity,
+              transform: [{ translateX: bars[i] }],
+            },
+          ]}
+        />
+      ))}
     </View>
   );
 }
@@ -92,7 +124,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    opacity: 0.5,
   },
 });
 

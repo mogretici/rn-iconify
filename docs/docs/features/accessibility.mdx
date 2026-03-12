@@ -8,6 +8,16 @@ keywords: [accessibility, a11y, screen-reader, voiceover, talkback]
 
 rn-iconify is built with accessibility in mind, providing features to make your icons usable by everyone.
 
+### Automatic Accessibility (v3.0)
+
+In v3.0, `IconRenderer` automatically:
+
+- Sets `accessibilityRole="image"` on every icon
+- Generates an accessibility label from the icon name (e.g., `mdi:home` → "home icon") when `AccessibilityProvider` is present
+- Disables animations when `shouldDisableAnimations()` returns `true` (respects system Reduce Motion preference)
+
+These features work out of the box — no manual code needed. The examples below show how to customize behavior beyond the defaults.
+
 ## Accessibility Labels
 
 Icons automatically generate accessibility labels based on icon names:
@@ -163,11 +173,11 @@ function ManualHighContrastIcon({ name, defaultColor }: { name: string; defaultC
 
   useEffect(() => {
     // Note: React Native doesn't have direct high contrast detection
-    // Use isGrayscaleEnabled or isInvertColorsEnabled as proxies
-    AccessibilityInfo.isGrayscaleEnabled().then(setHighContrast);
+    // Use isInvertColorsEnabled as a proxy
+    AccessibilityInfo.isInvertColorsEnabled().then(setHighContrast);
 
     const subscription = AccessibilityInfo.addEventListener(
-      'grayscaleChanged',
+      'invertColorsChanged',
       setHighContrast
     );
 

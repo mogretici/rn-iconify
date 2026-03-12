@@ -4,15 +4,35 @@
  * Command-line tools for icon bundling and analysis
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { bundleCommand } from './commands/bundle';
 import { analyzeCommand } from './commands/analyze';
 import { EXIT_CODES } from './types';
 import type { BundleOptions, AnalyzeOptions } from './types';
 
 /**
- * Package version
+ * Read version from package.json at build time
  */
-const VERSION = '1.0.0';
+function getPackageVersion(): string {
+  try {
+    // Walk up from this file to find package.json
+    let dir = __dirname;
+    for (let i = 0; i < 5; i++) {
+      const pkgPath = path.join(dir, 'package.json');
+      if (fs.existsSync(pkgPath)) {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        if (pkg.name === 'rn-iconify') return pkg.version;
+      }
+      dir = path.dirname(dir);
+    }
+  } catch {
+    // Fallback silently
+  }
+  return '0.0.0';
+}
+
+const VERSION = getPackageVersion();
 
 /**
  * Help text

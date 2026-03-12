@@ -10,7 +10,6 @@ const sidebars: SidebarsConfig = {
         'getting-started/installation',
         'getting-started/quick-start',
         'getting-started/typescript',
-        'changelog',
       ],
     },
     {
@@ -39,6 +38,7 @@ const sidebars: SidebarsConfig = {
         'advanced/offline-bundles',
         'advanced/architecture',
         'advanced/cache-management',
+        'advanced/native-module',
       ],
     },
     {

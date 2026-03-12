@@ -54,7 +54,7 @@ interface IconTheme {
   placeholderDuration?: number;
 
   /** Default rotation @default 0 */
-  rotate?: 0 | 90 | 180 | 270;
+  rotate?: number;
 
   /** Default flip direction */
   flip?: 'horizontal' | 'vertical' | 'both';
@@ -456,7 +456,7 @@ function AccessibleButton({ iconName, onPress, animated = false }) {
 Hook for Icon Explorer functionality (dev mode).
 
 ```tsx
-import { useExplorer } from 'rn-iconify';
+import { useExplorer } from 'rn-iconify/dev';
 
 function IconBrowser() {
   const {
@@ -582,7 +582,7 @@ interface ExplorerContextValue {
 ### Example
 
 ```tsx
-import { useExplorer } from 'rn-iconify';
+import { useExplorer } from 'rn-iconify/dev';
 import { View, FlatList, TouchableOpacity } from 'react-native';
 
 function CustomIconBrowser({ onSelect }) {
@@ -875,7 +875,7 @@ function IconValidator({ name }) {
 Access the Icon Explorer context directly for building custom explorer UIs.
 
 ```tsx
-import { useExplorerContext } from 'rn-iconify';
+import { useExplorerContext } from 'rn-iconify/dev';
 
 function CustomSearchResults() {
   const { results, isLoading, selectIcon } = useExplorerContext();
@@ -915,7 +915,7 @@ Extends `useExplorer` return type with theme-related properties. See [useExplore
 ### Example
 
 ```tsx
-import { useExplorerContext, IconExplorer, ExplorerContext } from 'rn-iconify';
+import { useExplorerContext, IconExplorer, ExplorerContext } from 'rn-iconify/dev';
 
 // Custom search bar component
 function CustomSearchBar() {

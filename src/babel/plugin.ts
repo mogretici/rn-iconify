@@ -65,6 +65,16 @@ const processedFiles = new Set<string>();
 let buildInProgress = false;
 
 /**
+ * Timestamp when build started — used for stale build detection
+ */
+let buildStartTime = 0;
+
+/**
+ * Maximum build duration (ms) before auto-reset
+ */
+const BUILD_TIMEOUT = 60_000;
+
+/**
  * Debounce timer for bundle generation
  */
 let bundleTimer: NodeJS.Timeout | null = null;
@@ -98,6 +108,23 @@ let scannedIcons: string[] = [];
  * Existing bundle loaded during pre hook
  */
 let existingBundle: IconBundle | null = null;
+
+/**
+ * Reset all module-level build state
+ * Called when build completes or when stale build is detected
+ */
+function resetBuildState(): void {
+  buildInProgress = false;
+  buildStartTime = 0;
+  hasInjected = false;
+  scannedIcons = [];
+  existingBundle = null;
+  processedFiles.clear();
+  if (bundleTimer) {
+    clearTimeout(bundleTimer);
+    bundleTimer = null;
+  }
+}
 
 const SCAN_LOCK_MAX_AGE = 30000; // 30 seconds
 
@@ -163,9 +190,18 @@ export function createRnIconifyPlugin(babel: {
         return;
       }
 
+      // Auto-reset stale builds (stuck for > 60s)
+      if (buildInProgress && buildStartTime > 0 && Date.now() - buildStartTime > BUILD_TIMEOUT) {
+        if (opts.verbose) {
+          console.warn('[rn-iconify] Stale build detected (>60s), resetting state');
+        }
+        resetBuildState();
+      }
+
       // Initialize collector on first file
       if (!buildInProgress) {
         buildInProgress = true;
+        buildStartTime = Date.now();
         hasInjected = false;
         collector.initialize(opts);
 
@@ -379,24 +415,26 @@ export function createRnIconifyPlugin(babel: {
       }
 
       bundleTimer = setTimeout(async () => {
-        if (!collector.isBundleGenerated()) {
-          collector.markBundleGenerated();
+        try {
+          if (!collector.isBundleGenerated()) {
+            collector.markBundleGenerated();
 
-          // Merge AST-collected icons with scanner-collected icons
-          const astIcons = collector.getIconNames();
-          const allIcons = Array.from(new Set([...astIcons, ...scannedIcons]));
+            // Merge AST-collected icons with scanner-collected icons
+            const astIcons = collector.getIconNames();
+            const allIcons = Array.from(new Set([...astIcons, ...scannedIcons]));
 
-          if (allIcons.length > 0) {
-            collector.printSummary();
+            if (allIcons.length > 0) {
+              collector.printSummary();
 
-            try {
-              await generateBundle(allIcons, opts, projectRoot, existingBundle);
-            } catch (error) {
-              console.error('[rn-iconify] Bundle generation error:', error);
+              try {
+                await generateBundle(allIcons, opts, projectRoot, existingBundle);
+              } catch (error) {
+                console.error('[rn-iconify] Bundle generation error:', error);
+              }
             }
           }
-
-          buildInProgress = false;
+        } finally {
+          resetBuildState();
         }
       }, 500);
     },
@@ -404,7 +442,7 @@ export function createRnIconifyPlugin(babel: {
 }
 
 // Exported for testing
-export { acquireScanLock, releaseScanLock, isScanLockActive };
+export { acquireScanLock, releaseScanLock, isScanLockActive, resetBuildState };
 
 /**
  * Reset plugin state (for testing)

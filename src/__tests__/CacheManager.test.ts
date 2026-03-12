@@ -191,7 +191,12 @@ describe('CacheManager', () => {
     });
 
     it('should return 0 for invalid bundle', () => {
-      const loaded = CacheManager.loadBundle({ version: '0.5.0', icons: {}, count: 0, generatedAt: '' });
+      const loaded = CacheManager.loadBundle({
+        version: '0.5.0',
+        icons: {},
+        count: 0,
+        generatedAt: '',
+      });
 
       expect(loaded).toBe(0);
     });

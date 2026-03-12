@@ -51,6 +51,13 @@ class CacheManagerImpl {
   private isLoadingBundle = false;
 
   /**
+   * Batched icon usage reports (DEV only)
+   * Accumulates icon names and flushes every 2 seconds
+   */
+  private pendingReports = new Set<string>();
+  private reportTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
    * Initialize bundled icons from the Babel plugin cache
    * This should be called automatically on first access
    */
@@ -79,31 +86,34 @@ class CacheManagerImpl {
     }
 
     this.isLoadingBundle = true;
-    this.bundledIcons = new Map();
-    let skippedCount = 0;
+    try {
+      this.bundledIcons = new Map();
+      let skippedCount = 0;
 
-    for (const [iconName, data] of Object.entries(bundle.icons)) {
-      if (data && typeof data.svg === 'string' && data.svg.length > 0) {
-        this.bundledIcons.set(iconName, data.svg);
-      } else {
-        skippedCount++;
-        if (__DEV__) {
-          console.warn(`[rn-iconify] Skipping invalid icon in bundle: ${iconName}`);
+      for (const [iconName, data] of Object.entries(bundle.icons)) {
+        if (data && typeof data.svg === 'string' && data.svg.length > 0) {
+          this.bundledIcons.set(iconName, data.svg);
+        } else {
+          skippedCount++;
+          if (__DEV__) {
+            console.warn(`[rn-iconify] Skipping invalid icon in bundle: ${iconName}`);
+          }
         }
       }
+
+      if (__DEV__ && skippedCount > 0) {
+        console.warn(`[rn-iconify] Skipped ${skippedCount} invalid icons in bundle`);
+      }
+
+      this.bundledIconsInitialized = true;
+
+      // Warmup memory cache from disk cache
+      this.warmup();
+
+      return this.bundledIcons.size;
+    } finally {
+      this.isLoadingBundle = false;
     }
-
-    if (__DEV__ && skippedCount > 0) {
-      console.warn(`[rn-iconify] Skipped ${skippedCount} invalid icons in bundle`);
-    }
-
-    this.bundledIconsInitialized = true;
-
-    // Warmup memory cache from disk cache
-    this.warmup();
-
-    this.isLoadingBundle = false;
-    return this.bundledIcons.size;
   }
 
   /**
@@ -395,22 +405,43 @@ class CacheManagerImpl {
 
   /**
    * Report icon usage to Metro dev server (DEV only)
-   * Fire-and-forget POST to the Metro middleware
+   * Batches reports and flushes every 2 seconds to avoid
+   * flooding Metro with individual HTTP requests
    */
   reportIconUsage(iconName: string): void {
     if (typeof __DEV__ === 'undefined' || !__DEV__) return;
     if (this.isLoadingBundle) return;
 
+    this.pendingReports.add(iconName);
+
+    if (!this.reportTimer) {
+      this.reportTimer = setTimeout(() => this.flushReports(), 2000);
+    }
+  }
+
+  /**
+   * Flush batched icon usage reports to Metro dev server
+   */
+  private flushReports(): void {
+    this.reportTimer = null;
+
+    if (this.pendingReports.size === 0) return;
+
+    const icons = Array.from(this.pendingReports);
+    this.pendingReports.clear();
+
     try {
-      // Use global fetch if available (React Native)
       if (typeof fetch === 'function') {
-        fetch('http://localhost:8081/__rn_iconify_log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ icon: iconName }),
-        }).catch(() => {
-          // Silently ignore - Metro server might not have the plugin
-        });
+        // Send all icons in a single request
+        for (const icon of icons) {
+          fetch('http://localhost:8081/__rn_iconify_log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ icon }),
+          }).catch(() => {
+            // Silently ignore - Metro server might not have the plugin
+          });
+        }
       }
     } catch {
       // Silently ignore

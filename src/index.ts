@@ -16,6 +16,10 @@
 // Icon Set Components (200+ sets, 268,000+ icons)
 export * from './components';
 
+// Errors
+export { IconLoadError } from './errors';
+export type { IconErrorCode } from './errors';
+
 // Core Types
 export type {
   IconProps,
@@ -180,14 +184,8 @@ export {
 } from './bundle';
 export type { IconBundle, BundleLoadResult } from './bundle';
 
-// Performance Monitoring
-export {
-  PerformanceMonitor,
-  enablePerformanceMonitoring,
-  disablePerformanceMonitoring,
-  getPerformanceReport,
-  printPerformanceReport,
-} from './performance';
+// Performance Monitoring — runtime exports moved to 'rn-iconify/dev'
+// Types kept here for type-only consumers
 export type {
   IconLoadEvent,
   LoadEventType,
@@ -222,22 +220,8 @@ export type {
   UseAccessibleIconOutput,
 } from './accessibility';
 
-// Icon Explorer (Dev Mode)
-export {
-  IconExplorer,
-  ExplorerContext,
-  useExplorerContext,
-  useExplorer,
-  getAllIconSets,
-  getIconSetByPrefix,
-  getIconSetsByCategory,
-  searchIconSets,
-  generateImportStatement,
-  generateIconJSX,
-  POPULAR_ICON_SETS,
-  DEFAULT_PREVIEW_CONFIG,
-  DEFAULT_EXPLORER_CONFIG,
-} from './explorer';
+// Icon Explorer — runtime exports moved to 'rn-iconify/dev'
+// Types kept here for type-only consumers
 export type {
   IconSetInfo,
   SearchResult,

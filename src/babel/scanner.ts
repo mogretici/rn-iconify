@@ -57,23 +57,22 @@ interface UsageFile {
 }
 
 /**
- * Build regex patterns for icon component detection
- * Matches: <Ion name="home" /> or <Ion name={'home'} /> or <Ion name={`home`} />
+ * Build a single combined regex that captures both the component name
+ * and the icon name in one match — O(n) single pass instead of O(n²)
+ *
+ * Captures:
+ *   group 1 = component name (e.g., "Ion")
+ *   group 2 = icon name from name="..."
+ *   group 3 = icon name from name={'...'}
+ *   group 4 = icon name from name={"..."}
+ *   group 5 = icon name from name={`...`}
  */
-function buildComponentRegex(): RegExp {
+function buildCombinedRegex(): RegExp {
   const componentNames = Object.keys(COMPONENT_PREFIX_MAP).join('|');
   return new RegExp(
-    `<(?:${componentNames})\\s[^>]*?name=(?:"([^"]+)"|\\{'([^']+)'\\}|\\{"([^"]+)"\\}|\\\`([^\`]+)\\\`)`,
+    `<(${componentNames})\\s[^>]*?name=(?:"([^"]+)"|\\{'([^']+)'\\}|\\{"([^"]+)"\\}|\\\`([^\`]+)\\\`)`,
     'g'
   );
-}
-
-/**
- * Build regex to extract component name from JSX
- */
-function buildComponentNameRegex(): RegExp {
-  const componentNames = Object.keys(COMPONENT_PREFIX_MAP).join('|');
-  return new RegExp(`<(${componentNames})\\s`, 'g');
 }
 
 /**
@@ -90,12 +89,7 @@ const STRING_ITEM_REGEX = /['"]([^'"]+)['"]/g;
 /**
  * Scan a single file for icon usage
  */
-function scanFile(
-  filePath: string,
-  componentRegex: RegExp,
-  componentNameRegex: RegExp,
-  verbose: boolean
-): string[] {
+function scanFile(filePath: string, combinedRegex: RegExp, verbose: boolean): string[] {
   const icons: string[] = [];
 
   let content: string;
@@ -110,40 +104,22 @@ function scanFile(
     return icons;
   }
 
-  // Scan for JSX component usage: <Ion name="home" />
-  componentRegex.lastIndex = 0;
-  componentNameRegex.lastIndex = 0;
-
-  // Find all component usages with name attribute
-  const fullPattern = new RegExp(componentRegex.source, 'g');
+  // Single-pass scan: combined regex captures component name + icon name in one match
+  combinedRegex.lastIndex = 0;
   let match: RegExpExecArray | null;
 
-  while ((match = fullPattern.exec(content)) !== null) {
-    const iconName = match[1] || match[2] || match[3] || match[4];
-    if (!iconName) continue;
+  while ((match = combinedRegex.exec(content)) !== null) {
+    const componentName = match[1];
+    const iconName = match[2] || match[3] || match[4] || match[5];
+    if (!componentName || !iconName) continue;
 
-    // Find the component name for this match by searching backwards
-    const beforeMatch = content.substring(0, match.index + 20);
-    const namePattern = new RegExp(componentNameRegex.source, 'g');
-    let nameMatch: RegExpExecArray | null;
-    let lastNameMatch: RegExpExecArray | null = null;
-
-    while ((nameMatch = namePattern.exec(beforeMatch)) !== null) {
-      if (nameMatch.index <= match.index) {
-        lastNameMatch = nameMatch;
-      }
-    }
-
-    if (lastNameMatch) {
-      const componentName = lastNameMatch[1];
-      const prefix = COMPONENT_PREFIX_MAP[componentName];
-      if (prefix) {
-        const fullName = `${prefix}:${iconName}`;
-        if (!isValidIconName(fullName)) continue;
-        icons.push(fullName);
-        if (verbose) {
-          console.log(`[rn-iconify:scanner] Found ${fullName} in ${filePath}`);
-        }
+    const prefix = COMPONENT_PREFIX_MAP[componentName];
+    if (prefix) {
+      const fullName = `${prefix}:${iconName}`;
+      if (!isValidIconName(fullName)) continue;
+      icons.push(fullName);
+      if (verbose) {
+        console.log(`[rn-iconify:scanner] Found ${fullName} in ${filePath}`);
       }
     }
   }
@@ -244,15 +220,14 @@ export function scanProjectForIcons(projectRoot: string, options: ScannerOptions
     console.log(`[rn-iconify:scanner] Found ${files.length} source files to scan`);
   }
 
-  // 2. Build regex patterns once
-  const componentRegex = buildComponentRegex();
-  const componentNameRegex = buildComponentNameRegex();
+  // 2. Build combined regex once (single-pass O(n) per file)
+  const combinedRegex = buildCombinedRegex();
 
   // 3. Scan each file
   const allIcons: Set<string> = new Set();
 
   for (const file of files) {
-    const icons = scanFile(file, componentRegex, componentNameRegex, verbose);
+    const icons = scanFile(file, combinedRegex, verbose);
     for (const icon of icons) {
       allIcons.add(icon);
     }

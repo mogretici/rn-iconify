@@ -60,6 +60,130 @@ Native MMKV caching, full TypeScript autocomplete, and seamless React Navigation
   <a href="https://rn-iconify.vercel.app"><img src="https://img.shields.io/badge/+10_more_features-→-lightgreen?style=for-the-badge&labelColor=lightgreen" alt="+10 more features" /></a>
 </p>
 
+---
+
+## Installation
+
+```bash
+npm install rn-iconify react-native-svg react-native-mmkv
+```
+
+For iOS, run `npx pod-install` after installation.
+
+## Quick Start
+
+```tsx
+import { Mdi, Lucide, Heroicons } from 'rn-iconify';
+
+function App() {
+  return (
+    <>
+      <Mdi name="home" size={24} color="#333" />
+      <Lucide name="settings" size={20} color="blue" />
+      <Heroicons name="user" size={28} />
+    </>
+  );
+}
+```
+
+Full TypeScript autocomplete for all 268,000+ icon names across 200+ sets.
+
+## Theme Provider
+
+```tsx
+import { IconThemeProvider, Mdi } from 'rn-iconify';
+
+function App() {
+  return (
+    <IconThemeProvider theme={{ size: 20, color: '#333' }}>
+      <Mdi name="home" /> {/* inherits size=20, color=#333 */}
+      <Mdi name="star" color="gold" /> {/* overrides color */}
+    </IconThemeProvider>
+  );
+}
+```
+
+## Animations
+
+```tsx
+import { Mdi } from 'rn-iconify';
+
+<Mdi name="loading" animate="spin" />
+<Mdi name="heart" animate="pulse" />
+<Mdi name="bell" animate="shake" />
+```
+
+6 built-in presets: `spin`, `pulse`, `bounce`, `shake`, `ping`, `wiggle`.
+
+## React Navigation
+
+```tsx
+import { createTabBarIcon } from 'rn-iconify/navigation';
+
+<Tab.Screen
+  name="Home"
+  options={{
+    tabBarIcon: createTabBarIcon('mdi:home'),
+  }}
+/>;
+```
+
+## Pressable Icons
+
+```tsx
+<Mdi name="heart" size={24} color="red" onPress={() => console.log('Liked!')} />
+```
+
+Auto 44dp minimum touch target for accessibility.
+
+## Tree-Shaking
+
+Import only the icon sets you need:
+
+```tsx
+import { Mdi } from 'rn-iconify/icons/Mdi';
+```
+
+## Typed Errors
+
+```tsx
+import { IconLoadError } from 'rn-iconify';
+
+try {
+  // ...
+} catch (error) {
+  if (error instanceof IconLoadError) {
+    switch (error.code) {
+      case 'NOT_FOUND': // icon doesn't exist
+      case 'NETWORK': // network failure
+      case 'TIMEOUT': // request timed out
+      case 'INVALID_SVG': // malformed SVG
+    }
+  }
+}
+```
+
+## Dev Tools
+
+Icon Explorer and Performance Monitor are available as a separate import to keep your production bundle lean:
+
+```tsx
+import { IconExplorer, PerformanceMonitor } from 'rn-iconify/dev';
+```
+
+## Platform Support
+
+| Platform     | Supported |
+| ------------ | --------- |
+| iOS          | >=13.0    |
+| Android      | >=5.0     |
+| React Native | >=0.60    |
+| Expo         | SDK 49+   |
+
+## Documentation
+
+Full documentation at [rn-iconify.vercel.app](https://rn-iconify.vercel.app)
+
 <p align="center">
-  MIT © 2025 | <a href="https://github.com/mogretici">mogretici</a>
+  MIT © 2025-2026 | <a href="https://github.com/mogretici">mogretici</a>
 </p>

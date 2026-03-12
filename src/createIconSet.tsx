@@ -1,11 +1,17 @@
 /**
  * createIconSet - Factory function for creating typed icon components
+ *
+ * v3.0 rewrite:
+ * - React.memo + React.forwardRef
+ * - useMergedIconProps (replaces inline ?? chains)
+ * - Rest spread (new props automatically forwarded)
+ * - Fuzzy matching in __DEV__ for typo suggestions
  */
 
 import React from 'react';
+import { type View } from 'react-native';
 import { IconRenderer } from './IconRenderer';
-import { useIconTheme } from './theme';
-import { DEFAULT_ICON_THEME } from './theme/types';
+import { useMergedIconProps } from './theme';
 import type { IconProps } from './types';
 
 /**
@@ -30,6 +36,56 @@ function toPascalCase(str: string): string {
 type IconNameValue = true | string;
 
 /**
+ * Simple Levenshtein distance for __DEV__ fuzzy matching
+ * Only used for "Did you mean?" suggestions on typos
+ */
+function levenshtein(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  const matrix: number[][] = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0]![j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      const cost = b[i - 1] === a[j - 1] ? 0 : 1;
+      matrix[i]![j] = Math.min(
+        matrix[i - 1]![j]! + 1,
+        matrix[i]![j - 1]! + 1,
+        matrix[i - 1]![j - 1]! + cost
+      );
+    }
+  }
+
+  return matrix[b.length]![a.length]!;
+}
+
+/**
+ * Find the closest icon name within a reasonable edit distance
+ */
+function findClosestMatch(name: string, validNames: string[]): string | null {
+  let bestMatch: string | null = null;
+  let bestDistance = Infinity;
+  const maxDistance = Math.max(2, Math.floor(name.length * 0.4));
+
+  for (const validName of validNames) {
+    const distance = levenshtein(name, validName);
+    if (distance < bestDistance && distance <= maxDistance) {
+      bestDistance = distance;
+      bestMatch = validName;
+    }
+  }
+
+  return bestMatch;
+}
+
+/**
  * Create a typed icon component for a specific icon set
  *
  * @param prefix - Icon set prefix (e.g., "mdi", "heroicons")
@@ -51,110 +107,43 @@ export function createIconSet<T extends string>(
   prefix: string,
   iconNames: Record<T, IconNameValue>
 ) {
-  /**
-   * Icon component for the specific icon set
-   */
-  function IconComponent({
-    name,
-    size,
-    color,
-    width,
-    height,
-    style,
-    className,
-    rotate,
-    flip,
-    fallback,
-    fallbackDelay,
-    placeholder,
-    placeholderColor,
-    placeholderDuration,
-    onLoad,
-    onError,
-    accessibilityLabel,
-    testID,
-    // Press props
-    onPress,
-    onLongPress,
-    onPressIn,
-    onPressOut,
-    disabled,
-    pressedStyle,
-    // Animation props
-    animate,
-    animationDuration,
-    animationLoop,
-    animationEasing,
-    animationDelay,
-    autoPlay,
-    onAnimationComplete,
-  }: IconProps<T>) {
-    // Get theme defaults
-    const { theme } = useIconTheme();
+  // Cache valid names for fuzzy matching (only computed once per icon set)
+  let cachedValidNames: string[] | null = null;
 
-    // Merge props with theme defaults (props take precedence)
-    const mergedSize = size ?? theme.size ?? DEFAULT_ICON_THEME.size;
-    const mergedColor = color ?? theme.color ?? DEFAULT_ICON_THEME.color;
-    const mergedRotate = rotate ?? theme.rotate ?? DEFAULT_ICON_THEME.rotate;
-    const mergedFlip = flip ?? theme.flip;
-    const mergedFallbackDelay =
-      fallbackDelay ?? theme.fallbackDelay ?? DEFAULT_ICON_THEME.fallbackDelay;
-    const mergedPlaceholder = placeholder ?? theme.placeholder;
-    const mergedPlaceholderColor =
-      placeholderColor ?? theme.placeholderColor ?? DEFAULT_ICON_THEME.placeholderColor;
-    const mergedPlaceholderDuration =
-      placeholderDuration ?? theme.placeholderDuration ?? DEFAULT_ICON_THEME.placeholderDuration;
+  const IconComponent = React.memo(
+    React.forwardRef<View, IconProps<T>>(function IconComponent(
+      { name, accessibilityLabel, ...restProps },
+      ref
+    ) {
+      // Merge with theme defaults (memoized internally)
+      const mergedProps = useMergedIconProps(restProps);
 
-    // Runtime validation for icon name
-    if (__DEV__ && !(name in iconNames)) {
-      console.warn(
-        `[rn-iconify] Invalid icon name "${name}" for prefix "${prefix}". ` +
-          `Check if the icon exists in the icon set.`
+      // Runtime validation with fuzzy matching
+      if (__DEV__ && !(name in iconNames)) {
+        if (!cachedValidNames) {
+          cachedValidNames = Object.keys(iconNames);
+        }
+        const suggestion = findClosestMatch(name, cachedValidNames);
+        const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
+        console.warn(
+          `[rn-iconify] Unknown icon name "${name}" for ${toPascalCase(prefix)}.${suggestionText}`
+        );
+      }
+
+      // Get the actual icon name (handles mapped names like _500px -> "500px")
+      const actualName = iconNames[name] === true ? name : iconNames[name];
+      const iconName = `${prefix}:${actualName}`;
+
+      return (
+        <IconRenderer
+          ref={ref}
+          iconName={iconName}
+          accessibilityLabel={accessibilityLabel ?? name}
+          {...mergedProps}
+        />
       );
-    }
-
-    // Get the actual icon name (handles mapped names like _500px -> "500px")
-    const actualName = iconNames[name] === true ? name : iconNames[name];
-    const iconName = `${prefix}:${actualName}`;
-
-    return (
-      <IconRenderer
-        iconName={iconName}
-        size={mergedSize}
-        color={mergedColor}
-        width={width}
-        height={height}
-        style={style}
-        className={className}
-        rotate={mergedRotate}
-        flip={mergedFlip}
-        fallback={fallback}
-        fallbackDelay={mergedFallbackDelay}
-        placeholder={mergedPlaceholder}
-        placeholderColor={mergedPlaceholderColor}
-        placeholderDuration={mergedPlaceholderDuration}
-        onLoad={onLoad}
-        onError={onError}
-        accessibilityLabel={accessibilityLabel ?? name}
-        testID={testID}
-        // Press props
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        disabled={disabled}
-        pressedStyle={pressedStyle}
-        // Animation props
-        animate={animate}
-        animationDuration={animationDuration}
-        animationLoop={animationLoop}
-        animationEasing={animationEasing}
-        animationDelay={animationDelay}
-        autoPlay={autoPlay}
-        onAnimationComplete={onAnimationComplete}
-      />
-    );
-  }
+    })
+  );
 
   // Set display name for debugging
   IconComponent.displayName = `${toPascalCase(prefix)}Icon`;

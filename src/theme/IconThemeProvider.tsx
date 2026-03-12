@@ -1,6 +1,10 @@
 /**
  * IconThemeProvider
  * Provides global theme configuration for all icon components
+ *
+ * v3.0 fix: Replaced useState + useEffect anti-pattern with useMemo.
+ * Inline theme props no longer cause infinite re-render loops.
+ * setTheme() still works for dynamic theme switching via internal override state.
  */
 
 import React, { useState, useMemo, useCallback, memo } from 'react';
@@ -26,20 +30,6 @@ import type { IconThemeProviderProps, IconTheme, IconThemeContextValue } from '.
  * }
  * ```
  *
- * @example With placeholder defaults
- * ```tsx
- * <IconThemeProvider
- *   theme={{
- *     size: 24,
- *     color: '#1a1a1a',
- *     placeholder: 'shimmer',
- *     placeholderColor: '#f0f0f0',
- *   }}
- * >
- *   <YourApp />
- * </IconThemeProvider>
- * ```
- *
  * @example Dynamic theme switching
  * ```tsx
  * function App() {
@@ -62,28 +52,42 @@ function IconThemeProviderComponent({
   theme: initialTheme,
   children,
 }: IconThemeProviderProps): React.ReactElement {
-  const [theme, setThemeState] = useState<IconTheme>(() => mergeWithDefaults(initialTheme));
+  // Derive theme from prop (no useState + useEffect cycle)
+  const externalTheme = useMemo(() => mergeWithDefaults(initialTheme), [initialTheme]);
 
-  // Memoized setTheme that supports both direct value and updater function
-  const setTheme = useCallback((newTheme: IconTheme | ((prev: IconTheme) => IconTheme)) => {
-    setThemeState((prevTheme) => {
-      const nextTheme = typeof newTheme === 'function' ? newTheme(prevTheme) : newTheme;
-      return mergeWithDefaults(nextTheme);
-    });
-  }, []);
+  // Internal override state for setTheme() API
+  const [overrideTheme, setOverrideTheme] = useState<IconTheme | null>(null);
 
-  // Update internal state when prop changes
-  React.useEffect(() => {
-    setThemeState(mergeWithDefaults(initialTheme));
-  }, [initialTheme]);
+  // When external theme changes, clear any override
+  const prevExternalRef = React.useRef(externalTheme);
+  if (prevExternalRef.current !== externalTheme) {
+    prevExternalRef.current = externalTheme;
+    if (overrideTheme !== null) {
+      setOverrideTheme(null);
+    }
+  }
+
+  const effectiveTheme = overrideTheme ?? externalTheme;
+
+  // setTheme supports both direct value and updater function
+  const setTheme = useCallback(
+    (newTheme: IconTheme | ((prev: IconTheme) => IconTheme)) => {
+      setOverrideTheme((prevOverride) => {
+        const current = prevOverride ?? externalTheme;
+        const nextTheme = typeof newTheme === 'function' ? newTheme(current) : newTheme;
+        return mergeWithDefaults(nextTheme);
+      });
+    },
+    [externalTheme]
+  );
 
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo<IconThemeContextValue>(
     () => ({
-      theme,
+      theme: effectiveTheme,
       setTheme,
     }),
-    [theme, setTheme]
+    [effectiveTheme, setTheme]
   );
 
   return <IconThemeContext.Provider value={contextValue}>{children}</IconThemeContext.Provider>;

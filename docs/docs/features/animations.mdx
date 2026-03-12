@@ -288,6 +288,14 @@ function ControlledAnimation() {
 | `isAnimating` | Whether animation is running |
 | `state` | Current animation state |
 
+:::warning Pause/Resume Limitations
+React Native's Animated API does not support true mid-animation pause/resume.
+- `pause()` stops the animation at its current position
+- `resume()` restarts the animation from the beginning, not from where it was paused
+
+If you need true pause/resume, consider using `react-native-reanimated` with custom animation logic.
+:::
+
 ## With React Navigation
 
 Animated tab icons:
@@ -404,6 +412,19 @@ function CustomAnimatedIcon() {
 | `shake` | translate | 500ms | No | ease-out | normal | 0 → 10px (x) |
 | `ping` | scale | 1000ms | Yes | ease-out | normal | 1 → 1.5 |
 | `wiggle` | rotate | 300ms | No | ease-in-out | alternate | -15° → 15° |
+
+## Reduced Motion Support (v3.0)
+
+When an `AccessibilityProvider` is present and the user has enabled "Reduce Motion" in system settings, all icon animations are automatically disabled. No manual code is needed.
+
+```tsx
+import { AccessibilityProvider, Mdi } from 'rn-iconify';
+
+// Animations auto-disable when system Reduce Motion is on
+<AccessibilityProvider>
+  <Mdi name="loading" animate="spin" /> {/* Respects Reduce Motion */}
+</AccessibilityProvider>
+```
 
 ## Performance
 

@@ -6,6 +6,10 @@ description: Monitor icon loading performance and cache hits
 keywords: [performance, monitoring, cache, optimization]
 ---
 
+:::info Dev-only Import
+Performance monitoring utilities are exported from `rn-iconify/dev` to keep production bundles lean.
+:::
+
 Monitor and optimize icon loading performance in your app with built-in metrics collection.
 
 ## Enable Monitoring
@@ -13,7 +17,7 @@ Monitor and optimize icon loading performance in your app with built-in metrics 
 Enable performance monitoring in development:
 
 ```tsx
-import { enablePerformanceMonitoring, getPerformanceReport } from 'rn-iconify';
+import { enablePerformanceMonitoring, getPerformanceReport } from 'rn-iconify/dev';
 
 // Enable monitoring
 enablePerformanceMonitoring();
@@ -76,7 +80,7 @@ interface PerformanceReport {
 
 ```tsx
 import { useEffect } from 'react';
-import { enablePerformanceMonitoring, getPerformanceReport, PerformanceMonitor } from 'rn-iconify';
+import { enablePerformanceMonitoring, getPerformanceReport, PerformanceMonitor } from 'rn-iconify/dev';
 
 function App() {
   useEffect(() => {
@@ -110,7 +114,7 @@ Create a debug overlay for development:
 ```tsx
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { enablePerformanceMonitoring, getPerformanceReport } from 'rn-iconify';
+import { enablePerformanceMonitoring, getPerformanceReport } from 'rn-iconify/dev';
 
 function IconDebugOverlay() {
   const [report, setReport] = useState(getPerformanceReport());
@@ -194,7 +198,7 @@ loadOfflineBundle(iconBundle);
 Find icons that are slow to load:
 
 ```tsx
-import { getPerformanceReport } from 'rn-iconify';
+import { getPerformanceReport } from 'rn-iconify/dev';
 
 function analyzeSlowIcons() {
   const report = getPerformanceReport();
@@ -215,7 +219,7 @@ function analyzeSlowIcons() {
 Listen for icon load events in real-time:
 
 ```tsx
-import { PerformanceMonitor, enablePerformanceMonitoring } from 'rn-iconify';
+import { PerformanceMonitor, enablePerformanceMonitoring } from 'rn-iconify/dev';
 
 // Enable monitoring first
 enablePerformanceMonitoring();
@@ -238,7 +242,7 @@ unsubscribe();
 Print a formatted report to the console:
 
 ```tsx
-import { printPerformanceReport, enablePerformanceMonitoring } from 'rn-iconify';
+import { printPerformanceReport, enablePerformanceMonitoring } from 'rn-iconify/dev';
 
 // Enable and later print
 enablePerformanceMonitoring();
@@ -274,7 +278,7 @@ Output:
 Clear all performance data:
 
 ```tsx
-import { PerformanceMonitor, getPerformanceReport } from 'rn-iconify';
+import { PerformanceMonitor, getPerformanceReport } from 'rn-iconify/dev';
 
 // Reset all metrics
 PerformanceMonitor.reset();
@@ -415,7 +419,7 @@ function checkIconBudget() {
 Disable when not needed:
 
 ```tsx
-import { disablePerformanceMonitoring } from 'rn-iconify';
+import { disablePerformanceMonitoring } from 'rn-iconify/dev';
 
 disablePerformanceMonitoring();
 ```
@@ -429,7 +433,7 @@ The `PerformanceMonitor` object provides detailed access to performance data.
 Get performance summary with percentiles:
 
 ```tsx
-import { PerformanceMonitor } from 'rn-iconify';
+import { PerformanceMonitor } from 'rn-iconify/dev';
 
 const summary = PerformanceMonitor.getSummary();
 
@@ -449,7 +453,7 @@ console.log({
 Get all recorded load events:
 
 ```tsx
-import { PerformanceMonitor } from 'rn-iconify';
+import { PerformanceMonitor } from 'rn-iconify/dev';
 
 const events = PerformanceMonitor.getEvents();
 
@@ -469,7 +473,7 @@ events.forEach(event => {
 Get cache-specific statistics:
 
 ```tsx
-import { PerformanceMonitor } from 'rn-iconify';
+import { PerformanceMonitor } from 'rn-iconify/dev';
 
 const stats = PerformanceMonitor.getCacheStats();
 
@@ -489,7 +493,7 @@ console.log({
 Subscribe to real-time load events:
 
 ```tsx
-import { PerformanceMonitor } from 'rn-iconify';
+import { PerformanceMonitor } from 'rn-iconify/dev';
 
 const unsubscribe = PerformanceMonitor.subscribe((event) => {
   // Called for every icon load
@@ -509,7 +513,7 @@ return () => unsubscribe();
 Check if monitoring is enabled:
 
 ```tsx
-import { PerformanceMonitor } from 'rn-iconify';
+import { PerformanceMonitor } from 'rn-iconify/dev';
 
 if (PerformanceMonitor.isEnabled()) {
   console.log('Performance monitoring is active');

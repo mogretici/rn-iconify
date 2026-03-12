@@ -1,0 +1,35 @@
+# Source maps (saves ~25 MB)
+**/*.map
+
+# Test directories and files
+**/__tests__/**
+**/__fixtures__/**
+**/__mocks__/**
+**/*.test.ts
+**/*.test.tsx
+
+# Internal files
+CLAUDE.md
+**/CLAUDE.md
+src/cli/CLAUDE.md
+lib/CLAUDE.md
+lib/commonjs/cli/CLAUDE.md
+lib/module/cli/CLAUDE.md
+
+# Development config
+scripts/
+example/
+docs/
+.github/
+.husky/
+jest.config.js
+jest.setup.js
+tsconfig.json
+tsconfig.build.json
+commitlint.config.js
+.eslintrc*
+.prettierrc*
+.editorconfig
+.lintstagedrc*
+.rn-iconify/
+coverage/

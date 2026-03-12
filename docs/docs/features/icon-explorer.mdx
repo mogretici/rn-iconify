@@ -6,12 +6,16 @@ description: Browse, search, and discover icons from 200+ icon sets
 keywords: [explorer, browse, search, discover, icon-sets, collections]
 ---
 
+:::info Dev-only Import
+IconExplorer and related utilities are exported from `rn-iconify/dev` to keep production bundles lean.
+:::
+
 The Icon Explorer provides a powerful interface for browsing, searching, and discovering icons from over 200+ icon sets.
 
 ## Basic Usage
 
 ```tsx
-import { IconExplorer } from 'rn-iconify';
+import { IconExplorer } from 'rn-iconify/dev';
 
 function App() {
   return (
@@ -75,7 +79,7 @@ Limit to specific icon sets:
 Access explorer state and actions programmatically:
 
 ```tsx
-import { useExplorer } from 'rn-iconify';
+import { useExplorer } from 'rn-iconify/dev';
 
 function CustomExplorer() {
   const {
@@ -146,7 +150,7 @@ function CustomExplorer() {
 Get information about all available icon sets:
 
 ```tsx
-import { getAllIconSets } from 'rn-iconify';
+import { getAllIconSets } from 'rn-iconify/dev';
 
 const iconSets = getAllIconSets();
 
@@ -168,7 +172,7 @@ iconSets.forEach(set => {
 Get details for a specific icon set:
 
 ```tsx
-import { getIconSetByPrefix } from 'rn-iconify';
+import { getIconSetByPrefix } from 'rn-iconify/dev';
 
 const mdi = getIconSetByPrefix('mdi');
 
@@ -182,7 +186,7 @@ if (mdi) {
 Filter icon sets by category:
 
 ```tsx
-import { getIconSetsByCategory } from 'rn-iconify';
+import { getIconSetsByCategory } from 'rn-iconify/dev';
 
 // Get all general-purpose icon sets
 const generalSets = getIconSetsByCategory('general');
@@ -213,7 +217,7 @@ Available categories:
 Search for icon sets by name or prefix:
 
 ```tsx
-import { searchIconSets } from 'rn-iconify';
+import { searchIconSets } from 'rn-iconify/dev';
 
 // Search by name
 const results = searchIconSets('material');
@@ -233,7 +237,7 @@ const heroResults = searchIconSets('hero');
 Generate import code for an icon:
 
 ```tsx
-import { generateImportStatement } from 'rn-iconify';
+import { generateImportStatement } from 'rn-iconify/dev';
 
 const importCode = generateImportStatement('mdi:home');
 // "import { Mdi } from 'rn-iconify';"
@@ -247,7 +251,7 @@ const heroImport = generateImportStatement('heroicons:user');
 Generate JSX code for an icon:
 
 ```tsx
-import { generateIconJSX } from 'rn-iconify';
+import { generateIconJSX } from 'rn-iconify/dev';
 
 const jsx = generateIconJSX('mdi:home', 24, '#333');
 // '<Mdi name="home" size={24} color="#333" />'
@@ -271,7 +275,7 @@ Parameters:
 Pre-defined list of popular icon sets with full metadata:
 
 ```tsx
-import { POPULAR_ICON_SETS } from 'rn-iconify';
+import { POPULAR_ICON_SETS } from 'rn-iconify/dev';
 
 // Array of IconSetInfo objects
 console.log(POPULAR_ICON_SETS);
@@ -301,7 +305,7 @@ function PopularIconSets() {
 Access explorer state from any component:
 
 ```tsx
-import { ExplorerContext, useExplorerContext } from 'rn-iconify';
+import { ExplorerContext, useExplorerContext } from 'rn-iconify/dev';
 
 // Using the hook (recommended)
 function IconGrid() {
@@ -416,7 +420,7 @@ import {
   getIconSetByPrefix,
   generateIconJSX,
   POPULAR_ICON_SETS,
-} from 'rn-iconify';
+} from 'rn-iconify/dev';
 
 function CustomIconExplorer({ onSelect }) {
   const {

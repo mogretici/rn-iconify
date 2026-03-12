@@ -101,21 +101,23 @@ export function AccessibilityProvider({
     };
   }, []);
 
-  // Listen for high contrast preference (iOS only, via bold text as proxy)
+  // Listen for inverted colors (best available system proxy for high contrast)
   useEffect(() => {
     const checkHighContrast = async () => {
       try {
-        // Use bold text as a proxy for high contrast preference
-        const isBoldText = await AccessibilityInfo.isBoldTextEnabled();
-        setIsHighContrast(isBoldText);
+        const isInverted = await AccessibilityInfo.isInvertColorsEnabled();
+        setIsHighContrast(isInverted);
       } catch {
-        // Ignore errors on unsupported platforms
+        // Ignore errors on unsupported platforms (Android, old RN)
       }
     };
 
     checkHighContrast();
 
-    const subscription = AccessibilityInfo.addEventListener('boldTextChanged', setIsHighContrast);
+    const subscription = AccessibilityInfo.addEventListener(
+      'invertColorsChanged',
+      setIsHighContrast
+    );
 
     return () => {
       subscription?.remove();
