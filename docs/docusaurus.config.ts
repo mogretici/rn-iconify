@@ -125,9 +125,9 @@ const config: Config = {
     },
 
     announcementBar: {
-      id: 'v2.1-release',
+      id: 'v3.0-release',
       content:
-        '🎉 rn-iconify v2.1.0 is released! Pressable icons, NativeWind className support and more. <a href="/docs/changelog">See changelog</a>',
+        '🎉 rn-iconify v3.0 is here! Core engine rewrite, typed errors, accessibility improvements and better performance. <a href="/docs/changelog">See changelog</a>',
       backgroundColor: '#3b82f6',
       textColor: '#ffffff',
       isCloseable: true,

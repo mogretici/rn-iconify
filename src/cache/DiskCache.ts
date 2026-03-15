@@ -9,13 +9,14 @@ import * as MMKVModule from 'react-native-mmkv';
 
 /**
  * MMKV storage interface (compatible with both v3 and v4)
+ * v3.x uses `delete(key)`, v4.x uses `remove(key)`
  */
 interface MMKVStorage {
   getString(key: string): string | undefined;
   set(key: string, value: string | number | boolean): void;
   getNumber(key: string): number | undefined;
   contains(key: string): boolean;
-  delete(key: string): void;
+  remove(key: string): boolean | void;
   clearAll(): void;
   getAllKeys(): string[];
 }
@@ -29,15 +30,18 @@ interface MMKVStorage {
 function createStorage(id: string): MMKVStorage {
   const config = { id };
 
-  // v4.x: createMMKV function exists
+  // v4.x: createMMKV function exists (uses `remove`)
   if ('createMMKV' in MMKVModule && typeof MMKVModule.createMMKV === 'function') {
     return MMKVModule.createMMKV(config) as MMKVStorage;
   }
 
-  // v3.x: MMKV is a constructor
+  // v3.x: MMKV is a constructor (uses `delete`, needs `remove` adapter)
   if ('MMKV' in MMKVModule && typeof MMKVModule.MMKV === 'function') {
-    const MMKVClass = MMKVModule.MMKV as new (config: { id: string }) => MMKVStorage;
-    return new MMKVClass(config);
+    const instance = new (MMKVModule.MMKV as any)(config);
+    if (typeof instance.remove !== 'function' && typeof instance.delete === 'function') {
+      instance.remove = instance.delete.bind(instance);
+    }
+    return instance as MMKVStorage;
   }
 
   throw new Error(
@@ -151,8 +155,8 @@ class DiskCacheImpl {
    * Remove icon from disk cache
    */
   delete(iconName: string): void {
-    storage.delete(iconName);
-    storage.delete(`${META_KEY_PREFIX}${iconName}`);
+    storage.remove(iconName);
+    storage.remove(`${META_KEY_PREFIX}${iconName}`);
   }
 
   /**
