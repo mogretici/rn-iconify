@@ -1,3 +1,9 @@
+## [3.0.2](https://github.com/mogretici/rn-iconify/compare/v3.0.1...v3.0.2) (2026-03-15)
+
+### Bug Fixes
+
+- **cache:** support MMKV v4.x remove() method (replaces deprecated delete()) ([739d913](https://github.com/mogretici/rn-iconify/commit/739d9133e62cef82133e0bad6f4e6f9890de750a))
+
 ## [3.0.1](https://github.com/mogretici/rn-iconify/compare/v3.0.0...v3.0.1) (2026-03-12)
 
 ### Bug Fixes
