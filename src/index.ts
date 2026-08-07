@@ -17,7 +17,7 @@
 export * from './components';
 
 // Errors
-export { IconLoadError } from './errors';
+export { AbortError, IconLoadError } from './errors';
 export type { IconErrorCode } from './errors';
 
 // Core Types

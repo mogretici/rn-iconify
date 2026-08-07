@@ -104,7 +104,17 @@ The package exports multiple entry points:
 
 ## Testing
 
-Tests use Jest with react-native preset. Test files are in `src/__tests__/`. Coverage threshold is 70% for branches, functions, lines, and statements.
+Tests use Jest with react-native preset. Test files are in `src/__tests__/`.
+
+Coverage thresholds are not a single number — `jest.config.js` sets branches
+69, functions 83, lines 80, statements 80. They sit just under the current
+figures on purpose, so a drop fails the run rather than going unnoticed.
+
+Jest runs on Node, which has web globals that Hermes does not. A test that
+reaches for one of those passes here and fails on a device — `DOMException`
+did exactly that. When testing behaviour around an API the runtime may not
+have, delete the global for the duration of the test rather than trusting the
+environment.
 
 ## Peer Dependencies
 

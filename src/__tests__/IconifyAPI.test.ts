@@ -11,7 +11,7 @@ import {
   fetchCollection,
   searchIconsAPI,
 } from '../network/IconifyAPI';
-import { IconLoadError } from '../errors';
+import { AbortError, IconLoadError } from '../errors';
 import { ConfigManager } from '../config';
 
 // Mock fetch
@@ -576,7 +576,7 @@ describe('IconifyAPI', () => {
       const controller = new AbortController();
 
       // Simulate fetch being aborted mid-request
-      const abortError = new DOMException('The operation was aborted', 'AbortError');
+      const abortError = new AbortError('The operation was aborted');
       mockFetch.mockImplementationOnce(() => {
         controller.abort();
         return Promise.reject(abortError);
@@ -590,7 +590,7 @@ describe('IconifyAPI', () => {
       ConfigManager.setConfig({ api: { retries: 0 } });
 
       // Simulate a timeout abort (AbortError where user signal is NOT aborted)
-      const abortError = new DOMException('The operation was aborted', 'AbortError');
+      const abortError = new AbortError('The operation was aborted');
       mockFetch.mockRejectedValueOnce(abortError);
 
       // Without user signal, AbortError implies internal timeout
@@ -613,6 +613,59 @@ describe('IconifyAPI', () => {
         expect(error).toBeInstanceOf(IconLoadError);
         expect((error as IconLoadError).code).toBe('NETWORK');
       }
+
+      ConfigManager.setConfig({ api: { retries: 2 } });
+    });
+  });
+
+  describe('aborting without DOMException', () => {
+    /**
+     * Hermes has no `DOMException`. Jest runs on Node, which does, so a test
+     * suite is the one place this library never sees the runtime it actually
+     * ships on. Removing the global here reproduces the device.
+     *
+     * The bug this guards against: cancelling a request threw
+     * `ReferenceError: Property 'DOMException' doesn't exist` on top of the
+     * abort it was reporting, so a screen unmounting mid-fetch — or a slow
+     * connection timing out — surfaced as a crash instead of a cancelled
+     * request.
+     */
+    const globalScope = globalThis as { DOMException?: unknown };
+    let savedDOMException: unknown;
+
+    beforeEach(() => {
+      savedDOMException = globalScope.DOMException;
+      delete globalScope.DOMException;
+    });
+
+    afterEach(() => {
+      globalScope.DOMException = savedDOMException;
+    });
+
+    it('rejects an already-aborted request without touching DOMException', async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(fetchIcon('mdi:home', controller.signal)).rejects.toThrow(AbortError);
+    });
+
+    it('reports the abort as AbortError, which is what callers branch on', async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(fetchIcon('mdi:home', controller.signal)).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+    });
+
+    it('propagates a fetch-level abort without a ReferenceError', async () => {
+      ConfigManager.setConfig({ api: { retries: 0 } });
+      mockFetch.mockRejectedValueOnce(new AbortError());
+
+      const error = await fetchIcon('mdi:aborted-by-fetch').catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).name).not.toBe('ReferenceError');
 
       ConfigManager.setConfig({ api: { retries: 2 } });
     });
@@ -977,7 +1030,7 @@ describe('IconifyAPI', () => {
       const controller = new AbortController();
       controller.abort();
 
-      mockFetch.mockRejectedValueOnce(new DOMException('Aborted', 'AbortError'));
+      mockFetch.mockRejectedValueOnce(new AbortError());
 
       await expect(fetchCollection('mdi', controller.signal)).rejects.toThrow();
     });
@@ -1129,7 +1182,7 @@ describe('IconifyAPI', () => {
       const controller = new AbortController();
       controller.abort();
 
-      mockFetch.mockRejectedValueOnce(new DOMException('Aborted', 'AbortError'));
+      mockFetch.mockRejectedValueOnce(new AbortError());
 
       await expect(searchIconsAPI('home', undefined, 100, controller.signal)).rejects.toThrow();
     });

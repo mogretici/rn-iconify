@@ -6,7 +6,7 @@
 
 import type { IconifyAPIResponse, IconifyIconData } from '../types';
 import { ConfigManager } from '../config';
-import { IconLoadError } from '../errors';
+import { AbortError, IconLoadError } from '../errors';
 
 /**
  * Get current API configuration
@@ -187,14 +187,10 @@ export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise
         pending,
         new Promise<never>((_, reject) => {
           if (signal.aborted) {
-            reject(new DOMException('Aborted', 'AbortError'));
+            reject(new AbortError());
             return;
           }
-          signal.addEventListener(
-            'abort',
-            () => reject(new DOMException('Aborted', 'AbortError')),
-            { once: true }
-          );
+          signal.addEventListener('abort', () => reject(new AbortError()), { once: true });
         }),
       ]);
     }
@@ -221,7 +217,7 @@ export async function fetchIcon(iconName: string, signal?: AbortSignal): Promise
       try {
         // Check if already aborted
         if (signal?.aborted) {
-          throw new DOMException('Aborted', 'AbortError');
+          throw new AbortError();
         }
 
         const url = `${settings.baseUrl}/${prefix}.json?icons=${name}`;

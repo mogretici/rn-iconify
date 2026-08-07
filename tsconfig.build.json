@@ -1,4 +1,11 @@
 {
+  "$comment": [
+    "bob warns that noEmit here 'can conflict with the CLI options' and asks for",
+    "it to be removed. Removing it fails the build: tsconfig.json sets noEmit",
+    "true for editor and typecheck use, this file inherits that, and tsc then",
+    "writes no declaration files at all. The warning is wrong for this setup —",
+    "the override is what makes the inheritance work."
+  ],
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
