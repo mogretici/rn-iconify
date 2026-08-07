@@ -1,3 +1,9 @@
+## [3.0.3](https://github.com/mogretici/rn-iconify/compare/v3.0.2...v3.0.3) (2026-08-07)
+
+### Bug Fixes
+
+- **network:** stop aborts from crashing on Hermes ([a3c3669](https://github.com/mogretici/rn-iconify/commit/a3c3669af5a79242048347c6126811f78796b748))
+
 ## [3.0.2](https://github.com/mogretici/rn-iconify/compare/v3.0.1...v3.0.2) (2026-03-15)
 
 ### Bug Fixes
