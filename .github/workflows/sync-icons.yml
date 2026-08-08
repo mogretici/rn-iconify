@@ -51,8 +51,8 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'chore: sync icon sets with Iconify API'
-          title: 'chore: sync icon sets with Iconify API'
+          commit-message: 'feat: sync icon sets with Iconify API'
+          title: 'feat: sync icon sets with Iconify API'
           body: |
             This PR updates icon components from the Iconify API.
 
