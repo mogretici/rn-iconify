@@ -2,7 +2,7 @@
  * Icon Set Components
  * Auto-generated - do not edit manually
  *
- * 200+ icon sets available
+ * 226 icon sets available
  */
 
 export { Mdi, type MdiIconName } from './Mdi';
@@ -27,8 +27,10 @@ export { Iconoir, type IconoirIconName } from './Iconoir';
 export { Academicons, type AcademiconsIconName } from './Academicons';
 export { AkarIcons, type AkarIconsIconName } from './AkarIcons';
 export { Arcticons, type ArcticonsIconName } from './Arcticons';
+export { AtIcons, type AtIconsIconName } from './AtIcons';
 export { Basil, type BasilIconName } from './Basil';
 export { BitcoinIcons, type BitcoinIconsIconName } from './BitcoinIcons';
+export { Boxicons, type BoxiconsIconName } from './Boxicons';
 export { Bpmn, type BpmnIconName } from './Bpmn';
 export { Brandico, type BrandicoIconName } from './Brandico';
 export { Bx, type BxIconName } from './Bx';
@@ -97,10 +99,15 @@ export { Foundation, type FoundationIconName } from './Foundation';
 export { Gala, type GalaIconName } from './Gala';
 export { GameIcons, type GameIconsIconName } from './GameIcons';
 export { Garden, type GardenIconName } from './Garden';
+export { Gcp, type GcpIconName } from './Gcp';
 export { Geo, type GeoIconName } from './Geo';
 export { Gg, type GgIconName } from './Gg';
+export { Ginetex, type GinetexIconName } from './Ginetex';
 export { Gis, type GisIconName } from './Gis';
+export { Glyphs, type GlyphsIconName } from './Glyphs';
+export { GlyphsPoly, type GlyphsPolyIconName } from './GlyphsPoly';
 export { GravityUi, type GravityUiIconName } from './GravityUi';
+export { GriddyIcons, type GriddyIconsIconName } from './GriddyIcons';
 export { Gridicons, type GridiconsIconName } from './Gridicons';
 export { GrommetIcons, type GrommetIconsIconName } from './GrommetIcons';
 export { Guidance, type GuidanceIconName } from './Guidance';
@@ -121,6 +128,7 @@ export { Il, type IlIconName } from './Il';
 export { Iwwa, type IwwaIconName } from './Iwwa';
 export { Ix, type IxIconName } from './Ix';
 export { Jam, type JamIconName } from './Jam';
+export { K8s, type K8sIconName } from './K8s';
 export { La, type LaIconName } from './La';
 export { LetsIcons, type LetsIconsIconName } from './LetsIcons';
 export { LineMd, type LineMdIconName } from './LineMd';
@@ -149,6 +157,7 @@ export { Nonicons, type NoniconsIconName } from './Nonicons';
 export { Nrk, type NrkIconName } from './Nrk';
 export { Oi, type OiIconName } from './Oi';
 export { Ooui, type OouiIconName } from './Ooui';
+export { Osmic, type OsmicIconName } from './Osmic';
 export { Oui, type OuiIconName } from './Oui';
 export { Pajamas, type PajamasIconName } from './Pajamas';
 export { Pepicons, type PepiconsIconName } from './Pepicons';
@@ -157,6 +166,7 @@ export { PepiconsPop, type PepiconsPopIconName } from './PepiconsPop';
 export { PepiconsPrint, type PepiconsPrintIconName } from './PepiconsPrint';
 export { Ph, type PhIconName } from './Ph';
 export { Picon, type PiconIconName } from './Picon';
+export { Pinhead, type PinheadIconName } from './Pinhead';
 export { Pixel, type PixelIconName } from './Pixel';
 export { Pixelarticons, type PixelarticonsIconName } from './Pixelarticons';
 export { Prime, type PrimeIconName } from './Prime';
@@ -168,6 +178,7 @@ export { RadixIcons, type RadixIconsIconName } from './RadixIcons';
 export { Raphael, type RaphaelIconName } from './Raphael';
 export { RivetIcons, type RivetIconsIconName } from './RivetIcons';
 export { Roentgen, type RoentgenIconName } from './Roentgen';
+export { Selfhst, type SelfhstIconName } from './Selfhst';
 export { Si, type SiIconName } from './Si';
 export { SiGlyph, type SiGlyphIconName } from './SiGlyph';
 export { Sidekickicons, type SidekickiconsIconName } from './Sidekickicons';
@@ -212,6 +223,8 @@ export { SystemUicons, type SystemUiconsIconName } from './SystemUicons';
 export { Tdesign, type TdesignIconName } from './Tdesign';
 export { Teenyicons, type TeenyiconsIconName } from './Teenyicons';
 export { Temaki, type TemakiIconName } from './Temaki';
+export { Thesvg, type ThesvgIconName } from './Thesvg';
+export { ThesvgColor, type ThesvgColorIconName } from './ThesvgColor';
 export { Token, type TokenIconName } from './Token';
 export { TokenBranded, type TokenBrandedIconName } from './TokenBranded';
 export { Topcoat, type TopcoatIconName } from './Topcoat';
@@ -229,57 +242,7 @@ export { Websymbol, type WebsymbolIconName } from './Websymbol';
 export { Weui, type WeuiIconName } from './Weui';
 export { Whh, type WhhIconName } from './Whh';
 export { Wi, type WiIconName } from './Wi';
+export { Wordpress, type WordpressIconName } from './Wordpress';
 export { Wpf, type WpfIconName } from './Wpf';
 export { Zmdi, type ZmdiIconName } from './Zmdi';
 export { Zondicons, type ZondiconsIconName } from './Zondicons';
-
-// Props type aliases for popular icon sets (convenience types)
-import type { IconProps } from '../types';
-import type { MdiIconName } from './Mdi';
-import type { HeroiconsIconName } from './Heroicons';
-import type { LucideIconName } from './Lucide';
-import type { PhIconName } from './Ph';
-import type { TablerIconName } from './Tabler';
-import type { FeatherIconName } from './Feather';
-import type { BiIconName } from './Bi';
-import type { Fa6SolidIconName } from './Fa6Solid';
-import type { Fa6RegularIconName } from './Fa6Regular';
-import type { Fa6BrandsIconName } from './Fa6Brands';
-import type { IonIconName } from './Ion';
-import type { RiIconName } from './Ri';
-
-/** Props for Mdi icon component */
-export type MdiProps = IconProps<MdiIconName>;
-
-/** Props for Heroicons icon component */
-export type HeroiconsProps = IconProps<HeroiconsIconName>;
-
-/** Props for Lucide icon component */
-export type LucideProps = IconProps<LucideIconName>;
-
-/** Props for Ph (Phosphor) icon component */
-export type PhProps = IconProps<PhIconName>;
-
-/** Props for Tabler icon component */
-export type TablerProps = IconProps<TablerIconName>;
-
-/** Props for Feather icon component */
-export type FeatherProps = IconProps<FeatherIconName>;
-
-/** Props for Bi (Bootstrap Icons) icon component */
-export type BiProps = IconProps<BiIconName>;
-
-/** Props for Fa6Solid icon component */
-export type Fa6SolidProps = IconProps<Fa6SolidIconName>;
-
-/** Props for Fa6Regular icon component */
-export type Fa6RegularProps = IconProps<Fa6RegularIconName>;
-
-/** Props for Fa6Brands icon component */
-export type Fa6BrandsProps = IconProps<Fa6BrandsIconName>;
-
-/** Props for Ion (Ionicons) icon component */
-export type IonProps = IconProps<IonIconName>;
-
-/** Props for Ri (Remix Icon) icon component */
-export type RiProps = IconProps<RiIconName>;
