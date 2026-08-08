@@ -86,7 +86,6 @@ const flagpackIconNames = {
   fo: true,
   fr: true,
   ga: true,
-  gb: true,
   'gb-nir': true,
   'gb-sct': true,
   'gb-ukm': true,
