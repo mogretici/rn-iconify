@@ -1,3 +1,9 @@
+# [3.1.0](https://github.com/mogretici/rn-iconify/compare/v3.0.3...v3.1.0) (2026-08-08)
+
+### Features
+
+- sync icon sets with Iconify API ([ba30720](https://github.com/mogretici/rn-iconify/commit/ba307209e6655eb08745b241dc1d5998387c8e9c))
+
 ## [3.0.3](https://github.com/mogretici/rn-iconify/compare/v3.0.2...v3.0.3) (2026-08-07)
 
 ### Bug Fixes
