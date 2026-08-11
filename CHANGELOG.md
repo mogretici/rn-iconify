@@ -1,3 +1,9 @@
+## [3.1.2](https://github.com/mogretici/rn-iconify/compare/v3.1.1...v3.1.2) (2026-08-11)
+
+### Bug Fixes
+
+- keep icon names that Iconify has renamed ([6d5a526](https://github.com/mogretici/rn-iconify/commit/6d5a526efe63d9a728b707b1614aec50730ac103))
+
 ## [3.1.1](https://github.com/mogretici/rn-iconify/compare/v3.1.0...v3.1.1) (2026-08-11)
 
 ### Bug Fixes
