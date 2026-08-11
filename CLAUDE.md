@@ -102,6 +102,29 @@ The package exports multiple entry points:
 
 `scripts/generate-components.ts` fetches icon metadata from Iconify API and generates typed components in `src/components/`. Each component exports icon names as a const object for TypeScript autocomplete.
 
+**Every generated key is public API.** An application can pass any of them to
+`name=`, so removing one is a breaking change — and it is invisible inside a
+diff of thousands of generated lines.
+
+Iconify renames icons regularly and keeps the old name as an alias:
+`pinhead:five` became `pinhead:5`, `fluent:text-add-28-filled` became
+`text-add-t-28-filled`. Generating from the icon list alone drops those names
+here for a rename this package never made. One sync did exactly that to 76
+names while describing itself as a feature, which would have shipped as a
+minor release.
+
+Two things keep that from happening again:
+
+- `scripts/icon-aliases.ts` keeps renamed names, emitting them as
+  `oldName: 'currentName'`. `createIconSet` resolves a string value to the icon
+  it points at, so the old name keeps working.
+- `scripts/report-icon-changes.ts` compares the names before and after a run.
+  The sync workflow puts the summary on the pull request and, if anything was
+  removed, marks the commit `feat!:` so semantic-release cuts a major.
+
+Both are pure and unit-tested in `scripts/__tests__/`; the runtime half is
+covered by the `mapped names` tests in `src/__tests__/createIconSet.test.tsx`.
+
 ## Bundle size
 
 Applications import from the barrel — `import { Mdi } from 'rn-iconify'` — and
