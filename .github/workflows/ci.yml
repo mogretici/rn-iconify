@@ -52,11 +52,28 @@ jobs:
       - name: Build package
         run: npm run build
 
+      # A bundler resolving lib/module/index.js reads the manifest next to it,
+      # not the one at the root. Without sideEffects there, importing one icon
+      # set keeps all 226.
+      - name: Verify ESM manifest is tree-shakeable
+        run: |
+          node -e "
+            const m = require('./lib/module/package.json');
+            if (m.type !== 'module' || m.sideEffects !== false) {
+              console.error('lib/module/package.json is', JSON.stringify(m));
+              process.exit(1);
+            }
+          "
+
       - name: Validate package.json (publint)
         run: npx publint
 
+      # The one remaining exception is deliberate: the Babel plugin entry has a
+      # default export because that is the interface Babel loads a plugin
+      # through, exactly as every @babel/plugin-* package does. Everything else
+      # resolves cleanly under node10, node16 and bundler.
       - name: Validate TypeScript exports (attw)
-        run: npx @arethetypeswrong/cli --pack . --ignore-rules false-cjs untyped-resolution no-resolution
+        run: npx @arethetypeswrong/cli --pack . --ignore-rules cjs-only-exports-default
 
       - name: Check bundle size (size-limit)
         run: npx size-limit
