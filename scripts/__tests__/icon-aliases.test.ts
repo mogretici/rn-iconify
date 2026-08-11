@@ -1,4 +1,5 @@
 import {
+  renderAliasUnion,
   renderIconEntries,
   sanitizeIconName,
   selectAliases,
@@ -53,39 +54,52 @@ describe('selectAliases', () => {
 
 describe('renderIconEntries', () => {
   it('maps a plain name to true', () => {
-    expect(renderIconEntries(['arrow-left'], {})).toBe("  'arrow-left': true,");
+    expect(renderIconEntries(['arrow-left'])).toBe("  'arrow-left': true,");
   });
 
   it('maps a sanitized key back to the real name', () => {
-    expect(renderIconEntries(['500px'], {})).toBe("  '_500px': '500px',");
+    expect(renderIconEntries(['500px'])).toBe("  '_500px': '500px',");
   });
 
-  it('emits renamed names as mappings, under a comment', () => {
-    const output = renderIconEntries(['home'], { house: 'home' });
+  // The object is what ships. Anything that does not have to be in it is the
+  // difference between 36 kB and 73 kB for an application importing one set.
+  it('carries current names only', () => {
+    expect(renderIconEntries(['home'])).toBe("  'home': true,");
+  });
+});
 
-    expect(output).toContain("  'home': true,");
-    expect(output).toContain("  'house': 'home',");
-    expect(output).toContain('renamed');
+describe('renderAliasUnion', () => {
+  it('lists a name upstream renamed', () => {
+    expect(renderAliasUnion(['home'], { house: 'home' })).toEqual(['house']);
   });
 
-  it('sanitizes alias keys too', () => {
-    expect(renderIconEntries(['5'], { '5-alt': '5' })).toContain("  '_5-alt': '5',");
+  it('lists a name upstream hid but still serves', () => {
+    expect(renderAliasUnion(['home'], {}, ['4k-bold-duotone'])).toEqual(['4k-bold-duotone']);
   });
 
-  it('does not let an alias overwrite a real icon entry', () => {
-    // '5' sanitizes to the key `_5`, and so does the alias — a duplicate key
-    // in the generated object literal would silently win over the icon.
-    const output = renderIconEntries(['5'], { '5': '5' });
-    const keys = [...output.matchAll(/^ {2}'([^']+)':/gm)].map((m) => m[1]);
-
-    expect(keys).toEqual(['_5']);
+  /**
+   * A key has to be a valid identifier or quoted; a member of a string literal
+   * union has no such rule. Sanitizing here would produce `_1-2-3`, which the
+   * Iconify API has never heard of — `1-2-3` is the name it answers to.
+   */
+  it('writes the name the way upstream spells it', () => {
+    expect(renderAliasUnion(['numeric'], { '1-2-3': 'numeric' })).toEqual(['1-2-3']);
   });
 
-  it('sorts aliases so regenerating produces a stable diff', () => {
-    const output = renderIconEntries(['1', '2', '3'], { c: '3', a: '1', b: '2' });
-    const order = [...output.matchAll(/'([abc])':/g)].map((m) => m[1]);
+  it('leaves out a name that is current in its own right', () => {
+    expect(renderAliasUnion(['home', 'house'], { house: 'home' })).toEqual([]);
+  });
 
-    expect(order).toEqual(['a', 'b', 'c']);
+  it('lists a name once when it is both renamed and hidden', () => {
+    expect(renderAliasUnion(['home'], { house: 'home' }, ['house'])).toEqual(['house']);
+  });
+
+  it('sorts so regenerating produces a stable diff', () => {
+    expect(renderAliasUnion([], { c: 'x', a: 'x', b: 'x' })).toEqual(['a', 'b', 'c']);
+  });
+
+  it('returns nothing when there is nothing to keep', () => {
+    expect(renderAliasUnion(['home'], {})).toEqual([]);
   });
 });
 
@@ -111,30 +125,6 @@ describe('selectDeprecated', () => {
 
   it('returns nothing when there is nothing hidden', () => {
     expect(selectDeprecated(['home'], [])).toEqual([]);
-  });
-});
-
-describe('renderIconEntries with deprecated icons', () => {
-  it('emits deprecated names under their own comment', () => {
-    const output = renderIconEntries(['home'], {}, ['old-icon']);
-
-    expect(output).toContain("  'old-icon': true,");
-    expect(output).toContain('Deprecated upstream');
-  });
-
-  it('keeps renamed and deprecated names in separate sections', () => {
-    const output = renderIconEntries(['5'], { five: '5' }, ['old-icon']);
-
-    expect(output).toContain("  'five': '5',");
-    expect(output).toContain("  'old-icon': true,");
-    expect(output.indexOf('renamed')).toBeLessThan(output.indexOf('Deprecated'));
-  });
-
-  it('does not let a deprecated name shadow a real icon or an alias', () => {
-    const output = renderIconEntries(['home'], { house: 'home' }, ['home', 'house']);
-    const keys = [...output.matchAll(/^ {2}'?([^':]+)'?:/gm)].map((m) => m[1]);
-
-    expect(keys).toEqual(['home', 'house']);
   });
 });
 

@@ -1309,5 +1309,18 @@ const siIconNames = {
   'zoom-out-line': true,
 } as const;
 
-export type SiIconName = keyof typeof siIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type SiIconAlias =
+  | 'ai-note-1-duotone'
+  | 'ai-note-1-fill'
+  | 'ai-note-1-line'
+  | 'ai-note-alt-1-1-duotone'
+  | 'ai-note-alt-1-1-fill'
+  | 'ai-note-alt-1-1-line';
+
+export type SiIconName = keyof typeof siIconNames | SiIconAlias;
 export const Si = createIconSet<SiIconName>('si', siIconNames);

@@ -464,5 +464,22 @@ const akar_iconsIconNames = {
   'zoom-out': true,
 } as const;
 
-export type AkarIconsIconName = keyof typeof akar_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type AkarIconsIconAlias =
+  | 'bluetooh'
+  | 'bookmark'
+  | 'figma'
+  | 'github'
+  | 'instagram'
+  | 'link'
+  | 'reply'
+  | 'share-arrow'
+  | 'trash'
+  | 'youtube';
+
+export type AkarIconsIconName = keyof typeof akar_iconsIconNames | AkarIconsIconAlias;
 export const AkarIcons = createIconSet<AkarIconsIconName>('akar-icons', akar_iconsIconNames);

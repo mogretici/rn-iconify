@@ -264,5 +264,12 @@ const flagpackIconNames = {
   zw: true,
 } as const;
 
-export type FlagpackIconName = keyof typeof flagpackIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type FlagpackIconAlias = 'gb' | 'gb-eng';
+
+export type FlagpackIconName = keyof typeof flagpackIconNames | FlagpackIconAlias;
 export const Flagpack = createIconSet<FlagpackIconName>('flagpack', flagpackIconNames);

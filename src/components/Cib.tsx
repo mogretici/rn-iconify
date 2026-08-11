@@ -840,5 +840,12 @@ const cibIconNames = {
   zulip: true,
 } as const;
 
-export type CibIconName = keyof typeof cibIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type CibIconAlias = 'stack-overflow';
+
+export type CibIconName = keyof typeof cibIconNames | CibIconAlias;
 export const Cib = createIconSet<CibIconName>('cib', cibIconNames);

@@ -1046,5 +1046,21 @@ const deviconIconNames = {
   zustand: true,
 } as const;
 
-export type DeviconIconName = keyof typeof deviconIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type DeviconIconAlias =
+  | '3dsmax'
+  | 'amazonwebservices-wordmark'
+  | 'dyalog-wordmark'
+  | 'framermotion'
+  | 'framermotion-wordmark'
+  | 'lua-wordmark'
+  | 'nano-wordmark'
+  | 'processing-wordmark'
+  | 'web3';
+
+export type DeviconIconName = keyof typeof deviconIconNames | DeviconIconAlias;
 export const Devicon = createIconSet<DeviconIconName>('devicon', deviconIconNames);

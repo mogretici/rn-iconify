@@ -280,6 +280,8 @@ const cbiIconNames = {
   casaos: true,
   'cbc-gem': true,
   cbs: true,
+  'cbs-sports': true,
+  'cbs-sports-alt': true,
   'ceiling-adore': true,
   'ceiling-adore-alt': true,
   'ceiling-adore-alt-flush': true,
@@ -337,8 +339,8 @@ const cbiIconNames = {
   'charging-station': true,
   chevrolet: true,
   chicken: true,
-  'chicken-coup': true,
-  'chicken-coup-door-shut': true,
+  'chicken-coop': true,
+  'chicken-coop-door-shut': true,
   'christmas-lights': true,
   'christmas-tree': true,
   'christmas-tree-v2': true,
@@ -529,6 +531,7 @@ const cbiIconNames = {
   fortinet: true,
   fox: true,
   'fox-news': true,
+  'fox-one': true,
   'foxx-ess': true,
   france2: true,
   france3: true,
@@ -557,6 +560,7 @@ const cbiIconNames = {
   'fritz-repeater': true,
   'fritzbox-7530': true,
   'fronius-inverter-gen24': true,
+  gaa: true,
   gamecube: true,
   'garage-3-prong': true,
   'garage-4-prong': true,
@@ -1032,6 +1036,7 @@ const cbiIconNames = {
   'panel-glassdoor-open': true,
   'panel-oven': true,
   paramount: true,
+  'paramount-plus': true,
   pathe: true,
   'patio-doors-closed': true,
   'patio-doors-open': true,
@@ -1636,6 +1641,7 @@ const cbiIconNames = {
   'water-softener': true,
   wdr1: true,
   'weather-page-alt': true,
+  'weber-grill': true,
   webmin: true,
   wellner: true,
   'wellner-solid': true,
@@ -1710,5 +1716,105 @@ const cbiIconNames = {
   zwavejs: true,
 } as const;
 
-export type CbiIconName = keyof typeof cbiIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type CbiIconAlias =
+  | 'bridgesv1'
+  | 'bridgesv2'
+  | 'bulbcandle'
+  | 'bulbflood'
+  | 'bulbfoh'
+  | 'bulbgeneralgroup'
+  | 'bulbgroup'
+  | 'bulbsclassic'
+  | 'bulbsfilament'
+  | 'bulbsspot'
+  | 'bulbssultan'
+  | 'cabridge-audio'
+  | 'ceilinground'
+  | 'ceilingsquare'
+  | 'chicken-coup'
+  | 'chicken-coup-door-shut'
+  | 'creston-swirl'
+  | 'desklamp'
+  | 'dimmerswitch'
+  | 'doublespot'
+  | 'floorlantern'
+  | 'floorshade'
+  | 'floorspot'
+  | 'friendsofhue'
+  | 'honda-motorcycles'
+  | 'lift-in-window-open1'
+  | 'lift-in-window-open2'
+  | 'lightstrip'
+  | 'motionsensor'
+  | 'pendantlong'
+  | 'pendantround'
+  | 'pet-water-fountian'
+  | 'recessedfloor'
+  | 'romain-letttace'
+  | 'roomsattic'
+  | 'roomsbalcony'
+  | 'roomsbathroom'
+  | 'roomsbedroom'
+  | 'roomscarport'
+  | 'roomscloset'
+  | 'roomscomputer'
+  | 'roomsdining'
+  | 'roomsdriveway'
+  | 'roomsfrontdoor'
+  | 'roomsgarage'
+  | 'roomsguestroom'
+  | 'roomsgym'
+  | 'roomshallway'
+  | 'roomskidsbedroom'
+  | 'roomskitchen'
+  | 'roomslaundryroom'
+  | 'roomsliving'
+  | 'roomslounge'
+  | 'roomsmancave'
+  | 'roomsnursery'
+  | 'roomsoffice'
+  | 'roomsother'
+  | 'roomsoutdoor'
+  | 'roomsoutdoorsocialtime'
+  | 'roomspool'
+  | 'roomsporch'
+  | 'roomsrecreation'
+  | 'roomsstaircase'
+  | 'roomsstorage'
+  | 'roomsstudio'
+  | 'roomsterrace'
+  | 'roomstoilet'
+  | 'singlespot'
+  | 'slling'
+  | 'slling-tv'
+  | 'sonos-symfonisk-pictureframe'
+  | 'spotbear-bal-v2'
+  | 'spotbear-ball-v1'
+  | 'spotbear-cube'
+  | 'spotbear-custom-speaker'
+  | 'spotbear-round-n16r8'
+  | 'spotbear-round-speaker-n16r8'
+  | 'tableshade'
+  | 'tablewash'
+  | 'telnet'
+  | 'telnet-box'
+  | 'twinkly-curtian'
+  | 'twinly'
+  | 'twinly-c9'
+  | 'twinly-candies-candles'
+  | 'twinly-candies-hearts'
+  | 'twinly-curtian'
+  | 'walllantern'
+  | 'wallshade'
+  | 'wallspot'
+  | 'webber-grill'
+  | 'yale'
+  | 'yale-doorman-l3';
+
+export type CbiIconName = keyof typeof cbiIconNames | CbiIconAlias;
 export const Cbi = createIconSet<CbiIconName>('cbi', cbiIconNames);

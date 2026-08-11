@@ -169,5 +169,25 @@ const vsIconNames = {
   'z-square': true,
 } as const;
 
-export type VsIconName = keyof typeof vsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type VsIconAlias =
+  | 'black-card'
+  | 'elderly'
+  | 'f04d'
+  | 'f053'
+  | 'f054'
+  | 'f055'
+  | 'f056'
+  | 'f057'
+  | 'f058'
+  | 'microphone'
+  | 'paperclip-note'
+  | 'paperclip-note-o'
+  | 'tablecheck';
+
+export type VsIconName = keyof typeof vsIconNames | VsIconAlias;
 export const Vs = createIconSet<VsIconName>('vs', vsIconNames);

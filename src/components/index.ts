@@ -2,7 +2,7 @@
  * Icon Set Components
  * Auto-generated - do not edit manually
  *
- * 226 icon sets available
+ * 228 icon sets available
  */
 
 export { Mdi, type MdiIconName } from './Mdi';
@@ -176,6 +176,7 @@ export { QlementineIcons, type QlementineIconsIconName } from './QlementineIcons
 export { Quill, type QuillIconName } from './Quill';
 export { RadixIcons, type RadixIconsIconName } from './RadixIcons';
 export { Raphael, type RaphaelIconName } from './Raphael';
+export { Reicon, type ReiconIconName } from './Reicon';
 export { RivetIcons, type RivetIconsIconName } from './RivetIcons';
 export { Roentgen, type RoentgenIconName } from './Roentgen';
 export { Selfhst, type SelfhstIconName } from './Selfhst';
@@ -236,6 +237,7 @@ export { Uit, type UitIconName } from './Uit';
 export { Uiw, type UiwIconName } from './Uiw';
 export { Unjs, type UnjsIconName } from './Unjs';
 export { Vaadin, type VaadinIconName } from './Vaadin';
+export { Vadivam, type VadivamIconName } from './Vadivam';
 export { Vs, type VsIconName } from './Vs';
 export { VscodeIcons, type VscodeIconsIconName } from './VscodeIcons';
 export { Websymbol, type WebsymbolIconName } from './Websymbol';

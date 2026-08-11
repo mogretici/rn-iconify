@@ -661,5 +661,12 @@ const memoryIconNames = {
   'tooltip-start-text': true,
 } as const;
 
-export type MemoryIconName = keyof typeof memoryIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type MemoryIconAlias = 'gamepad-empty' | 'octagon-alert' | 'user' | 'user-box';
+
+export type MemoryIconName = keyof typeof memoryIconNames | MemoryIconAlias;
 export const Memory = createIconSet<MemoryIconName>('memory', memoryIconNames);

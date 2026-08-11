@@ -493,7 +493,14 @@ const cryptocurrencyIconNames = {
   zrx: true,
 } as const;
 
-export type CryptocurrencyIconName = keyof typeof cryptocurrencyIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type CryptocurrencyIconAlias = 'dht' | 'dnr' | 'eql' | 'gxlt' | 'pgt' | 'ven';
+
+export type CryptocurrencyIconName = keyof typeof cryptocurrencyIconNames | CryptocurrencyIconAlias;
 export const Cryptocurrency = createIconSet<CryptocurrencyIconName>(
   'cryptocurrency',
   cryptocurrencyIconNames

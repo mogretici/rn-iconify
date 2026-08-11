@@ -2088,5 +2088,24 @@ const biIconNames = {
   'zoom-out': true,
 } as const;
 
-export type BiIconName = keyof typeof biIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type BiIconAlias =
+  | 'arrow-up-down'
+  | 'check-box'
+  | 'cloud-haze-1'
+  | 'patch-check-fll'
+  | 'patch-exclamation-fll'
+  | 'patch-minus-fll'
+  | 'patch-plus-fll'
+  | 'patch-question-fll'
+  | 'people-circle'
+  | 'ticket-perferated'
+  | 'ticket-perferated-fill'
+  | 'wrench-adjustable-cricle';
+
+export type BiIconName = keyof typeof biIconNames | BiIconAlias;
 export const Bi = createIconSet<BiIconName>('bi', biIconNames);

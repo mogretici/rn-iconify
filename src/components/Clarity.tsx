@@ -1113,5 +1113,12 @@ const clarityIconNames = {
   'truck-solid': true,
 } as const;
 
-export type ClarityIconName = keyof typeof clarityIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type ClarityIconAlias = 'vm-bug-inverse-line' | 'vm-bug-line';
+
+export type ClarityIconName = keyof typeof clarityIconNames | ClarityIconAlias;
 export const Clarity = createIconSet<ClarityIconName>('clarity', clarityIconNames);

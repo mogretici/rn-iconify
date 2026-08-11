@@ -3136,7 +3136,69 @@ const fluent_emojiIconNames = {
   zzz: true,
 } as const;
 
-export type FluentEmojiIconName = keyof typeof fluent_emojiIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type FluentEmojiIconAlias =
+  | 'japanese-hear-button'
+  | 'knot'
+  | 'man-curly-hair'
+  | 'man-curly-hair-dark'
+  | 'man-curly-hair-light'
+  | 'man-curly-hair-medium'
+  | 'man-curly-hair-medium-dark'
+  | 'man-curly-hair-medium-light'
+  | 'man-with-bunny-ears-dark'
+  | 'man-with-bunny-ears-light'
+  | 'man-with-bunny-ears-medium'
+  | 'man-with-bunny-ears-medium-dark'
+  | 'man-with-bunny-ears-medium-light'
+  | 'man-wrestling-dark'
+  | 'man-wrestling-light'
+  | 'man-wrestling-medium'
+  | 'man-wrestling-medium-dark'
+  | 'man-wrestling-medium-light'
+  | 'person-curly-hair'
+  | 'person-curly-hair-dark'
+  | 'person-curly-hair-light'
+  | 'person-curly-hair-medium'
+  | 'person-curly-hair-medium-dark'
+  | 'person-curly-hair-medium-light'
+  | 'person-with-bunny-ears-dark'
+  | 'person-with-bunny-ears-light'
+  | 'person-with-bunny-ears-medium'
+  | 'person-with-bunny-ears-medium-dark'
+  | 'person-with-bunny-ears-medium-light'
+  | 'person-wrestling-dark'
+  | 'person-wrestling-light'
+  | 'person-wrestling-medium'
+  | 'person-wrestling-medium-dark'
+  | 'person-wrestling-medium-light'
+  | 'skier-dark'
+  | 'skier-light'
+  | 'skier-medium'
+  | 'skier-medium-dark'
+  | 'skier-medium-light'
+  | 'woman-curly-hair'
+  | 'woman-curly-hair-dark'
+  | 'woman-curly-hair-light'
+  | 'woman-curly-hair-medium'
+  | 'woman-curly-hair-medium-dark'
+  | 'woman-curly-hair-medium-light'
+  | 'woman-with-bunny-ears-dark'
+  | 'woman-with-bunny-ears-light'
+  | 'woman-with-bunny-ears-medium'
+  | 'woman-with-bunny-ears-medium-dark'
+  | 'woman-with-bunny-ears-medium-light'
+  | 'woman-wrestling-dark'
+  | 'woman-wrestling-light'
+  | 'woman-wrestling-medium'
+  | 'woman-wrestling-medium-dark'
+  | 'woman-wrestling-medium-light';
+
+export type FluentEmojiIconName = keyof typeof fluent_emojiIconNames | FluentEmojiIconAlias;
 export const FluentEmoji = createIconSet<FluentEmojiIconName>(
   'fluent-emoji',
   fluent_emojiIconNames

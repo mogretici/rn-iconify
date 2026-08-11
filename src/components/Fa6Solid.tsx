@@ -1412,5 +1412,18 @@ const fa6_solidIconNames = {
   icicles: true,
 } as const;
 
-export type Fa6SolidIconName = keyof typeof fa6_solidIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type Fa6SolidIconAlias =
+  | 'car-crash'
+  | 'child-rifle'
+  | 'hourglass-empty'
+  | 'people-arrows-left-right'
+  | 'shield-blank'
+  | 'staff-aesculapius';
+
+export type Fa6SolidIconName = keyof typeof fa6_solidIconNames | Fa6SolidIconAlias;
 export const Fa6Solid = createIconSet<Fa6SolidIconName>('fa6-solid', fa6_solidIconNames);

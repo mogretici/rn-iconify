@@ -4143,5 +4143,12 @@ const game_iconsIconNames = {
   zipper: true,
 } as const;
 
-export type GameIconsIconName = keyof typeof game_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type GameIconsIconAlias = 'eskimo' | 'female-vampire' | 'sattelite' | 'star-sattelites';
+
+export type GameIconsIconName = keyof typeof game_iconsIconNames | GameIconsIconAlias;
 export const GameIcons = createIconSet<GameIconsIconName>('game-icons', game_iconsIconNames);

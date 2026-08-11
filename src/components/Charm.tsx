@@ -271,5 +271,12 @@ const charmIconNames = {
   'zoom-out': true,
 } as const;
 
-export type CharmIconName = keyof typeof charmIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type CharmIconAlias = 'extensions' | 'git-request-closed';
+
+export type CharmIconName = keyof typeof charmIconNames | CharmIconAlias;
 export const Charm = createIconSet<CharmIconName>('charm', charmIconNames);

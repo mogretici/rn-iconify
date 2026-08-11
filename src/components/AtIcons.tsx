@@ -628,5 +628,12 @@ const at_iconsIconNames = {
   wrench: true,
 } as const;
 
-export type AtIconsIconName = keyof typeof at_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type AtIconsIconAlias = 'arrow-counter-clockwise';
+
+export type AtIconsIconName = keyof typeof at_iconsIconNames | AtIconsIconAlias;
 export const AtIcons = createIconSet<AtIconsIconName>('at-icons', at_iconsIconNames);

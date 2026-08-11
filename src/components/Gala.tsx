@@ -61,5 +61,12 @@ const galaIconNames = {
   window: true,
 } as const;
 
-export type GalaIconName = keyof typeof galaIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type GalaIconAlias = 'file-csv' | 'file-doc' | 'menu-left' | 'menu-right';
+
+export type GalaIconName = keyof typeof galaIconNames | GalaIconAlias;
 export const Gala = createIconSet<GalaIconName>('gala', galaIconNames);

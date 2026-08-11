@@ -199,7 +199,21 @@ const simple_line_iconsIconNames = {
   wrench: true,
 } as const;
 
-export type SimpleLineIconsIconName = keyof typeof simple_line_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type SimpleLineIconsIconAlias =
+  | 'calendar'
+  | 'envelope'
+  | 'envelope-letter'
+  | 'social-pinterest'
+  | 'symbol-female';
+
+export type SimpleLineIconsIconName =
+  | keyof typeof simple_line_iconsIconNames
+  | SimpleLineIconsIconAlias;
 export const SimpleLineIcons = createIconSet<SimpleLineIconsIconName>(
   'simple-line-icons',
   simple_line_iconsIconNames

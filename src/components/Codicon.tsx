@@ -654,5 +654,20 @@ const codiconIconNames = {
   'zoom-out': true,
 } as const;
 
-export type CodiconIconName = keyof typeof codiconIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type CodiconIconAlias =
+  | 'blank'
+  | 'circle-large-outline'
+  | 'circle-outline'
+  | 'debug-stackframe-dot'
+  | 'git-lens'
+  | 'issue-closed'
+  | 'pinned-dirty-small'
+  | 'pinned-small';
+
+export type CodiconIconName = keyof typeof codiconIconNames | CodiconIconAlias;
 export const Codicon = createIconSet<CodiconIconName>('codicon', codiconIconNames);

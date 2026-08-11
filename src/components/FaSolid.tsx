@@ -1011,5 +1011,35 @@ const fa_solidIconNames = {
   icicles: true,
 } as const;
 
-export type FaSolidIconName = keyof typeof fa_solidIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type FaSolidIconAlias =
+  | 'abacus'
+  | 'calculator-alt'
+  | 'empty-set'
+  | 'function'
+  | 'haykal'
+  | 'integral'
+  | 'intersection'
+  | 'lambda'
+  | 'omega'
+  | 'pi'
+  | 'sigma'
+  | 'signal-alt'
+  | 'signal-alt-slash'
+  | 'signal-slash'
+  | 'square-root'
+  | 'tally'
+  | 'theta'
+  | 'tilde'
+  | 'union'
+  | 'value-absolute'
+  | 'volume'
+  | 'volume-slash'
+  | 'wifi-slash';
+
+export type FaSolidIconName = keyof typeof fa_solidIconNames | FaSolidIconAlias;
 export const FaSolid = createIconSet<FaSolidIconName>('fa-solid', fa_solidIconNames);

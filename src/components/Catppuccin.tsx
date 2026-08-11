@@ -666,5 +666,12 @@ const catppuccinIconNames = {
   zip: true,
 } as const;
 
-export type CatppuccinIconName = keyof typeof catppuccinIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type CatppuccinIconAlias = 'java-alt-1' | 'java-alt-2' | 'java-alt-3' | 'maven';
+
+export type CatppuccinIconName = keyof typeof catppuccinIconNames | CatppuccinIconAlias;
 export const Catppuccin = createIconSet<CatppuccinIconName>('catppuccin', catppuccinIconNames);

@@ -890,7 +890,21 @@ const qlementine_iconsIconNames = {
   'text-16': true,
 } as const;
 
-export type QlementineIconsIconName = keyof typeof qlementine_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type QlementineIconsIconAlias =
+  | 'icon-pause-music-16'
+  | 'icon-start-music-16'
+  | 'icon-stop-music-16'
+  | 'losange-16'
+  | 'losange-filled-16';
+
+export type QlementineIconsIconName =
+  | keyof typeof qlementine_iconsIconNames
+  | QlementineIconsIconAlias;
 export const QlementineIcons = createIconSet<QlementineIconsIconName>(
   'qlementine-icons',
   qlementine_iconsIconNames

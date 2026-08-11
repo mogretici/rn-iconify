@@ -1285,7 +1285,25 @@ const pepicons_printIconNames = {
   'yuan-off': true,
 } as const;
 
-export type PepiconsPrintIconName = keyof typeof pepicons_printIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type PepiconsPrintIconAlias =
+  | 'grab'
+  | 'microphone2'
+  | 'monitor2'
+  | 'refresh'
+  | 'reload'
+  | 'send'
+  | 'smartphone'
+  | 'smartphone2'
+  | 'sort'
+  | 'speaker-off'
+  | 'tool';
+
+export type PepiconsPrintIconName = keyof typeof pepicons_printIconNames | PepiconsPrintIconAlias;
 export const PepiconsPrint = createIconSet<PepiconsPrintIconName>(
   'pepicons-print',
   pepicons_printIconNames

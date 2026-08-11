@@ -316,5 +316,12 @@ const subwayIconNames = {
   'zoom-plus': true,
 } as const;
 
-export type SubwayIconName = keyof typeof subwayIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type SubwayIconAlias = 'zoom';
+
+export type SubwayIconName = keyof typeof subwayIconNames | SubwayIconAlias;
 export const Subway = createIconSet<SubwayIconName>('subway', subwayIconNames);

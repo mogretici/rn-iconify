@@ -552,5 +552,12 @@ const flagIconNames = {
   'zw-4x3': true,
 } as const;
 
-export type FlagIconName = keyof typeof flagIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type FlagIconAlias = 'ac-1x1' | 'ac-4x3' | 'ea-1x1' | 'ea-4x3' | 'ta-1x1' | 'ta-4x3';
+
+export type FlagIconName = keyof typeof flagIconNames | FlagIconAlias;
 export const Flag = createIconSet<FlagIconName>('flag', flagIconNames);

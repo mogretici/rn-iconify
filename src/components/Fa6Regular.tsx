@@ -173,5 +173,12 @@ const fa6_regularIconNames = {
   square: true,
 } as const;
 
-export type Fa6RegularIconName = keyof typeof fa6_regularIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type Fa6RegularIconAlias = 'notdef';
+
+export type Fa6RegularIconName = keyof typeof fa6_regularIconNames | Fa6RegularIconAlias;
 export const Fa6Regular = createIconSet<Fa6RegularIconName>('fa6-regular', fa6_regularIconNames);

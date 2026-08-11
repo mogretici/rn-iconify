@@ -294,5 +294,32 @@ const mdi_lightIconNames = {
   xml: true,
 } as const;
 
-export type MdiLightIconName = keyof typeof mdi_lightIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type MdiLightIconAlias =
+  | 'check-bold'
+  | 'cog'
+  | 'diamond'
+  | 'ereader'
+  | 'filmstrip'
+  | 'format-list-numbers'
+  | 'fullscreen-close'
+  | 'lock-unlocked'
+  | 'message-photo'
+  | 'nfc'
+  | 'picture'
+  | 'seek-next'
+  | 'seek-previous'
+  | 'shape-circle'
+  | 'shape-hexagon'
+  | 'shape-octagon'
+  | 'shape-rhombus'
+  | 'shape-square'
+  | 'shape-triangle'
+  | 'volume';
+
+export type MdiLightIconName = keyof typeof mdi_lightIconNames | MdiLightIconAlias;
 export const MdiLight = createIconSet<MdiLightIconName>('mdi-light', mdi_lightIconNames);

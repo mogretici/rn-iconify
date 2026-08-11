@@ -420,5 +420,18 @@ const pajamasIconNames = {
   x: true,
 } as const;
 
-export type PajamasIconName = keyof typeof pajamasIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type PajamasIconAlias =
+  | 'drag'
+  | 'drag-horizontal'
+  | 'drag-vertical'
+  | 'issue-block'
+  | 'issue-type-key-result'
+  | 'twitter';
+
+export type PajamasIconName = keyof typeof pajamasIconNames | PajamasIconAlias;
 export const Pajamas = createIconSet<PajamasIconName>('pajamas', pajamasIconNames);

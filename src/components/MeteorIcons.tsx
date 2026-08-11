@@ -78,6 +78,12 @@ const meteor_iconsIconNames = {
   chain: true,
   check: true,
   'check-double': true,
+  'chess-bishop': true,
+  'chess-king': true,
+  'chess-knight': true,
+  'chess-pawn': true,
+  'chess-queen': true,
+  'chess-rook': true,
   'chevron-down': true,
   'chevron-left': true,
   'chevron-right': true,
@@ -404,7 +410,45 @@ const meteor_iconsIconNames = {
   youtube: true,
 } as const;
 
-export type MeteorIconsIconName = keyof typeof meteor_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type MeteorIconsIconAlias =
+  | 'angle-down'
+  | 'angle-left'
+  | 'angle-right'
+  | 'angle-up'
+  | 'angles-down'
+  | 'angles-left'
+  | 'angles-right'
+  | 'angles-up'
+  | 'arrow-down-long'
+  | 'arrow-left-long'
+  | 'arrow-right-long'
+  | 'arrow-rotate'
+  | 'arrow-trend-down'
+  | 'arrow-trend-up'
+  | 'arrow-up-long'
+  | 'arrows-rotate'
+  | 'bag-shopping'
+  | 'bookmark-alt'
+  | 'clock-rotate'
+  | 'columns-3'
+  | 'file-lines'
+  | 'gohugo'
+  | 'grip-dots'
+  | 'grip-dots-vertical'
+  | 'map-pin'
+  | 'objects-column'
+  | 'rows-3'
+  | 'sidebar'
+  | 'table-layout'
+  | 'wave-triangle'
+  | 'x-alt';
+
+export type MeteorIconsIconName = keyof typeof meteor_iconsIconNames | MeteorIconsIconAlias;
 export const MeteorIcons = createIconSet<MeteorIconsIconName>(
   'meteor-icons',
   meteor_iconsIconNames

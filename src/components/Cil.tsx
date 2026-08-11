@@ -564,5 +564,20 @@ const cilIconNames = {
   'zoom-out': true,
 } as const;
 
-export type CilIconName = keyof typeof cilIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type CilIconAlias =
+  | 'chevron-double-up-alt'
+  | 'drop1'
+  | 'image1'
+  | 'options-horizontal'
+  | 'remove'
+  | 'vertical-align-bottom1'
+  | 'vertical-align-center1'
+  | 'vertical-align-top1';
+
+export type CilIconName = keyof typeof cilIconNames | CilIconAlias;
 export const Cil = createIconSet<CilIconName>('cil', cilIconNames);

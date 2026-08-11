@@ -1084,6 +1084,7 @@ const vscode_iconsIconNames = {
   'file-type-tuc': true,
   'file-type-turbo': true,
   'file-type-twig': true,
+  'file-type-ty': true,
   'file-type-typedoc': true,
   'file-type-typescript': true,
   'file-type-typescript-official': true,
@@ -1578,7 +1579,22 @@ const vscode_iconsIconNames = {
   'folder-type-zed-opened': true,
 } as const;
 
-export type VscodeIconsIconName = keyof typeof vscode_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type VscodeIconsIconAlias =
+  | 'file-type-light-deno'
+  | 'file-type-light-replit'
+  | 'file-type-light-zeit'
+  | 'file-type-makefile'
+  | 'file-type-oxlint'
+  | 'file-type-postgres'
+  | 'file-type-webp'
+  | 'file-type-zeit';
+
+export type VscodeIconsIconName = keyof typeof vscode_iconsIconNames | VscodeIconsIconAlias;
 export const VscodeIcons = createIconSet<VscodeIconsIconName>(
   'vscode-icons',
   vscode_iconsIconNames

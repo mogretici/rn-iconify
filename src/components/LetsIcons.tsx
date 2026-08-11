@@ -1538,5 +1538,28 @@ const lets_iconsIconNames = {
   'winter-light': true,
 } as const;
 
-export type LetsIconsIconName = keyof typeof lets_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type LetsIconsIconAlias =
+  | 'horizontal-down-left-main'
+  | 'horizontal-down-left-main-light'
+  | 'horizontal-down-right-main'
+  | 'horizontal-down-right-main-light'
+  | 'horizontal-switch'
+  | 'horizontal-switch-light'
+  | 'horizontal-top-left-main'
+  | 'horizontal-top-left-main-light'
+  | 'horizontal-top-right-main'
+  | 'horizontal-top-right-main-light'
+  | 'vertical-switch'
+  | 'vertical-switch-alt'
+  | 'vertical-switch-alt-light'
+  | 'vertical-switch-light'
+  | 'vertical-switch-long'
+  | 'vertical-switch-long-light';
+
+export type LetsIconsIconName = keyof typeof lets_iconsIconNames | LetsIconsIconAlias;
 export const LetsIcons = createIconSet<LetsIconsIconName>('lets-icons', lets_iconsIconNames);

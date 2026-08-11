@@ -503,5 +503,12 @@ const basilIconNames = {
   'unlock-solid': true,
 } as const;
 
-export type BasilIconName = keyof typeof basilIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type BasilIconAlias = 'columns-outline' | 'columns-solid' | 'other-2-outline' | 'other-2-solid';
+
+export type BasilIconName = keyof typeof basilIconNames | BasilIconAlias;
 export const Basil = createIconSet<BasilIconName>('basil', basilIconNames);

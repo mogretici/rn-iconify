@@ -2364,5 +2364,26 @@ const tdesignIconNames = {
   'zoom-out-filled': true,
 } as const;
 
-export type TdesignIconName = keyof typeof tdesignIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type TdesignIconAlias =
+  | 'blockchain'
+  | 'chart-colum'
+  | 'download-1-filled'
+  | 'gesture-pray-1'
+  | 'gesture-ranslation-1'
+  | 'gesture-up-1'
+  | 'gesture-up-2'
+  | 'list'
+  | 'logo-adobe-photoshop-1'
+  | 'logo-wechat'
+  | 'video-camera-2-1'
+  | 'video-camera-2-filled-1'
+  | 'video-camera-3'
+  | 'video-camera-3-filled';
+
+export type TdesignIconName = keyof typeof tdesignIconNames | TdesignIconAlias;
 export const Tdesign = createIconSet<TdesignIconName>('tdesign', tdesignIconNames);

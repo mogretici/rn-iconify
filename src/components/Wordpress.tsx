@@ -351,5 +351,17 @@ const wordpressIconNames = {
   wordpress: true,
 } as const;
 
-export type WordpressIconName = keyof typeof wordpressIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type WordpressIconAlias =
+  | 'resize-corner-n-e'
+  | 'tab'
+  | 'tabs-menu'
+  | 'tabs-menu-item'
+  | 'time-to-read';
+
+export type WordpressIconName = keyof typeof wordpressIconNames | WordpressIconAlias;
 export const Wordpress = createIconSet<WordpressIconName>('wordpress', wordpressIconNames);

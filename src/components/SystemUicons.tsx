@@ -440,7 +440,14 @@ const system_uiconsIconNames = {
   'zoom-reset': true,
 } as const;
 
-export type SystemUiconsIconName = keyof typeof system_uiconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type SystemUiconsIconAlias = 'jump-down' | 'jump-up';
+
+export type SystemUiconsIconName = keyof typeof system_uiconsIconNames | SystemUiconsIconAlias;
 export const SystemUicons = createIconSet<SystemUiconsIconName>(
   'system-uicons',
   system_uiconsIconNames

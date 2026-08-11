@@ -646,7 +646,14 @@ const grommet_iconsIconNames = {
   'zoom-out': true,
 } as const;
 
-export type GrommetIconsIconName = keyof typeof grommet_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type GrommetIconsIconAlias = 'tictok';
+
+export type GrommetIconsIconName = keyof typeof grommet_iconsIconNames | GrommetIconsIconAlias;
 export const GrommetIcons = createIconSet<GrommetIconsIconName>(
   'grommet-icons',
   grommet_iconsIconNames

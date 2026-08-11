@@ -1954,7 +1954,16 @@ const icon_park_twotoneIconNames = {
   'thunderstorm-one': true,
 } as const;
 
-export type IconParkTwotoneIconName = keyof typeof icon_park_twotoneIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type IconParkTwotoneIconAlias = 'behance' | 'list-two' | 'sun';
+
+export type IconParkTwotoneIconName =
+  | keyof typeof icon_park_twotoneIconNames
+  | IconParkTwotoneIconAlias;
 export const IconParkTwotone = createIconSet<IconParkTwotoneIconName>(
   'icon-park-twotone',
   icon_park_twotoneIconNames

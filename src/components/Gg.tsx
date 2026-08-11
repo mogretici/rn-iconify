@@ -714,5 +714,12 @@ const ggIconNames = {
   'zoom-out': true,
 } as const;
 
-export type GgIconName = keyof typeof ggIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type GgIconAlias = 'zeit';
+
+export type GgIconName = keyof typeof ggIconNames | GgIconAlias;
 export const Gg = createIconSet<GgIconName>('gg', ggIconNames);

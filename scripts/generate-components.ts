@@ -9,7 +9,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
-import { renderIconEntries, selectAliases, selectDeprecated } from './icon-aliases';
+import {
+  renderAliasUnion,
+  renderIconEntries,
+  selectAliases,
+  selectDeprecated,
+} from './icon-aliases';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -162,7 +167,22 @@ function generateComponentContent(
   const typeName = `${componentName}IconName`;
   const varName = prefix.replace(/-/g, '_');
 
-  const iconNamesObj = renderIconEntries(icons.names, icons.aliases, icons.deprecated);
+  const iconNamesObj = renderIconEntries(icons.names);
+  const alsoValid = renderAliasUnion(icons.names, icons.aliases, icons.deprecated);
+
+  const aliasType = alsoValid.length
+    ? `
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type ${componentName}IconAlias =
+${alsoValid.map((name) => `  | '${name}'`).join('\n')};
+
+export type ${typeName} = keyof typeof ${varName}IconNames | ${componentName}IconAlias;`
+    : `
+export type ${typeName} = keyof typeof ${varName}IconNames;`;
 
   return `/**
  * ${componentName} Icon Set
@@ -176,8 +196,7 @@ import { createIconSet } from '../createIconSet';
 const ${varName}IconNames = {
 ${iconNamesObj}
 } as const;
-
-export type ${typeName} = keyof typeof ${varName}IconNames;
+${aliasType}
 export const ${componentName} = createIconSet<${typeName}>('${prefix}', ${varName}IconNames);
 `;
 }
