@@ -105,7 +105,7 @@
     "assets"
   ],
   "scripts": {
-    "build": "bob build && node -e \"require('fs').writeFileSync('lib/module/package.json','{\\\"type\\\":\\\"module\\\"}\\n')\"",
+    "build": "bob build && node -e \"require('fs').writeFileSync('lib/module/package.json','{\\\"type\\\":\\\"module\\\",\\\"sideEffects\\\":false}\\n')\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint:fix": "eslint \"**/*.{js,ts,tsx}\" --fix",
@@ -231,9 +231,16 @@
   ],
   "size-limit": [
     {
-      "name": "Full bundle (all icon sets)",
+      "name": "Typical usage (one icon set)",
       "path": "lib/module/index.js",
-      "limit": "700 kB"
+      "import": "{ Mdi }",
+      "limit": "60 kB"
+    },
+    {
+      "name": "Several icon sets",
+      "path": "lib/module/index.js",
+      "import": "{ Mdi, Lucide, Heroicons }",
+      "limit": "80 kB"
     },
     {
       "name": "Single icon set (deep import)",

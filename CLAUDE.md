@@ -102,6 +102,24 @@ The package exports multiple entry points:
 
 `scripts/generate-components.ts` fetches icon metadata from Iconify API and generates typed components in `src/components/`. Each component exports icon names as a const object for TypeScript autocomplete.
 
+## Bundle size
+
+Applications import from the barrel — `import { Mdi } from 'rn-iconify'` — and
+tree-shaking is what keeps that from pulling in all 226 icon sets. Two things
+have to hold for it to work, and both have been broken before:
+
+- The root `package.json` declares `sideEffects: false`.
+- The build writes that **into `lib/module/package.json`** as well. A bundler
+  resolving `lib/module/index.js` reads the nearest manifest, which is that
+  file — not the one at the root. It once contained only `{"type":"module"}`,
+  so every module counted as side-effectful and one icon set cost 792 kB
+  instead of 36 kB.
+
+`size-limit` measures an actual import (`{ Mdi }`), not the whole barrel.
+Measuring the barrel says nothing useful: nobody imports every set, the figure
+grows on every icon sync, and the limit would simply be raised until it stopped
+catching anything. `src/__tests__/packaging.test.ts` guards the manifest.
+
 ## Testing
 
 Tests use Jest with react-native preset. Test files are in `src/__tests__/`.
