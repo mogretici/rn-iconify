@@ -3,6 +3,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { defineIcons } from '../babel/defineIcons';
 import { scanProjectForIcons } from '../babel/scanner';
+import type { MdiIconName } from '../components/Mdi';
+import type { IonIconName } from '../components/Ion';
 
 /**
  * Some icon names cannot be inferred from source, and no scanner will change
@@ -24,6 +26,47 @@ describe('defineIcons', () => {
     const icons = ['hanger', 'theater'] as const;
 
     expect(defineIcons(icons)).toBe(icons);
+  });
+
+  /**
+   * The signature this is documented with, written the way the documentation
+   * writes it. The scanner requires the explicit type argument to know which
+   * set the names belong to, so the one-type-argument form is the API — and
+   * it shipped not compiling, because every test either omitted the type
+   * argument or passed the call as a string to be read by a regex.
+   *
+   * These assertions do their work at `tsc --noEmit`, which CI runs over
+   * `src/**` including this file. There is nothing to observe at runtime.
+   */
+  describe('the documented signature', () => {
+    it('accepts a map under an explicit set', () => {
+      const CATEGORY_ICON = defineIcons<MdiIconName>({
+        OUTFIT: 'hanger',
+        SPOTLIGHT: 'theater',
+      });
+
+      expect(CATEGORY_ICON.OUTFIT).toBe('hanger');
+    });
+
+    it('accepts a list under an explicit set', () => {
+      const EXTRA = defineIcons<IonIconName>(['sunny-outline', 'leaf-outline']);
+
+      expect(EXTRA).toHaveLength(2);
+    });
+
+    it('rejects a name the set does not have', () => {
+      // @ts-expect-error 'not-a-real-icon' is not an MdiIconName
+      const BAD = defineIcons<MdiIconName>({ OUTFIT: 'not-a-real-icon' });
+
+      expect(BAD.OUTFIT).toBe('not-a-real-icon');
+    });
+
+    it('rejects a name the set does not have in a list', () => {
+      // @ts-expect-error 'not-a-real-icon' is not an IonIconName
+      const BAD = defineIcons<IonIconName>(['not-a-real-icon']);
+
+      expect(BAD).toHaveLength(1);
+    });
   });
 
   describe('as read by the build', () => {
