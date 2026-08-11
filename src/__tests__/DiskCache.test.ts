@@ -554,4 +554,108 @@ describe('DiskCache', () => {
       expect(DiskCache.get('mdi:home')).toBe('<svg>v2</svg>');
     });
   });
+
+  /**
+   * `evictToSize` existed, was tested, and was called by nothing but its own
+   * tests. This cache is MMKV — ordinary persistent storage, not the directory
+   * the operating system empties under pressure — so every icon an app ever
+   * rendered stayed on the device for as long as the app was installed, and
+   * `DiskCache` is not exported, so nobody could have called it themselves.
+   */
+  describe('staying within its size limit', () => {
+    let DiskCache: typeof import('../cache/DiskCache').DiskCache;
+    let mockStorage: ReturnType<typeof createMockStorage>;
+    let configure: typeof import('../config/ConfigManager').configure;
+    let resetConfiguration: typeof import('../config/ConfigManager').resetConfiguration;
+
+    const fill = (count: number, bytesEach = 100) => {
+      for (let i = 0; i < count; i++) {
+        DiskCache.set(`icon-${i}`, 'x'.repeat(bytesEach / 2));
+      }
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      mockStorage = createMockStorage();
+
+      jest.isolateModules(() => {
+        jest.doMock('react-native-mmkv', () => ({
+          MMKV: jest.fn().mockImplementation(() => mockStorage.instance),
+        }));
+
+        DiskCache = require('../cache/DiskCache').DiskCache;
+        const config = require('../config/ConfigManager');
+        configure = config.configure;
+        resetConfiguration = config.resetConfiguration;
+      });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      resetConfiguration();
+    });
+
+    /**
+     * Bounded, not pinned. Measuring costs a walk of every key, so it happens
+     * every twenty-five writes rather than on each one — the cache can sit up
+     * to that many icons above its ceiling in between. At the 5 MB default
+     * that overshoot is around twenty-five kilobytes; the numbers here are
+     * small enough to make it visible.
+     */
+    it('drops the oldest icons once it outgrows the ceiling', () => {
+      configure({ cache: { maxDiskCacheBytes: 2000 } });
+
+      fill(200, 100);
+
+      const overshootAllowance = 25 * 100;
+      expect(DiskCache.getStats().sizeBytes).toBeLessThanOrEqual(2000 + overshootAllowance);
+    });
+
+    it('stops growing however long it runs', () => {
+      configure({ cache: { maxDiskCacheBytes: 2000 } });
+
+      fill(100, 100);
+      const afterHundred = DiskCache.getStats().sizeBytes;
+      fill(400, 100);
+      const afterFiveHundred = DiskCache.getStats().sizeBytes;
+
+      expect(afterFiveHundred).toBeLessThanOrEqual(afterHundred + 25 * 100);
+    });
+
+    it('keeps the icons stored most recently', () => {
+      configure({ cache: { maxDiskCacheBytes: 2000 } });
+
+      fill(60, 100);
+
+      expect(DiskCache.get('icon-59')).not.toBeNull();
+      expect(DiskCache.get('icon-0')).toBeNull();
+    });
+
+    // Measuring means walking every key and adding up the values. Doing that
+    // on each write would make writes cost what a full scan costs.
+    it('does not measure the whole cache on every write', () => {
+      configure({ cache: { maxDiskCacheBytes: 2000 } });
+      mockStorage.instance.getAllKeys.mockClear();
+
+      DiskCache.set('one', 'x');
+      DiskCache.set('two', 'x');
+
+      expect(mockStorage.instance.getAllKeys).not.toHaveBeenCalled();
+    });
+
+    it('keeps everything when the limit is zero', () => {
+      configure({ cache: { maxDiskCacheBytes: 0 } });
+
+      fill(60, 100);
+
+      expect(DiskCache.get('icon-0')).not.toBeNull();
+    });
+
+    it('bounds itself without being configured', () => {
+      // Default is 5 MB; well under it nothing should be dropped.
+      fill(40, 100);
+
+      expect(DiskCache.get('icon-0')).not.toBeNull();
+    });
+  });
 });

@@ -63,6 +63,22 @@ export interface CacheConfig {
    * @default 'rn-iconify:'
    */
   diskCachePrefix?: string;
+
+  /**
+   * Largest the disk cache may grow, in bytes. The oldest icons are dropped
+   * once it is exceeded.
+   *
+   * This one matters more than it looks. The disk cache is MMKV — ordinary
+   * persistent storage, not the directory the operating system empties under
+   * pressure — so without a ceiling every icon an app ever rendered stays on
+   * the device for as long as the app is installed.
+   *
+   * 5 MB holds several thousand icons, which is more than an application is
+   * likely to use. Set it to `0` to keep everything.
+   *
+   * @default 5242880
+   */
+  maxDiskCacheBytes?: number;
 }
 
 /**
@@ -168,6 +184,7 @@ export const DEFAULT_CONFIG: ResolvedConfig = {
   cache: {
     maxMemoryItems: 500,
     enableDiskCache: true,
+    maxDiskCacheBytes: 5 * 1024 * 1024,
     diskCachePrefix: 'rn-iconify:',
   },
   performance: {

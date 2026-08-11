@@ -667,6 +667,8 @@ interface IconifyConfig {
     enableDiskCache: boolean;
     /** Disk cache key prefix */
     diskCachePrefix: string;
+    /** Ceiling on disk cache size in bytes; oldest dropped first */
+    maxDiskCacheBytes: number;
   };
   performance: {
     /** Enable monitoring */

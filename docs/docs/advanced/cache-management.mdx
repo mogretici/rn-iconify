@@ -79,9 +79,10 @@ import { configure } from 'rn-iconify';
 
 configure({
   cache: {
-    maxMemoryItems: 500,       // Max icons in memory
-    enableDiskCache: true,     // Enable disk caching (MMKV)
+    maxMemoryItems: 500,            // Max icons in memory
+    enableDiskCache: true,          // Enable disk caching (MMKV)
     diskCachePrefix: 'rn-iconify:', // Cache key prefix
+    maxDiskCacheBytes: 5242880,     // Ceiling on disk; oldest dropped first
   },
 });
 ```
@@ -93,6 +94,18 @@ configure({
 | `maxMemoryItems` | `number` | `500` | Maximum icons in memory cache (LRU) |
 | `enableDiskCache` | `boolean` | `true` | Enable persistent disk cache (MMKV) |
 | `diskCachePrefix` | `string` | `'rn-iconify:'` | Key prefix for disk cache entries |
+| `maxDiskCacheBytes` | `number` | `5242880` | Largest the disk cache may grow. Oldest icons are dropped first. `0` keeps everything |
+
+:::note
+  The disk cache is MMKV — ordinary persistent storage, not the directory the
+  operating system empties under pressure. The ceiling is what stops every icon
+  an app has ever rendered from staying on the device for as long as the app is
+  installed.
+
+  It is enforced every twenty-five writes rather than on each one, because
+  measuring means walking every key. The cache can therefore sit a little above
+  the ceiling between checks — around twenty-five kilobytes at the default.
+:::
 
 ## Clearing Cache
 

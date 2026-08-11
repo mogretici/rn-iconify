@@ -6,6 +6,7 @@
  */
 
 import * as MMKVModule from 'react-native-mmkv';
+import { ConfigManager } from '../config/ConfigManager';
 
 /**
  * MMKV storage interface (compatible with both v3 and v4)
@@ -73,6 +74,9 @@ const storage = createStorage('rn-iconify-cache');
 
 // Cache metadata storage
 const META_KEY_PREFIX = '__meta:';
+
+/** Writes between size checks. See `writesSinceEvictionCheck`. */
+const EVICTION_CHECK_INTERVAL = 25;
 const CACHE_VERSION = 1;
 const CACHE_VERSION_KEY = '__cache_version';
 
@@ -155,11 +159,43 @@ class DiskCacheImpl {
   }
 
   /**
+   * Writes since the cache was last measured.
+   *
+   * Measuring means walking every key and adding up the values, which is far
+   * too much to do on each write. Checking every so often keeps the cache
+   * within a few dozen icons of its ceiling while leaving writes cheap.
+   */
+  private writesSinceEvictionCheck = 0;
+
+  /**
    * Store icon SVG in disk cache
    */
   set(iconName: string, svg: string): void {
     storage.set(iconName, svg);
     storage.set(`${META_KEY_PREFIX}${iconName}`, Date.now());
+
+    // This is MMKV: ordinary persistent storage, not the directory the
+    // operating system empties under pressure. Without this, every icon an
+    // app ever rendered stays on the device for as long as the app is
+    // installed.
+    this.writesSinceEvictionCheck++;
+    if (this.writesSinceEvictionCheck >= EVICTION_CHECK_INTERVAL) {
+      this.writesSinceEvictionCheck = 0;
+      this.enforceSizeLimit();
+    }
+  }
+
+  /**
+   * Drop the oldest icons if the cache has outgrown its configured ceiling.
+   */
+  private enforceSizeLimit(): void {
+    try {
+      const limit = ConfigManager.getCacheConfig().maxDiskCacheBytes;
+      if (!limit || limit <= 0) return;
+      this.evictToSize(limit);
+    } catch {
+      // A cache that cannot be measured is left alone rather than cleared.
+    }
   }
 
   /**
