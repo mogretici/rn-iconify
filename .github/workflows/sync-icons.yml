@@ -62,6 +62,21 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The pull request this job opens is created with GITHUB_TOKEN, and
+      # GitHub does not start workflows for those — so CI never sees it. Every
+      # check that would have run on the pull request has to run here instead.
+      #
+      # size-limit is the one that mattered: a sync that added 6,363 alias
+      # entries doubled what every application installs, and nothing looked.
+      - name: Check bundle size (size-limit)
+        run: npx size-limit
+
+      - name: Validate package.json (publint)
+        run: npx publint
+
+      - name: Validate TypeScript exports (attw)
+        run: npx @arethetypeswrong/cli --pack . --ignore-rules cjs-only-exports-default
+
       - name: Check for changes
         id: changes
         run: |
