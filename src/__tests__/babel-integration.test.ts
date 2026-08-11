@@ -16,10 +16,12 @@ jest.useFakeTimers();
 function transform(
   code: string,
   options: Record<string, unknown> = {},
-  filename = 'test.tsx'
+  filename = 'test.tsx',
+  root?: string
 ): babel.BabelFileResult | null {
   return babel.transformSync(code, {
     filename,
+    ...(root ? { root } : {}),
     presets: [['@babel/preset-react', { runtime: 'automatic' }], '@babel/preset-typescript'],
     plugins: [[createRnIconifyPlugin, options]],
     babelrc: false,
@@ -41,6 +43,13 @@ describe('Babel Plugin Integration', () => {
 
   afterAll(() => {
     jest.useRealTimers();
+
+    // Tests that do not name a root leave the plugin resolving one from
+    // process.cwd(), which is this repository — so a run writes a bundle into
+    // the working tree and the next run finds it there and behaves
+    // differently. `npm test` twice in a row has to mean the same thing both
+    // times.
+    fs.rmSync(path.join(process.cwd(), '.rn-iconify'), { recursive: true, force: true });
   });
 
   describe('JSX Icon Detection', () => {
@@ -819,5 +828,119 @@ describe('Scan Lock', () => {
     const past = new Date(Date.now() - 60000);
     fs.utimesSync(lockPath, past, past);
     expect(isScanLockActive(lockPath, 30000)).toBe(false);
+  });
+
+  /**
+   * Auto-injection rewrites the consumer's own module: when a bundle exists,
+   * an import of `loadOfflineBundle` and a call to it are added to the first
+   * file that imports rn-iconify. It is the only part of this plugin that
+   * changes anyone's code, and it had no tests.
+   *
+   * The failure that matters is not it doing nothing — it is doing it twice,
+   * or doing it on top of a call the application already wrote.
+   */
+  describe('auto-injecting the offline bundle', () => {
+    let root: string;
+    let bundleDir: string;
+
+    // projectRoot is not a plugin option — the plugin reads Babel's own root,
+    // so the tests hand it to Babel rather than to the plugin.
+    const withBundle = (options: Record<string, unknown> = {}) => options;
+
+    beforeEach(() => {
+      root = fs.mkdtempSync(path.join(require('os').tmpdir(), 'rn-iconify-inject-'));
+      bundleDir = path.join(root, '.rn-iconify');
+      fs.mkdirSync(bundleDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(bundleDir, 'icons.json'),
+        JSON.stringify({ version: '1.0.0', icons: { 'mdi:home': { svg: '<svg />' } }, count: 1 })
+      );
+      fs.writeFileSync(path.join(bundleDir, 'icons.js'), 'export default {};');
+      resetPluginState();
+      collector.initialize({});
+    });
+
+    afterEach(() => {
+      fs.rmSync(root, { recursive: true, force: true });
+    });
+
+    it('adds the loader to a file that imports rn-iconify', () => {
+      const result = transform(
+        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
+        withBundle(),
+        path.join(root, 'src', 'App.tsx'),
+        root
+      );
+
+      expect(result?.code).toContain('loadOfflineBundle');
+    });
+
+    // Injecting into every file that imports rn-iconify would load the bundle
+    // once per module — the same work repeated for no benefit.
+    it('adds it to one file only', () => {
+      const first = transform(
+        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
+        withBundle(),
+        path.join(root, 'src', 'A.tsx'),
+        root
+      );
+      const second = transform(
+        `import { Ion } from 'rn-iconify';\nexport const B = () => <Ion name="home" />;`,
+        withBundle(),
+        path.join(root, 'src', 'B.tsx'),
+        root
+      );
+
+      expect(first?.code).toContain('loadOfflineBundle');
+      expect(second?.code).not.toContain('loadOfflineBundle');
+    });
+
+    // An application that loads the bundle itself has said how it wants this
+    // done, and a second automatic call would be loading it twice.
+    it('leaves a file that already loads the bundle alone', () => {
+      const result = transform(
+        `import { Mdi, loadOfflineBundle } from 'rn-iconify';\n` +
+          `loadOfflineBundle({});\nexport const A = () => <Mdi name="home" />;`,
+        withBundle(),
+        path.join(root, 'src', 'App.tsx'),
+        root
+      );
+
+      const occurrences = (result?.code?.match(/loadOfflineBundle/g) ?? []).length;
+      expect(occurrences).toBe(2); // the import and the call the app wrote
+    });
+
+    it('does nothing when asked not to', () => {
+      const result = transform(
+        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
+        withBundle({ autoInject: false }),
+        path.join(root, 'src', 'App.tsx'),
+        root
+      );
+
+      expect(result?.code).not.toContain('loadOfflineBundle');
+    });
+
+    it('leaves files that do not import rn-iconify untouched', () => {
+      const result = transform(
+        `export const helper = () => 42;`,
+        withBundle(),
+        path.join(root, 'src', 'helper.ts'),
+        root
+      );
+
+      expect(result?.code).not.toContain('loadOfflineBundle');
+    });
+
+    it('points at the bundle by a path relative to the file', () => {
+      const result = transform(
+        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
+        withBundle(),
+        path.join(root, 'src', 'deep', 'nested', 'App.tsx'),
+        root
+      );
+
+      expect(result?.code).toContain('../../../.rn-iconify/icons');
+    });
   });
 });
