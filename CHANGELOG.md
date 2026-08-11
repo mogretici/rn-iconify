@@ -1,3 +1,9 @@
+## [3.1.1](https://github.com/mogretici/rn-iconify/compare/v3.1.0...v3.1.1) (2026-08-11)
+
+### Bug Fixes
+
+- let bundlers tree-shake the icon sets ([1c6fba7](https://github.com/mogretici/rn-iconify/commit/1c6fba79654f4ff46c2ddd16ccbc2c333c4aec02))
+
 # [3.1.0](https://github.com/mogretici/rn-iconify/compare/v3.0.3...v3.1.0) (2026-08-08)
 
 ### Features
