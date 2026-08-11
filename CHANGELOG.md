@@ -1,3 +1,122 @@
+# [4.0.0](https://github.com/mogretici/rn-iconify/compare/v3.2.2...v4.0.0) (2026-08-11)
+
+- Ship the native module, fix type resolution, and close the gaps that hid both ([#15](https://github.com/mogretici/rn-iconify/issues/15)) ([6c47eb1](https://github.com/mogretici/rn-iconify/commit/6c47eb1d1ae9949bd3fde5b0045ebc5d30bc1b09))
+
+### BREAKING CHANGES
+
+- AnimationConfig no longer accepts type: 'sequence'. Code
+  using it compiled but produced no animation, so this turns a silent no-op into
+  a compile error. Use one of the presets — spin, pulse, bounce, shake, ping,
+  wiggle — or a rotate/scale/opacity/translate config.
+
+- fix(explorer): stop refetching every collection on every render
+
+useExplorer({ iconSets: ['mdi'] }) — a hook called the way hooks are called —
+never stopped fetching. The config object is rebuilt on each render, the memo
+that selects icon sets was keyed on that object so it produced a new array each
+time, the effect that fetches collections depends on that array, and the effect
+sets state. Each render caused a fetch and each fetch caused a render.
+
+In an application that is an unbounded stream of requests to
+api.iconify.design. Writing the first test that mounted the hook with an inline
+config took the test process out of memory.
+
+The selection is now keyed on the prefixes themselves rather than the array
+holding them.
+
+Two smaller defects on the same paths:
+
+- Unmounting aborts every request in flight, and the abort was logged as
+  "Failed to fetch collection" — once per icon set, for something that worked.
+  Genuine failures are still reported, now behind **DEV** and prefixed.
+- The web clipboard path had no catch. The browser rejects writeText when the
+  document is not focused or the permission was refused, so copying an icon
+  could surface as an unhandled rejection.
+
+The hook had 71% line coverage across fetching, searching, debouncing,
+aborting, selecting and copying; the tests it did have covered the pure
+helpers around it. Adds 19 covering what it does rather than what it returns.
+
+- fix(native): ship the native module and compile it
+
+The native module was never published. `files` listed neither ios/ nor
+android/ nor react-native.config.js, so every installed copy of this package
+contained no native code at all: isNativeModuleAvailable() returned false for
+every consumer, the native prefetch and cache-stats paths were unreachable,
+and ten documentation pages described a module that could not exist. CI parsed
+the sources with swiftc and ktlint, which is the one kind of check that could
+not notice.
+
+Building it in a real app found five more things, none of which a parse could
+have caught:
+
+- The podspec was inside ios/ and reached through a podspecPath in
+  react-native.config.js. Autolinking looks for it at the package root:
+  "list_native_modules! skipped the react-native dependency 'rn-iconify'.
+  No podspec file was found." Moved to the root, which is the convention, and
+  the config file it existed for is gone.
+- codegenConfig was in react-native.config.js. React Native's codegen reads it
+  from package.json, so codegen never ran, and the specs it should have
+  generated were written by hand — including a header whose comment says
+  "Auto-generated".
+- The spec file held two TurboModuleRegistry calls, one of them unused.
+  Codegen refuses that outright. It also has to be named after the module it
+  registers, so NativeIconifyModule.ts became NativeRNIconify.ts and codegen
+  now emits exactly the NativeRNIconifySpec / NativeRNIconifySpecJSI that
+  RNIconify.mm and the Android spec were already written against. Both
+  hand-written spec files are deleted.
+- Kotlin compiled at jvmTarget 1.8 against Java 17, which Gradle refuses.
+- Swift reached React Native's promise types through a bridging header, and a
+  bridging header cannot be used when the target builds as a framework — which
+  is how React Native links by default. Only two block types were involved;
+  they are declared in Swift with the same ABI and the header is gone.
+- RNIconify.mm imported <React/RCTTurboModule.h>, which does not exist.
+
+The podspec also claimed iOS 13, below what React Native itself supports; it
+now follows min_ios_version_supported.
+
+CI no longer parses the sources. It builds the example app on both platforms:
+Gradle assembleDebug on Linux and xcodebuild on macOS, through autolinking and
+codegen, against React Native's own headers.
+
+Verified locally on the example app: iOS BUILD SUCCEEDED, Android BUILD
+SUCCESSFUL, with RNIconify autolinked and RNIconifySpec generated.
+
+- docs: import the development-only exports from where they live
+
+The performance monitor and the icon explorer moved to rn-iconify/dev at some
+point, to keep them out of production bundles. Nine documentation pages went
+on importing them from 'rn-iconify', where they are not exported — every one
+of those snippets fails to compile if it is followed.
+
+The explorer module's own JSDoc pointed at 'rn-iconify/explorer', which is not
+an entry point this package has.
+
+- chore(example): bring the example app up to the stack it demonstrates
+
+The example was two Expo majors behind and no longer compiled. Its TypeScript
+failed against the library it demonstrates — it imported the performance
+monitor and the icon explorer from 'rn-iconify' after they moved to
+'rn-iconify/dev' — and its iOS build failed outright, because React Native
+0.79 bundles a version of fmt that current Xcode rejects.
+
+Now on Expo 54 and React Native 0.81.5, matching the application this package
+was written for. The library's own entry points are aliased so the example
+reaches them the way an installed copy would, rather than only the root one.
+
+It also never declared the library as a native dependency: it resolved it
+through Metro alone, so autolinking never saw it, and the example built and
+ran with no native module in it. That is a large part of how the native module
+stayed unlinked without anyone noticing. It is declared now.
+
+Two smaller corrections found by rebuilding: the splash screen moved to its
+own config plugin in SDK 52 and the top-level key was being ignored, and the
+peer dependencies npm was auto-installing (nitro-modules, worklets) are now
+written down.
+
+Coverage thresholds are raised from 80/69/83/80 to 90/77/89/91, just under
+what the suite reaches, so a real regression fails.
+
 ## [3.2.2](https://github.com/mogretici/rn-iconify/compare/v3.2.1...v3.2.2) (2026-08-11)
 
 ### Bug Fixes
