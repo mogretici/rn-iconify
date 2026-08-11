@@ -18,6 +18,7 @@ npx rn-iconify <command> [options]
 |---------|-------------|
 | `bundle` | Generate offline icon bundle |
 | `analyze` | Analyze icon usage in your project |
+| `doctor` | Report icons that would be fetched at runtime |
 | `help` | Show help message |
 | `version` | Show version |
 
@@ -129,6 +130,71 @@ npx rn-iconify analyze --detailed
 # Markdown output for documentation
 npx rn-iconify analyze --format markdown > ICONS.md
 ```
+
+## Doctor Command
+
+Report what your build ships and what it will ask the network for:
+
+```bash
+npx rn-iconify doctor
+```
+
+```
+🩺 rn-iconify doctor
+
+   Resolved from source : 105
+   Fetched at runtime   : 71
+   Coverage             : 60%
+```
+
+An icon the build cannot see is not a broken icon. `IconRenderer` fetches it
+from the Iconify API instead, in release builds as much as in development — a
+request on every install, a placeholder until it lands, and nothing at all on a
+device with no connection. None of that is visible from inside the app, which
+is what this command is for.
+
+### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--src <path>` | Project root to inspect | cwd |
+| `--strict` | Exit non-zero if any icon is fetched at runtime | `false` |
+| `--format <type>` | `text` or `json` | `text` |
+| `--verbose` | Show detailed output | `false` |
+
+Not strict by default: a project part-way through fixing this should be able to
+see the number without being blocked by it.
+
+### In CI
+
+```yaml
+- name: Check icon coverage
+  run: npx rn-iconify doctor --strict
+```
+
+### Fixing what it reports
+
+Most of what appears there is a name the source cannot tie to an icon set:
+
+```tsx
+// Nothing says 'hanger' is an Mdi icon
+const CATEGORY_ICON: Record<string, string> = { OUTFIT: 'hanger' };
+```
+
+Either type the values, or declare them with
+[`defineIcons`](../api-reference/utilities#defineicons):
+
+```tsx
+const CATEGORY_ICON = defineIcons<MdiIconName>({ OUTFIT: 'hanger' });
+```
+
+Names handed to your own components need nothing — the prop type is enough.
+
+:::note
+  `.rn-iconify/usage.json` collects icons the app fetched during development
+  and is read by the next build, which is why a project can look healthy while
+  depending on it. Doctor deliberately does not count those as resolved.
+:::
 
 ## Integration with package.json
 

@@ -183,29 +183,25 @@ interface IconProps<T extends string = string> {
 }
 ```
 
-### MdiProps
+### Props for a specific icon set
 
-Props for the Mdi component.
-
-```tsx
-import { type MdiProps } from 'rn-iconify';
-
-interface MdiProps extends IconProps {
-  name: MdiIconName;
-}
-```
-
-### HeroiconsProps
+There is no `MdiProps` or `HeroiconsProps`. Every icon component takes
+`IconProps`, parameterised by that set's name type:
 
 ```tsx
-import { type HeroiconsProps } from 'rn-iconify';
+import type { IconProps, MdiIconName, HeroiconsIconName } from 'rn-iconify';
 
-interface HeroiconsProps extends IconProps {
-  name: HeroiconsIconName;
-}
+type MdiProps = IconProps<MdiIconName>;
+type HeroiconsProps = IconProps<HeroiconsIconName>;
 ```
 
-Each icon component has its own Props type following the same pattern.
+Which is what the components are built from, so the two stay in step:
+
+```tsx
+function SaveButton({ name, size }: IconProps<MdiIconName>) {
+  return <Mdi name={name} size={size} />;
+}
+```
 
 ---
 
@@ -2449,10 +2445,11 @@ interface PrefetchResult {
 **Usage:**
 
 ```tsx
-import { NativeIconify, type PrefetchResult } from 'rn-iconify';
+import { getNativeIconify, isNativeModuleAvailable, type PrefetchResult } from 'rn-iconify';
 
-if (NativeIconify.isAvailable) {
-  const result: PrefetchResult = await NativeIconify.prefetchIcons([
+if (isNativeModuleAvailable()) {
+  const native = getNativeIconify();
+  const result: PrefetchResult = await native.prefetchIcons([
     'mdi:home',
     'mdi:user',
     'mdi:settings',
@@ -2483,10 +2480,10 @@ interface CacheStats {
 **Usage:**
 
 ```tsx
-import { NativeIconify, type CacheStats } from 'rn-iconify';
+import { getNativeIconify, isNativeModuleAvailable, type CacheStats } from 'rn-iconify';
 
-if (NativeIconify.isAvailable) {
-  const stats: CacheStats = await NativeIconify.getCacheStats();
+if (isNativeModuleAvailable()) {
+  const stats: CacheStats = await getNativeIconify().getCacheStats();
   console.log(`Memory: ${stats.memoryCount} icons`);
   console.log(`Disk: ${stats.diskCount} icons (${(stats.diskSizeBytes / 1024).toFixed(1)} KB)`);
   console.log(`Hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
@@ -2513,10 +2510,10 @@ interface ModuleConstants {
 **Usage:**
 
 ```tsx
-import { NativeIconify, type ModuleConstants } from 'rn-iconify';
+import { getNativeIconify, isNativeModuleAvailable, type ModuleConstants } from 'rn-iconify';
 
-if (NativeIconify.isAvailable) {
-  const constants: ModuleConstants = NativeIconify.getConstants();
+if (isNativeModuleAvailable()) {
+  const constants: ModuleConstants = getNativeIconify().getConstants();
   console.log(`Cache dir: ${constants.cacheDirectory}`);
   console.log(`Max size: ${(constants.maxCacheSize / 1024 / 1024).toFixed(1)} MB`);
   console.log(`Version: ${constants.version}`);
@@ -2525,7 +2522,7 @@ if (NativeIconify.isAvailable) {
 
 ### NativeIconifyInterface
 
-Interface for the native module. Available via `NativeIconify` when the native module is installed.
+Interface for the native module. Obtained from `getNativeIconify()` when the native module is installed.
 
 ```tsx
 import { type NativeIconifyInterface } from 'rn-iconify';
@@ -2554,24 +2551,24 @@ interface NativeIconifyInterface {
 **Usage:**
 
 ```tsx
-import { NativeIconify } from 'rn-iconify';
+import { getNativeIconify, isNativeModuleAvailable } from 'rn-iconify';
 
 // Check availability before using
-if (NativeIconify.isAvailable) {
+if (isNativeModuleAvailable()) {
   // Prefetch critical icons on app start
-  await NativeIconify.prefetchIcons(['mdi:home', 'mdi:menu', 'mdi:close']);
+  await getNativeIconify().prefetchIcons(['mdi:home', 'mdi:menu', 'mdi:close']);
 
   // Check cache status
-  const isCached = NativeIconify.isCached('mdi:home');
+  const isCached = getNativeIconify().isCached('mdi:home');
 
   // Get stats
-  const stats = await NativeIconify.getCacheStats();
+  const stats = await getNativeIconify().getCacheStats();
 
   // Clear cache when needed
-  await NativeIconify.clearCache();
+  await getNativeIconify().clearCache();
 }
 ```
 
 :::info
-The native module is optional. If not installed, `NativeIconify.isAvailable` will be `false` and the library will use JavaScript-based caching instead.
+The native module is optional. If not installed, `getNativeIconify().isAvailable` will be `false` and the library will use JavaScript-based caching instead.
 :::

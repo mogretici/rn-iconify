@@ -56,6 +56,77 @@ async function initApp() {
 
 ---
 
+## defineIcons
+
+Declare icon names the build cannot infer from your source.
+
+```tsx
+import { defineIcons } from 'rn-iconify';
+import type { MdiIconName } from 'rn-iconify';
+
+const CATEGORY_ICON = defineIcons<MdiIconName>({
+  OUTFIT: 'hanger',
+  SPOTLIGHT: 'theater',
+});
+```
+
+Most names are found without this. One written on an icon component is
+detected, and so is one handed to a component that declares an icon prop —
+the prop type names the set. What cannot be detected is a name the source
+never ties to a set:
+
+```tsx
+// Nothing here says 'hanger' is an Mdi icon
+const CATEGORY_ICON: Record<string, string> = { OUTFIT: 'hanger' };
+```
+
+Left undeclared, those are fetched from the Iconify API at runtime: a request
+on every install, a placeholder until it lands, nothing at all offline.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `icons` | `Record<string, TName>` or `readonly TName[]` | Icon names, without a set prefix |
+
+The type argument is the point. It stops a typo reaching a build, and it tells
+the bundler which set the names belong to.
+
+### Returns
+
+The same value it was given, typed. `defineIcons` exists to be a shape the
+build can recognise; it does nothing at runtime.
+
+### Example
+
+```tsx
+import { defineIcons, Mdi } from 'rn-iconify';
+import type { MdiIconName } from 'rn-iconify';
+
+const STATUS_ICON = defineIcons<MdiIconName>({
+  idle: 'circle-outline',
+  busy: 'sync',
+  failed: 'alert-circle',
+});
+
+function StatusIcon({ status }: { status: keyof typeof STATUS_ICON }) {
+  return <Mdi name={STATUS_ICON[status]} size={24} />;
+}
+```
+
+A list works the same way:
+
+```tsx
+const PRELOADED = defineIcons<MdiIconName>(['home', 'settings', 'account']);
+```
+
+:::tip
+  Typing the value achieves the same thing without the call:
+  `const ICON: Record<string, MdiIconName> = { OUTFIT: 'hanger' }`.
+  Use whichever reads better; `npx rn-iconify doctor` will tell you if either
+  is missing.
+:::
+
 ## clearCache
 
 Clear all cached icons (memory, disk, and native).
