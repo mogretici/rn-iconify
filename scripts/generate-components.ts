@@ -142,10 +142,15 @@ async function fetchCollectionIcons(prefix: string): Promise<CollectionIcons> {
 
   const names = [...new Set(icons)];
 
+  const deprecated = selectDeprecated(names, data.hidden ?? []);
+
+  // Aliases may point at a hidden icon, which is still generated — so the set
+  // of valid targets is everything this component will expose, not just what
+  // upstream currently lists.
   return {
     names,
-    aliases: selectAliases(names, data.aliases ?? {}),
-    deprecated: selectDeprecated(names, data.hidden ?? []),
+    aliases: selectAliases([...names, ...deprecated], data.aliases ?? {}),
+    deprecated,
   };
 }
 
