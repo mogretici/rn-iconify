@@ -198,3 +198,104 @@ describe('createIconSet with different prefixes', () => {
     });
   });
 });
+
+/**
+ * The "Did you mean?" suggestion is the only part of this factory that runs
+ * an algorithm, and it runs in every consumer's development build on every
+ * render of a mistyped icon. An exception here would surface inside their app
+ * rather than ours, so its edges matter more than its usefulness does.
+ */
+describe('createIconSet unknown name warnings', () => {
+  const icons = {
+    home: true,
+    settings: true,
+    'account-circle': true,
+  } as const;
+
+  const Icon = createIconSet<keyof typeof icons>('mdi', icons);
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockIconRenderer.mockClear();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  const warningText = () => warnSpy.mock.calls.map((call) => String(call[0])).join('\n');
+
+  it('says nothing about a name that exists', () => {
+    render(<Icon name="home" />);
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('names the icon set it was asked about', () => {
+    render(<Icon name={'hme' as 'home'} />);
+
+    expect(warningText()).toContain('Mdi');
+    expect(warningText()).toContain('hme');
+  });
+
+  it('suggests the name that was probably meant', () => {
+    render(<Icon name={'settigns' as 'settings'} />);
+
+    expect(warningText()).toContain('Did you mean "settings"');
+  });
+
+  it('suggests nothing when nothing is close', () => {
+    render(<Icon name={'zzzzzzzzzzzz' as 'home'} />);
+
+    expect(warnSpy).toHaveBeenCalled();
+    expect(warningText()).not.toContain('Did you mean');
+  });
+
+  // Distance is allowed to grow with the name, so a long name with two typos
+  // still resolves while a short one with two is already too far gone.
+  it('matches a longer name through more than one typo', () => {
+    render(<Icon name={'acount-circle' as 'home'} />);
+
+    expect(warningText()).toContain('Did you mean "account-circle"');
+  });
+
+  it('survives an empty name', () => {
+    expect(() => render(<Icon name={'' as 'home'} />)).not.toThrow();
+  });
+
+  it('survives a name longer than anything in the set', () => {
+    expect(() => render(<Icon name={'a'.repeat(500) as 'home'} />)).not.toThrow();
+  });
+
+  /**
+   * The generated name lists are a snapshot of Iconify from when the package
+   * was built. An icon added upstream since then is missing from them and yet
+   * perfectly real, so an unrecognised name is asked for as itself — the
+   * alternative was asking for "mdi:undefined", which could never resolve.
+   */
+  it('asks for an unrecognised name as itself, not as undefined', () => {
+    render(<Icon name={'added-upstream-last-week' as 'home'} />);
+
+    expect(mockIconRenderer).toHaveBeenCalledWith(
+      expect.objectContaining({ iconName: 'mdi:added-upstream-last-week' })
+    );
+  });
+
+  it('handles a set with no icons at all', () => {
+    const Empty = createIconSet<string>('empty', {});
+
+    expect(() => render(<Empty name="anything" />)).not.toThrow();
+  });
+});
+
+describe('createIconSet display names', () => {
+  it.each([
+    ['mdi', 'MdiIcon'],
+    ['mdi-light', 'MdiLightIcon'],
+    ['material_symbols', 'MaterialSymbolsIcon'],
+    ['fa6-solid', 'Fa6SolidIcon'],
+  ])('turns %s into %s', (prefix, expected) => {
+    expect(createIconSet<string>(prefix, { a: true }).displayName).toBe(expected);
+  });
+});

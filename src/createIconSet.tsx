@@ -130,8 +130,21 @@ export function createIconSet<T extends string>(
         );
       }
 
-      // Get the actual icon name (handles mapped names like _500px -> "500px")
-      const actualName = iconNames[name] === true ? name : iconNames[name];
+      // Resolve the name to ask the API for.
+      //
+      // `true` means the key is the name; a string means the key was sanitised
+      // or the icon was renamed upstream, and the string is what to ask for.
+      //
+      // A name that is in neither falls through as itself rather than as
+      // `undefined`. The generated lists are a snapshot of Iconify taken when
+      // the package was built, so a genuinely valid icon added since then is
+      // absent from them — and turning that into the literal string
+      // "mdi:undefined" made it unfetchable for a reason that has nothing to
+      // do with whether the icon exists. In development the warning above has
+      // already said the name is unrecognised; in a release build this is the
+      // difference between the icon appearing and never appearing.
+      const mapped = iconNames[name];
+      const actualName = mapped === true || mapped === undefined ? name : mapped;
       const iconName = `${prefix}:${actualName}`;
 
       return (
