@@ -34,7 +34,7 @@ export interface AnimationConfig {
   /**
    * Animation type
    */
-  type: 'rotate' | 'scale' | 'opacity' | 'translate' | 'sequence';
+  type: 'rotate' | 'scale' | 'opacity' | 'translate';
 
   /**
    * Animation duration in milliseconds
