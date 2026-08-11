@@ -1,3 +1,9 @@
+## [3.1.4](https://github.com/mogretici/rn-iconify/compare/v3.1.3...v3.1.4) (2026-08-11)
+
+### Bug Fixes
+
+- keep icons Iconify has hidden rather than deleted ([68f948c](https://github.com/mogretici/rn-iconify/commit/68f948c6e8e6971ea39d850b40d4151a378a6e50))
+
 ## [3.1.3](https://github.com/mogretici/rn-iconify/compare/v3.1.2...v3.1.3) (2026-08-11)
 
 ### Bug Fixes
