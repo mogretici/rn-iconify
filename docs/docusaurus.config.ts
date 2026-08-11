@@ -1,6 +1,23 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+
+/**
+ * The version the site is documenting, read rather than written down.
+ *
+ * The announcement bar used to name a release in prose. It still said v3 the
+ * day v4 published, and it would have kept saying it — the release is cut by
+ * semantic-release, which has no reason to know this file exists. Its `id`
+ * was fixed too, and that id is what Docusaurus remembers a dismissal by: a
+ * reader who closed the v3 bar would never have been shown another one.
+ */
+const { version } = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8')
+) as { version: string };
+
+const major = version.split('.')[0];
 
 const config: Config = {
   title: 'rn-iconify',
@@ -134,9 +151,11 @@ const config: Config = {
     },
 
     announcementBar: {
-      id: 'v3.0-release',
-      content:
-        '🎉 rn-iconify v3.0 is here! Core engine rewrite, typed errors, accessibility improvements and better performance. <a href="/docs/changelog">See changelog</a>',
+      // Both the text and the id follow the published version, so the bar is
+      // current the moment a release lands and a new one is shown to a reader
+      // who dismissed the last.
+      id: `v${major}-release`,
+      content: `🎉 rn-iconify v${major} is here. <a href="/docs/changelog">See what changed</a>`,
       backgroundColor: '#3b82f6',
       textColor: '#ffffff',
       isCloseable: true,

@@ -29,6 +29,13 @@ jobs:
       - name: Run type check
         run: npm run typecheck
 
+      # Every import in the documentation is a promise that a name is exported.
+      # Nine pages were importing the performance monitor and the icon explorer
+      # from the root after both moved to rn-iconify/dev, and a code block is
+      # compiled by nothing.
+      - name: Check documented imports
+        run: npm run check:docs
+
       - name: Run tests
         run: npm test
 

@@ -2411,9 +2411,9 @@ interface BatchFetchResult {
 **Usage:**
 
 ```tsx
-import { IconifyAPI, type BatchFetchResult } from 'rn-iconify';
+import { fetchIconsBatch, type BatchFetchResult } from 'rn-iconify';
 
-const result: BatchFetchResult = await IconifyAPI.fetchBatch(['mdi:home', 'mdi:user']);
+const result: BatchFetchResult = await fetchIconsBatch(['mdi:home', 'mdi:account']);
 
 console.log(`Loaded ${result.success.size} icons`);
 result.failed.forEach(({ iconName, error }) => {

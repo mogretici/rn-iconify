@@ -113,6 +113,7 @@
   "scripts": {
     "build": "bob build && tsx scripts/finalize-package.ts",
     "typecheck": "tsc --noEmit",
+    "check:docs": "tsx scripts/check-docs-imports.ts",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint:fix": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
