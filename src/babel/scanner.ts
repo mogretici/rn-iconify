@@ -89,15 +89,13 @@ const STRING_ITEM_REGEX = /['"]([^'"]+)['"]/g;
 /**
  * Scan a single file for icon usage
  */
-function scanFile(filePath: string, combinedRegex: RegExp, verbose: boolean): string[] {
+function scanFile(
+  filePath: string,
+  content: string,
+  combinedRegex: RegExp,
+  verbose: boolean
+): string[] {
   const icons: string[] = [];
-
-  let content: string;
-  try {
-    content = fs.readFileSync(filePath, 'utf-8');
-  } catch {
-    return icons;
-  }
 
   // Skip files that don't import from rn-iconify
   if (!content.includes('rn-iconify') && !content.includes('prefetchIcons')) {
@@ -138,6 +136,132 @@ function scanFile(filePath: string, combinedRegex: RegExp, verbose: boolean): st
         icons.push(iconName);
         if (verbose) {
           console.log(`[rn-iconify:scanner] Found prefetch ${iconName} in ${filePath}`);
+        }
+      }
+    }
+  }
+
+  return icons;
+}
+
+/**
+ * A component that takes an icon name as a prop, and which icon set that
+ * prop belongs to.
+ *
+ * Applications almost never call the icon components directly everywhere;
+ * they build a row, a button or an empty state that takes `icon` and renders
+ * the icon component inside. The name is still a literal in the source — it
+ * just sits on the wrapper rather than on `<Ion>`, which the direct scan
+ * cannot see. Those icons then fall through to a network fetch at runtime.
+ *
+ * The prop's declared type is what makes this exact rather than a guess:
+ * `icon?: IonIconName` names the set, so no prefix has to be inferred.
+ */
+type WrapperProps = Map<string, string>;
+type WrapperMap = Map<string, WrapperProps>;
+
+/** `IonIconName` -> `ion`, via the component name the type is built from. */
+const ICON_NAME_TYPE_REGEX = /(\w+)\s*\??\s*:\s*(\w+)IconName\b/g;
+
+/**
+ * Component-shaped declarations in a file, exported or not.
+ *
+ * Not only the exported ones: a file often declares a small local component —
+ * the row inside a list, the button inside a bar — that takes the icon prop
+ * and is used a few lines further down. Those are as real a call site as any.
+ */
+const COMPONENT_DECLARATION_REGEX =
+  /(?:^|\n)\s*(?:export\s+(?:default\s+)?)?(?:function|const|class)\s+([A-Z]\w*)/g;
+
+/**
+ * Find components that accept an icon name as a prop.
+ *
+ * Scoped to the file that declares the prop: the type annotation and the
+ * component live together, so nothing has to be resolved across files.
+ */
+function collectWrappers(sources: Map<string, string>, verbose: boolean): WrapperMap {
+  const wrappers: WrapperMap = new Map();
+
+  for (const [filePath, content] of sources) {
+    if (!content.includes('IconName')) continue;
+
+    const props: WrapperProps = new Map();
+    ICON_NAME_TYPE_REGEX.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = ICON_NAME_TYPE_REGEX.exec(content)) !== null) {
+      const propName = match[1];
+      const componentName = match[2];
+      if (!propName || !componentName) continue;
+      const prefix = COMPONENT_PREFIX_MAP[componentName];
+      if (prefix) props.set(propName, prefix);
+    }
+
+    if (props.size === 0) continue;
+
+    const names = new Set<string>();
+    COMPONENT_DECLARATION_REGEX.lastIndex = 0;
+    while ((match = COMPONENT_DECLARATION_REGEX.exec(content)) !== null) {
+      if (match[1]) names.add(match[1]);
+    }
+    // A component exported via `export default X` at the end of the file, or
+    // wrapped in memo(), is still reachable by the file's own name.
+    const stem = path.basename(filePath, path.extname(filePath));
+    if (/^[A-Z]/.test(stem)) names.add(stem);
+
+    for (const name of names) {
+      const existing = wrappers.get(name);
+      if (existing) {
+        for (const [prop, prefix] of props) existing.set(prop, prefix);
+      } else {
+        wrappers.set(name, new Map(props));
+      }
+    }
+
+    if (verbose && names.size > 0) {
+      console.log(
+        `[rn-iconify:scanner] Wrapper ${Array.from(names).join('/')} takes ${Array.from(
+          props.keys()
+        ).join(', ')} in ${filePath}`
+      );
+    }
+  }
+
+  return wrappers;
+}
+
+/**
+ * Scan one file for icon names handed to wrapper components.
+ */
+function scanFileForWrappers(
+  filePath: string,
+  content: string,
+  wrappers: WrapperMap,
+  verbose: boolean
+): string[] {
+  const icons: string[] = [];
+
+  for (const [componentName, props] of wrappers) {
+    if (!content.includes(`<${componentName}`)) continue;
+
+    for (const [propName, prefix] of props) {
+      const regex = new RegExp(
+        `<${componentName}\\s(?:[^>]|\\n)*?\\b${propName}=(?:"([^"]+)"|\\{'([^']+)'\\}|\\{"([^"]+)"\\})`,
+        'g'
+      );
+
+      let match: RegExpExecArray | null;
+      while ((match = regex.exec(content)) !== null) {
+        const iconName = match[1] || match[2] || match[3];
+        if (!iconName) continue;
+
+        const fullName = `${prefix}:${iconName}`;
+        if (!isValidIconName(fullName)) continue;
+
+        icons.push(fullName);
+        if (verbose) {
+          console.log(
+            `[rn-iconify:scanner] Found ${fullName} via <${componentName} ${propName}> in ${filePath}`
+          );
         }
       }
     }
@@ -223,17 +347,39 @@ export function scanProjectForIcons(projectRoot: string, options: ScannerOptions
   // 2. Build combined regex once (single-pass O(n) per file)
   const combinedRegex = buildCombinedRegex();
 
-  // 3. Scan each file
-  const allIcons: Set<string> = new Set();
-
+  // 3. Read every file once. Finding icons handed to wrapper components needs
+  //    two passes — a wrapper is declared in one file and used in another —
+  //    and reading twice would double the I/O of every build. Project sources
+  //    are text measured in single-digit megabytes; holding them for the
+  //    length of a scan costs nothing next to that.
+  const sources = new Map<string, string>();
   for (const file of files) {
-    const icons = scanFile(file, combinedRegex, verbose);
-    for (const icon of icons) {
-      allIcons.add(icon);
+    try {
+      sources.set(file, fs.readFileSync(file, 'utf-8'));
+    } catch {
+      // A file that cannot be read contributes no icons.
     }
   }
 
-  // 4. Merge with usage.json (dev-learned icons)
+  // 4. Learn which components take an icon name as a prop, so a name handed
+  //    to one of those is found as surely as one written on <Ion> directly.
+  const wrappers = collectWrappers(sources, verbose);
+
+  // 5. Scan each file
+  const allIcons: Set<string> = new Set();
+
+  for (const [file, content] of sources) {
+    for (const icon of scanFile(file, content, combinedRegex, verbose)) {
+      allIcons.add(icon);
+    }
+    if (wrappers.size > 0) {
+      for (const icon of scanFileForWrappers(file, content, wrappers, verbose)) {
+        allIcons.add(icon);
+      }
+    }
+  }
+
+  // 6. Merge with usage.json (dev-learned icons)
   const usageIcons = readUsageFile(projectRoot, verbose);
   for (const icon of usageIcons) {
     allIcons.add(icon);
