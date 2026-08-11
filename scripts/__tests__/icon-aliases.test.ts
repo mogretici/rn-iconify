@@ -137,3 +137,24 @@ describe('renderIconEntries with deprecated icons', () => {
     expect(keys).toEqual(['home', 'house']);
   });
 });
+
+describe('aliases pointing at deprecated icons', () => {
+  /**
+   * `solar:sort-by-alphabet-linear` is an alias for `sort-by-alphabet-broken`,
+   * which is itself hidden rather than listed. Treating only listed icons as
+   * valid targets dropped the alias even though its target is generated — one
+   * name, but the same class of silent loss as the other 152.
+   */
+  it('accepts an alias whose target is a kept deprecated icon', () => {
+    const deprecated = selectDeprecated(['home'], ['sort-by-alphabet-broken']);
+    const aliases = selectAliases(['home', ...deprecated], {
+      'sort-by-alphabet-linear': 'sort-by-alphabet-broken',
+    });
+
+    expect(aliases).toEqual({ 'sort-by-alphabet-linear': 'sort-by-alphabet-broken' });
+  });
+
+  it('still rejects an alias whose target is nowhere', () => {
+    expect(selectAliases(['home'], { gone: 'also-gone' })).toEqual({});
+  });
+});
