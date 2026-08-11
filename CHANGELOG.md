@@ -1,3 +1,13 @@
+# [3.2.0](https://github.com/mogretici/rn-iconify/compare/v3.1.5...v3.2.0) (2026-08-11)
+
+### Bug Fixes
+
+- **ci:** stop our own hook from blocking releases ([#9](https://github.com/mogretici/rn-iconify/issues/9)) ([b130a6b](https://github.com/mogretici/rn-iconify/commit/b130a6bb2b5bb3e1e1b2846fbcf5d1080ca6bfbc))
+
+### Features
+
+- make icons fetched at runtime visible, and declarable ([#8](https://github.com/mogretici/rn-iconify/issues/8)) ([a4b785f](https://github.com/mogretici/rn-iconify/commit/a4b785f335fee14a73d85b6015bea412fb751755))
+
 ## [3.1.5](https://github.com/mogretici/rn-iconify/compare/v3.1.4...v3.1.5) (2026-08-11)
 
 ### Bug Fixes
