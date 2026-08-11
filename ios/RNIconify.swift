@@ -5,6 +5,18 @@
 
 import Foundation
 
+/**
+ * React Native's promise blocks, declared here rather than imported.
+ *
+ * Reaching them from Swift meant a bridging header, and a bridging header
+ * cannot be used when the target builds as a framework — which is how React
+ * Native links by default. These have the same ABI as RCTPromiseResolveBlock
+ * and RCTPromiseRejectBlock, so the selectors RCT_EXTERN_METHOD declares in
+ * RNIconify.mm still match, and nothing in this file needs a header at all.
+ */
+typealias PromiseResolve = (Any?) -> Void
+typealias PromiseReject = (String?, String?, Error?) -> Void
+
 @objc(RNIconify)
 class RNIconify: NSObject {
 
@@ -57,8 +69,8 @@ class RNIconify: NSObject {
    * Prefetch multiple icons in background threads
    */
   @objc func prefetchIcons(_ icons: [String],
-                           resolve: @escaping RCTPromiseResolveBlock,
-                           reject: @escaping RCTPromiseRejectBlock) {
+                           resolve: @escaping PromiseResolve,
+                           reject: @escaping PromiseReject) {
 
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
       guard let self = self else {
@@ -99,8 +111,8 @@ class RNIconify: NSObject {
   /**
    * Get cache statistics
    */
-  @objc func getCacheStats(_ resolve: @escaping RCTPromiseResolveBlock,
-                           reject: @escaping RCTPromiseRejectBlock) {
+  @objc func getCacheStats(_ resolve: @escaping PromiseResolve,
+                           reject: @escaping PromiseReject) {
 
     DispatchQueue.global(qos: .utility).async { [weak self] in
       guard let self = self else {
@@ -144,8 +156,8 @@ class RNIconify: NSObject {
   /**
    * Clear all caches
    */
-  @objc func clearCache(_ resolve: @escaping RCTPromiseResolveBlock,
-                        reject: @escaping RCTPromiseRejectBlock) {
+  @objc func clearCache(_ resolve: @escaping PromiseResolve,
+                        reject: @escaping PromiseReject) {
 
     DispatchQueue.global(qos: .utility).async { [weak self] in
       guard let self = self else {

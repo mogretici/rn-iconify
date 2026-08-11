@@ -37,13 +37,15 @@ android {
         buildConfig true
     }
 
+    // React Native 0.73 and later compile Java at 17. Leaving Kotlin at 1.8
+    // makes Gradle refuse the build outright for inconsistent JVM targets.
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {

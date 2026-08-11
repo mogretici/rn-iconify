@@ -4,8 +4,8 @@
  */
 
 import { Platform, NativeModules } from 'react-native';
-import type { PrefetchResult, CacheStats, ModuleConstants } from './NativeIconifyModule';
-import { getNativeIconifyModule } from './NativeIconifyModule';
+import type { PrefetchResult, CacheStats, ModuleConstants } from './NativeRNIconify';
+import { getNativeIconifyModule } from './NativeRNIconify';
 
 /**
  * Native module interface that works across architectures

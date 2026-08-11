@@ -43,7 +43,7 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
 
     override fun getName(): String = NAME
 
-    override fun getConstants(): Map<String, Any> {
+    override fun getTypedExportedConstants(): Map<String, Any> {
         return mapOf(
             "cacheDirectory" to cacheDirectory.absolutePath,
             "maxCacheSize" to MAX_CACHE_SIZE,
@@ -63,7 +63,7 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
      * Prefetch multiple icons in background threads
      */
     @ReactMethod
-    fun prefetchIcons(icons: ReadableArray, promise: Promise) {
+    override fun prefetchIcons(icons: ReadableArray, promise: Promise) {
         scope.launch {
             val iconList = (0 until icons.size()).map { icons.getString(it) ?: "" }
             val successIcons = mutableListOf<String>()
@@ -95,7 +95,7 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
      * Get cache statistics
      */
     @ReactMethod
-    fun getCacheStats(promise: Promise) {
+    override fun getCacheStats(promise: Promise) {
         scope.launch {
             var diskCount = 0
             var diskSizeBytes = 0L
@@ -127,7 +127,7 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
      * Clear all caches
      */
     @ReactMethod
-    fun clearCache(promise: Promise) {
+    override fun clearCache(promise: Promise) {
         scope.launch {
             try {
                 cacheDirectory.listFiles()?.forEach { it.delete() }
@@ -144,7 +144,7 @@ class RNIconifyModule(reactContext: ReactApplicationContext) :
      * Check if icon is cached (synchronous)
      */
     @ReactMethod(isBlockingSynchronousMethod = true)
-    fun isCached(iconName: String): Boolean {
+    override fun isCached(iconName: String): Boolean {
         val cacheFile = getCacheFile(iconName)
         return cacheFile.exists()
     }

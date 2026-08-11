@@ -97,12 +97,18 @@
     "src/placeholder",
     "src/theme",
     "src/types",
+    "RNIconify.podspec",
+    "ios",
+    "android",
     "lib",
     "!**/*.map",
     "babel.js",
     "metro.js",
     "README.md",
-    "assets"
+    "assets",
+    "!android/build",
+    "!android/.gradle",
+    "!ios/build"
   ],
   "scripts": {
     "build": "bob build && tsx scripts/finalize-package.ts",
@@ -275,6 +281,14 @@
       "dev": [
         "lib/typescript/commonjs/dev/index.d.ts"
       ]
+    }
+  },
+  "codegenConfig": {
+    "name": "RNIconifySpec",
+    "type": "modules",
+    "jsSrcsDir": "src/native",
+    "android": {
+      "javaPackageName": "com.rniconify"
     }
   }
 }
