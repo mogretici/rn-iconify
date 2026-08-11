@@ -1,3 +1,9 @@
+## [3.2.1](https://github.com/mogretici/rn-iconify/compare/v3.2.0...v3.2.1) (2026-08-11)
+
+### Bug Fixes
+
+- **icons:** ask for an unrecognised name as itself, not as undefined ([#11](https://github.com/mogretici/rn-iconify/issues/11)) ([e604eed](https://github.com/mogretici/rn-iconify/commit/e604eedd5e4ec88fcfecaf5e1b6316f6844685d4))
+
 # [3.2.0](https://github.com/mogretici/rn-iconify/compare/v3.1.5...v3.2.0) (2026-08-11)
 
 ### Bug Fixes
