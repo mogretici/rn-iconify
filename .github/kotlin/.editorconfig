@@ -1,0 +1,10 @@
+# Syntax checking only.
+#
+# ktlint's standard rules are a formatting opinion this codebase has never
+# adopted, and enforcing them now would be a reformat rather than a check.
+# With them off, ktlint still refuses a file it cannot parse — which is the
+# one thing nothing else in CI was checking.
+root = true
+
+[*.kt]
+ktlint_standard = disabled
