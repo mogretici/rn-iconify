@@ -23,6 +23,15 @@ const config: Config = {
     v4: true,
   },
 
+  // The changelog is copied in from the repository root and is the only .md
+  // file here; every page written by hand is .mdx. Parsing it as MDX meant a
+  // release note containing a brace or an angle bracket failed the build —
+  // a commit message, written months earlier, taking the documentation site
+  // down. Detect keeps MDX for .mdx and reads .md as plain CommonMark.
+  markdown: {
+    format: 'detect',
+  },
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
