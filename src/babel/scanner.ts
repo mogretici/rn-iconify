@@ -76,6 +76,16 @@ function buildCombinedRegex(): RegExp {
 }
 
 /**
+ * Matches a defineIcons call and captures its type argument and body.
+ *
+ * `defineIcons<MdiIconName>({ OUTFIT: 'hanger' })` — the type argument names
+ * the set, the body holds the names. This is the one place an application can
+ * state icons the source could not otherwise prove, so it is read as
+ * carefully as the icon components themselves.
+ */
+const DEFINE_ICONS_REGEX = /defineIcons\s*<\s*(\w+)IconName\s*>\s*\(\s*([[{])/g;
+
+/**
  * Regex to match prefetchIcons calls
  * Matches: prefetchIcons(['ion:home', 'mdi:settings'])
  */
@@ -85,6 +95,29 @@ const PREFETCH_REGEX = /prefetchIcons\(\s*\[([^\]]*)\]/g;
  * Regex to extract string items from array
  */
 const STRING_ITEM_REGEX = /['"]([^'"]+)['"]/g;
+
+/**
+ * Take the text between a bracket and its match.
+ *
+ * A declaration can nest — an object of arrays, a comment holding a brace —
+ * so the closing bracket is found by counting rather than by the next one
+ * that appears.
+ */
+function extractBalanced(content: string, openIndex: number, opener: string): string | null {
+  const closer = opener === '[' ? ']' : '}';
+  let depth = 0;
+
+  for (let i = openIndex; i < content.length; i++) {
+    const char = content[i];
+    if (char === opener) depth++;
+    else if (char === closer) {
+      depth--;
+      if (depth === 0) return content.slice(openIndex + 1, i);
+    }
+  }
+
+  return null;
+}
 
 /**
  * Scan a single file for icon usage
@@ -118,6 +151,35 @@ function scanFile(
       icons.push(fullName);
       if (verbose) {
         console.log(`[rn-iconify:scanner] Found ${fullName} in ${filePath}`);
+      }
+    }
+  }
+
+  // Scan for defineIcons declarations
+  DEFINE_ICONS_REGEX.lastIndex = 0;
+  while ((match = DEFINE_ICONS_REGEX.exec(content)) !== null) {
+    const componentName = match[1];
+    const opener = match[2];
+    if (!componentName || !opener) continue;
+
+    const prefix = COMPONENT_PREFIX_MAP[componentName];
+    if (!prefix) continue;
+
+    const body = extractBalanced(content, match.index + match[0].length - 1, opener);
+    if (body === null) continue;
+
+    STRING_ITEM_REGEX.lastIndex = 0;
+    let itemMatch: RegExpExecArray | null;
+    while ((itemMatch = STRING_ITEM_REGEX.exec(body)) !== null) {
+      const iconName = itemMatch[1];
+      if (!iconName) continue;
+
+      const fullName = `${prefix}:${iconName}`;
+      if (!isValidIconName(fullName)) continue;
+
+      icons.push(fullName);
+      if (verbose) {
+        console.log(`[rn-iconify:scanner] Found ${fullName} via defineIcons in ${filePath}`);
       }
     }
   }

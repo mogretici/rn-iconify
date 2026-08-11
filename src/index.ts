@@ -83,6 +83,8 @@ export type {
 } from './alias';
 
 // Factory Function (for creating custom icon sets)
+export { defineIcons } from './babel/defineIcons';
+
 export { createIconSet } from './createIconSet';
 export type { IconNameType } from './createIconSet';
 

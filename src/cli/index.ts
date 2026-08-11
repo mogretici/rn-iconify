@@ -8,8 +8,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { bundleCommand } from './commands/bundle';
 import { analyzeCommand } from './commands/analyze';
+import { doctorCommand } from './commands/doctor';
 import { EXIT_CODES } from './types';
-import type { BundleOptions, AnalyzeOptions } from './types';
+import type { BundleOptions, AnalyzeOptions, DoctorOptions } from './types';
 
 /**
  * Read version from package.json at build time
@@ -45,6 +46,7 @@ Usage: npx rn-iconify <command> [options]
 Commands:
   bundle    Generate offline icon bundle
   analyze   Analyze icon usage in source code
+  doctor    Report icons that would be fetched at runtime
   help      Show this help message
   version   Show version
 
@@ -53,6 +55,8 @@ Examples:
   npx rn-iconify bundle --icons "mdi:home,mdi:settings"
   npx rn-iconify analyze --src ./src --format table
   npx rn-iconify analyze --detailed
+  npx rn-iconify doctor
+  npx rn-iconify doctor --strict
 
 Bundle Options:
   --src <path>       Source directory to analyze (default: ./src)
@@ -68,6 +72,16 @@ Analyze Options:
   --format <type>    Output format: table, json, markdown (default: table)
   --detailed         Show file locations for each icon
   --verbose          Show detailed output
+
+Doctor Options:
+  --src <path>       Project root to inspect (default: cwd)
+  --strict           Exit non-zero if any icon is fetched at runtime
+  --format <type>    Output format: text, json (default: text)
+  --verbose          Show detailed output
+
+  An icon the build cannot see is fetched from the Iconify API at runtime, in
+  release builds too — a request per install, a placeholder until it lands,
+  and nothing at all offline. Doctor reports those; --strict fails on them.
 
 More info: https://github.com/mogretici/rn-iconify
 `;
@@ -146,6 +160,19 @@ async function main(): Promise<void> {
       };
 
       const exitCode = analyzeCommand(analyzeOptions);
+      process.exit(exitCode);
+      break;
+    }
+
+    case 'doctor': {
+      const doctorOptions: DoctorOptions = {
+        src: options.src as string,
+        strict: options.strict as boolean,
+        format: options.format as 'text' | 'json',
+        verbose: options.verbose as boolean,
+      };
+
+      const exitCode = await doctorCommand(doctorOptions);
       process.exit(exitCode);
       break;
     }

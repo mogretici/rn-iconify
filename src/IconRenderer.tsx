@@ -17,6 +17,24 @@ import { SvgXml } from 'react-native-svg';
 import { CacheManager } from './cache/CacheManager';
 import { fetchIcon } from './network/IconifyAPI';
 import { PlaceholderFactory } from './placeholder';
+
+/**
+ * Icons already reported, so a list rendering the same icon fifty times says
+ * it once.
+ */
+const reportedUnbundled = new Set<string>();
+
+function warnUnbundledIcon(iconName: string): void {
+  if (typeof __DEV__ === 'undefined' || !__DEV__) return;
+  if (reportedUnbundled.has(iconName)) return;
+  reportedUnbundled.add(iconName);
+
+  console.warn(
+    `[rn-iconify] "${iconName}" is not in the bundle and is being fetched from the ` +
+      'Iconify API. In a release build that is a request per install and nothing ' +
+      'offline. Run `npx rn-iconify doctor` to see every icon in this state.'
+  );
+}
 import { useIconAnimation } from './animated/useIconAnimation';
 import { ConfigManager } from './config';
 import { IconLoadError } from './errors';
@@ -273,6 +291,14 @@ export const IconRenderer = React.memo(
         onLoadRef.current?.();
         return;
       }
+
+      // The bundle did not have it, so it is about to be fetched. In a release
+      // build that is a request on every install, a placeholder until it
+      // lands, and nothing at all offline — and none of it is visible from
+      // inside the app. Saying so here is the only moment a developer can see
+      // which icon the build missed, because in development the fetch quietly
+      // succeeds and the name is written into usage.json for next time.
+      warnUnbundledIcon(iconName);
 
       // 2. Set loading state
       dispatch({ type: 'FETCH_START' });

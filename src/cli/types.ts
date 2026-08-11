@@ -176,6 +176,62 @@ export interface IconBundle {
 }
 
 /**
+ * Doctor command options
+ */
+export interface DoctorOptions {
+  /**
+   * Project root to inspect
+   * @default process.cwd()
+   */
+  src?: string;
+
+  /**
+   * Exit non-zero when any icon would be fetched at runtime.
+   * Off by default so the number can be looked at before it is enforced.
+   * @default false
+   */
+  strict?: boolean;
+
+  /**
+   * Output format
+   * @default 'text'
+   */
+  format?: 'text' | 'json';
+
+  /**
+   * Verbose output
+   * @default false
+   */
+  verbose?: boolean;
+}
+
+/**
+ * What the project ships and what it will ask the network for.
+ */
+export interface DoctorResult {
+  /** Icons the source itself proves, and which are therefore bundled. */
+  bundled: string[];
+
+  /**
+   * Icons that reach the app only by being fetched at runtime.
+   * Present in usage.json but not derivable from the source.
+   */
+  runtimeOnly: string[];
+
+  /**
+   * How many icons usage.json holds in total.
+   *
+   * Reported rather than judged: a name in there that the scan cannot find is
+   * either still in use and unresolvable, or left over from a screen that is
+   * gone. Nothing here can tell those apart.
+   */
+  learnedTotal: number;
+
+  /** When usage.json was last written, if it exists. */
+  learnedAt: string | null;
+}
+
+/**
  * CLI exit codes
  */
 export const EXIT_CODES = {

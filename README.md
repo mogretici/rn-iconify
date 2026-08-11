@@ -163,6 +163,63 @@ try {
 }
 ```
 
+## Knowing What You Ship
+
+Icons the build can find are bundled and render instantly, offline. Icons it
+cannot find still appear — they are fetched from the Iconify API at runtime —
+but that costs a request on every install, a placeholder until it lands, and
+nothing at all on a device with no connection. In development you never notice:
+the fetch succeeds and the name is remembered for next time.
+
+`doctor` says the number out loud:
+
+```bash
+npx rn-iconify doctor
+```
+
+```
+🩺 rn-iconify doctor
+
+   Resolved from source : 105
+   Fetched at runtime   : 71
+   Coverage             : 60%
+```
+
+Add `--strict` in CI to refuse a build that would ship icons over the network.
+
+Most gaps come from a name the source cannot tie to an icon set:
+
+```ts
+// Nothing here says 'hanger' is an Mdi icon.
+const CATEGORY_ICON: Record<string, string> = { OUTFIT: 'hanger' };
+```
+
+Either type the values, or declare them:
+
+```ts
+import { defineIcons } from 'rn-iconify';
+import type { MdiIconName } from 'rn-iconify';
+
+const CATEGORY_ICON = defineIcons<MdiIconName>({
+  OUTFIT: 'hanger',
+  SPOTLIGHT: 'theater',
+});
+```
+
+The type argument stops a typo reaching a build and tells the bundler which
+set the names belong to.
+
+Names handed to your own components need no declaration — the prop type is
+enough:
+
+```tsx
+function Row({ icon }: { icon: IonIconName }) {
+  return <Ion name={icon} />;
+}
+
+<Row icon="person-outline" />; // bundled
+```
+
 ## Dev Tools
 
 Icon Explorer and Performance Monitor are available as a separate import to keep your production bundle lean:
