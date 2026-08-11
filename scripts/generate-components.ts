@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
-import { renderIconEntries, selectAliases } from './icon-aliases';
+import { renderIconEntries, selectAliases, selectDeprecated } from './icon-aliases';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,6 +69,8 @@ interface CollectionData {
   categories?: Record<string, string[]>;
   /** Renamed icons: the old name maps to the one that is current. */
   aliases?: Record<string, string>;
+  /** Icons hidden from the listing but still served by the API. */
+  hidden?: string[];
 }
 
 interface CollectionIcons {
@@ -76,6 +78,8 @@ interface CollectionIcons {
   names: string[];
   /** Old name -> current name, for icons upstream has since renamed. */
   aliases: Record<string, string>;
+  /** Names upstream no longer lists but still serves. */
+  deprecated: string[];
 }
 
 function toPascalCase(str: string): string {
@@ -138,7 +142,11 @@ async function fetchCollectionIcons(prefix: string): Promise<CollectionIcons> {
 
   const names = [...new Set(icons)];
 
-  return { names, aliases: selectAliases(names, data.aliases ?? {}) };
+  return {
+    names,
+    aliases: selectAliases(names, data.aliases ?? {}),
+    deprecated: selectDeprecated(names, data.hidden ?? []),
+  };
 }
 
 function generateComponentContent(
@@ -149,7 +157,7 @@ function generateComponentContent(
   const typeName = `${componentName}IconName`;
   const varName = prefix.replace(/-/g, '_');
 
-  const iconNamesObj = renderIconEntries(icons.names, icons.aliases);
+  const iconNamesObj = renderIconEntries(icons.names, icons.aliases, icons.deprecated);
 
   return `/**
  * ${componentName} Icon Set
@@ -255,7 +263,8 @@ async function generateComponents(): Promise<void> {
 
       successCount++;
       const aliasCount = Object.keys(icons.aliases).length;
-      const aliasNote = aliasCount > 0 ? ` +${aliasCount} renamed` : '';
+      const keptCount = aliasCount + icons.deprecated.length;
+      const aliasNote = keptCount > 0 ? ` +${keptCount} kept` : '';
       console.log(
         `✅ ${componentName} (${icons.names.length} icons${aliasNote}) - ${collection.name || prefix}`
       );

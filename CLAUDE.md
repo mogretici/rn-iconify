@@ -117,7 +117,10 @@ Two things keep that from happening again:
 
 - `scripts/icon-aliases.ts` keeps renamed names, emitting them as
   `oldName: 'currentName'`. `createIconSet` resolves a string value to the icon
-  it points at, so the old name keeps working.
+  it points at, so the old name keeps working. It also keeps icons Iconify has
+  *hidden* — those left the listing but the API still serves valid SVG for
+  them, so removing them takes working icons away for a decision upstream did
+  not make. One sync would have dropped 152 of them from `solar` alone.
 - `scripts/report-icon-changes.ts` compares the names before and after a run.
   The sync workflow puts the summary on the pull request and, if anything was
   removed, marks the commit `feat!:` so semantic-release cuts a major.
