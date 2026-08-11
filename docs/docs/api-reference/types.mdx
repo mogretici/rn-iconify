@@ -926,7 +926,7 @@ interface IconAliasContextValue {
 Raw React Context for the Icon Explorer.
 
 ```tsx
-import { ExplorerContext } from 'rn-iconify';
+import { ExplorerContext } from 'rn-iconify/dev';
 
 // Access context directly (prefer useExplorerContext hook)
 const explorerContext = useContext(ExplorerContext);
@@ -1126,7 +1126,7 @@ interface CacheManagerAPI {
 Singleton object for performance monitoring.
 
 ```tsx
-import { PerformanceMonitor } from 'rn-iconify';
+import { PerformanceMonitor } from 'rn-iconify/dev';
 
 // Enable monitoring
 PerformanceMonitor.enable();
@@ -1535,7 +1535,7 @@ import { type AnimationConfig } from 'rn-iconify';
 
 interface AnimationConfig {
   /** Animation type */
-  type: 'rotate' | 'scale' | 'opacity' | 'translate' | 'sequence';
+  type: 'rotate' | 'scale' | 'opacity' | 'translate';
   /** Duration in ms @default 1000 */
   duration?: number;
   /** Whether to loop the animation @default true for rotate/scale/opacity, false for others */
@@ -2377,7 +2377,7 @@ interface IconExplorerProps extends ExplorerConfig {
 Usage example:
 
 ```tsx
-import { IconExplorer } from 'rn-iconify';
+import { IconExplorer } from 'rn-iconify/dev';
 
 <IconExplorer
   visible={showExplorer}

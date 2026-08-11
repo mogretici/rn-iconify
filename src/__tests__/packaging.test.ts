@@ -24,18 +24,14 @@ describe('packaging', () => {
   });
 
   /**
-   * The regression this exists for: the build wrote `{"type":"module"}` beside
-   * the ESM output with no `sideEffects`. A bundler reads that manifest instead
-   * of the root one, so it treated every module as side-effectful and kept all
-   * 226 icon sets — `import { Mdi } from 'rn-iconify'` pulled in 792 kB where
-   * the icon set itself is 36 kB.
+   * What the ESM manifest must contain is asserted against a real manifest in
+   * `scripts/__tests__/finalize-package.test.ts`; the build's own output is
+   * checked in CI after it runs. All this needs to know is that the step is
+   * still wired in, because dropping it is silent — it costs 20× the bundle
+   * size and breaks nothing else.
    */
-  it('carries sideEffects into the generated ESM manifest', () => {
-    expect(packageJson.scripts.build).toContain('sideEffects');
-  });
-
-  it('marks the generated ESM output as a module', () => {
-    expect(packageJson.scripts.build).toContain('"type\\":\\"module');
+  it('finalizes the generated ESM manifest after building', () => {
+    expect(packageJson.scripts.build).toContain('finalize-package');
   });
 
   /**

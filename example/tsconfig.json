@@ -3,13 +3,14 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "rn-iconify": [
-        "../src/index"
-      ]
+      "rn-iconify": ["../src/index"],
+      "rn-iconify/dev": ["../src/dev/index"],
+      "rn-iconify/animated": ["../src/animated/index"],
+      "rn-iconify/navigation": ["../src/navigation/index"],
+      "rn-iconify/icons/*": ["../src/components/*"],
+      "react": ["./node_modules/@types/react"],
+      "react-native": ["./node_modules/react-native"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

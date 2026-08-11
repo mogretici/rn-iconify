@@ -7,7 +7,12 @@ module.exports = function (api) {
         'module-resolver',
         {
           alias: {
+            // Every entry point the package publishes, so the example
+            // reaches them the way an application does.
             'rn-iconify': '../src',
+            'rn-iconify/dev': '../src/dev',
+            'rn-iconify/animated': '../src/animated',
+            'rn-iconify/navigation': '../src/navigation',
           },
         },
       ],

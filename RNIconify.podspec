@@ -1,6 +1,6 @@
 require 'json'
 
-package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
+package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 
 Pod::Spec.new do |s|
   s.name         = "RNIconify"
@@ -10,10 +10,12 @@ Pod::Spec.new do |s|
   s.license      = package['license']
   s.authors      = package['author']
 
-  s.platforms    = { :ios => "13.0" }
+  # Follows React Native's own minimum rather than a number that
+  # claimed support for versions React Native itself had dropped.
+  s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => package['repository']['url'], :tag => "v#{s.version}" }
 
-  s.source_files = "*.{h,m,mm,swift}"
+  s.source_files = "ios/**/*.{h,m,mm,swift}"
 
   # React Native dependency
   s.dependency "React-Core"
@@ -24,9 +26,7 @@ Pod::Spec.new do |s|
   # Swift settings
   s.swift_version = "5.0"
 
-  # Compiler flags for C++
   s.pod_target_xcconfig = {
-    "DEFINES_MODULE" => "YES",
-    "SWIFT_OBJC_BRIDGING_HEADER" => "$(PODS_TARGET_SRCROOT)/RNIconify-Bridging-Header.h"
+    "DEFINES_MODULE" => "YES"
   }
 end

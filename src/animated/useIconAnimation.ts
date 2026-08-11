@@ -76,11 +76,15 @@ interface UseIconAnimationReturn extends AnimationControls {
  * Hook for managing icon animations
  */
 export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIconAnimationReturn {
-  const { animation, duration, loop, easing, delay = 0, autoPlay = true, onComplete } = options;
+  // No default for `delay`: these are overrides, and resolveAnimation falls
+  // back to the animation's own value only when an override is undefined.
+  // A default of 0 here overrode every `delay` written on a config.
+  const { animation, duration, loop, easing, delay, autoPlay = true, onComplete } = options;
 
   // Animation state
   const [state, setState] = useState<AnimationState>('idle');
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
 
   // Animated values
@@ -177,15 +181,6 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
         return shakeSequence;
       }
 
-      case 'sequence':
-        if (__DEV__) {
-          console.warn(
-            '[rn-iconify] Animation type "sequence" is not yet implemented. ' +
-              'Use individual animation presets (spin, pulse, bounce, shake, ping, wiggle) instead.'
-          );
-        }
-        return null;
-
       default:
         return null;
     }
@@ -242,6 +237,9 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
 
     // Apply delay if specified
     const startAnimation = () => {
+      delayTimerRef.current = null;
+      if (!mountedRef.current) return;
+
       const anim = createAnimation();
       if (!anim) return;
 
@@ -271,7 +269,7 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
     };
 
     if (config.delay > 0) {
-      setTimeout(startAnimation, config.delay);
+      delayTimerRef.current = setTimeout(startAnimation, config.delay);
     } else {
       startAnimation();
     }
@@ -279,6 +277,13 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
 
   // Stop animation
   const stop = useCallback(() => {
+    // A pending delay outlives the animation it was going to start. Left
+    // running, it starts one after unmount — past the point anything can stop
+    // it, and a looping animation then never stops at all.
+    if (delayTimerRef.current) {
+      clearTimeout(delayTimerRef.current);
+      delayTimerRef.current = null;
+    }
     if (animationRef.current) {
       animationRef.current.stop();
       animationRef.current = null;
@@ -296,6 +301,10 @@ export function useIconAnimation(options: UseIconAnimationOptions = {}): UseIcon
   // pause() stops the animation at its current position.
   // resume() restarts the animation from the beginning.
   const pause = useCallback(() => {
+    if (delayTimerRef.current) {
+      clearTimeout(delayTimerRef.current);
+      delayTimerRef.current = null;
+    }
     if (animationRef.current) {
       animationRef.current.stop();
       animationRef.current = null;

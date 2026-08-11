@@ -4,7 +4,7 @@
  *
  * @example
  * ```tsx
- * import { IconExplorer } from 'rn-iconify/explorer';
+ * import { IconExplorer } from 'rn-iconify/dev';
  *
  * // Only render in development
  * function DevTools() {

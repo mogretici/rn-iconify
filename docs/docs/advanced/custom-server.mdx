@@ -214,7 +214,7 @@ async function verifyIconServer() {
 Monitor icon loading from your server:
 
 ```tsx
-import { PerformanceMonitor, enablePerformanceMonitoring } from 'rn-iconify';
+import { PerformanceMonitor, enablePerformanceMonitoring } from 'rn-iconify/dev';
 
 // Enable monitoring
 enablePerformanceMonitoring();
@@ -335,7 +335,8 @@ curl http://localhost:3000/mdi.json?icons=home
 Enable verbose logging:
 
 ```tsx
-import { configure, enablePerformanceMonitoring } from 'rn-iconify';
+import { configure } from 'rn-iconify';
+import { enablePerformanceMonitoring } from 'rn-iconify/dev';
 
 // Enable performance monitoring for debugging
 enablePerformanceMonitoring();

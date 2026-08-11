@@ -39,9 +39,9 @@
  * @param icons Object or array of icon names, without a set prefix
  * @returns The same value, typed
  */
-export function defineIcons<TName extends string, TShape extends Record<string, TName>>(
-  icons: TShape
-): TShape;
+export function defineIcons<TName extends string>(
+  icons: Record<string, TName>
+): Record<string, TName>;
 export function defineIcons<TName extends string>(icons: readonly TName[]): readonly TName[];
 export function defineIcons<TName extends string>(
   icons: Record<string, TName> | readonly TName[]

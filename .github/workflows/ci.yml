@@ -52,11 +52,28 @@ jobs:
       - name: Build package
         run: npm run build
 
+      # A bundler resolving lib/module/index.js reads the manifest next to it,
+      # not the one at the root. Without sideEffects there, importing one icon
+      # set keeps all 226.
+      - name: Verify ESM manifest is tree-shakeable
+        run: |
+          node -e "
+            const m = require('./lib/module/package.json');
+            if (m.type !== 'module' || m.sideEffects !== false) {
+              console.error('lib/module/package.json is', JSON.stringify(m));
+              process.exit(1);
+            }
+          "
+
       - name: Validate package.json (publint)
         run: npx publint
 
+      # The one remaining exception is deliberate: the Babel plugin entry has a
+      # default export because that is the interface Babel loads a plugin
+      # through, exactly as every @babel/plugin-* package does. Everything else
+      # resolves cleanly under node10, node16 and bundler.
       - name: Validate TypeScript exports (attw)
-        run: npx @arethetypeswrong/cli --pack . --ignore-rules false-cjs untyped-resolution no-resolution
+        run: npx @arethetypeswrong/cli --pack . --ignore-rules cjs-only-exports-default
 
       - name: Check bundle size (size-limit)
         run: npx size-limit
@@ -91,30 +108,85 @@ jobs:
       - name: Run tests
         run: npm test
 
-  native:
-    name: Native Sources
-    runs-on: macos-latest
+  # The native module is compiled the way an application compiles it:
+  # autolinked into the example app, through codegen, against React Native's
+  # own headers. Parsing the sources was the previous guarantee and it could
+  # not have caught a wrong header, a missing symbol or a broken podspec —
+  # only a typo.
+  android:
+    name: Android build
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
 
-      # 740 lines of Swift and Kotlin that nothing in CI had ever looked at.
-      # This is not a build — building against React Native headers needs an
-      # example app, which this repository does not have. It is the cheaper
-      # half of the guarantee: that both sources still parse, which is what
-      # catches a typo in code no JavaScript test can reach.
-      - name: Parse Swift sources
-        run: swiftc -parse ios/*.swift
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'npm'
 
-      - name: Set up Java for ktlint
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Parse Kotlin sources
+      - name: Install dependencies
+        run: npm ci
+
+      # The example's Babel config loads the plugin from lib/.
+      - name: Build package
+        run: npm run build
+
+      - name: Install example dependencies
+        run: npm install --prefix example --no-audit --no-fund
+
+      # The example's iOS project is committed; its Android one is generated,
+      # which is also what proves the config plugin story still holds.
+      - name: Generate the Android project
+        working-directory: example
+        run: npx expo prebuild -p android
+
+      - name: Build the example app
+        working-directory: example/android
+        run: ./gradlew assembleDebug --no-daemon --console=plain
+
+  ios:
+    name: iOS build
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Install example dependencies
+        run: npm install --prefix example --no-audit --no-fund
+
+      - name: Install pods
+        working-directory: example/ios
+        run: pod install
+
+      - name: Build the example app
+        working-directory: example/ios
         run: |
-          curl -sSLO https://github.com/pinterest/ktlint/releases/download/1.5.0/ktlint
-          chmod +x ktlint
-          ./ktlint --editorconfig=.github/kotlin/.editorconfig "android/**/*.kt"
+          xcodebuild \
+            -workspace rniconifyexample.xcworkspace \
+            -scheme rniconifyexample \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
 

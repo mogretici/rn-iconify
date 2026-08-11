@@ -1064,7 +1064,7 @@ function fetchIcon(
 Enable performance monitoring.
 
 ```tsx
-import { enablePerformanceMonitoring } from 'rn-iconify';
+import { enablePerformanceMonitoring } from 'rn-iconify/dev';
 
 enablePerformanceMonitoring();
 ```
@@ -1076,7 +1076,7 @@ enablePerformanceMonitoring();
 Disable performance monitoring.
 
 ```tsx
-import { disablePerformanceMonitoring } from 'rn-iconify';
+import { disablePerformanceMonitoring } from 'rn-iconify/dev';
 
 disablePerformanceMonitoring();
 ```
@@ -1088,7 +1088,7 @@ disablePerformanceMonitoring();
 Get performance report.
 
 ```tsx
-import { getPerformanceReport } from 'rn-iconify';
+import { getPerformanceReport } from 'rn-iconify/dev';
 
 const report = getPerformanceReport();
 console.log('Cache hit rate:', report.cacheStats.hitRate);
@@ -1141,7 +1141,7 @@ interface PerformanceSummary {
 Print a formatted performance report to console.
 
 ```tsx
-import { printPerformanceReport } from 'rn-iconify';
+import { printPerformanceReport } from 'rn-iconify/dev';
 
 printPerformanceReport();
 ```
@@ -1494,7 +1494,7 @@ function resolveAnimation(
 ): ResolvedAnimationConfig;
 
 interface ResolvedAnimationConfig {
-  type: 'rotate' | 'scale' | 'opacity' | 'translate' | 'sequence';
+  type: 'rotate' | 'scale' | 'opacity' | 'translate';
   duration: number;
   loop: boolean;
   iterations: number;
@@ -1944,7 +1944,7 @@ function calculateTouchTargetPadding(
 Array of popular icon set metadata for the Icon Explorer.
 
 ```tsx
-import { POPULAR_ICON_SETS } from 'rn-iconify';
+import { POPULAR_ICON_SETS } from 'rn-iconify/dev';
 
 console.log(POPULAR_ICON_SETS.length); // 24 popular icon sets
 console.log(POPULAR_ICON_SETS[0]);
@@ -1974,7 +1974,7 @@ interface IconSetInfo {
 Get all available icon sets.
 
 ```tsx
-import { getAllIconSets } from 'rn-iconify';
+import { getAllIconSets } from 'rn-iconify/dev';
 
 const iconSets = getAllIconSets();
 console.log(`${iconSets.length} icon sets available`);
@@ -1993,7 +1993,7 @@ function getAllIconSets(): IconSetInfo[];
 Get an icon set by its prefix.
 
 ```tsx
-import { getIconSetByPrefix } from 'rn-iconify';
+import { getIconSetByPrefix } from 'rn-iconify/dev';
 
 const mdi = getIconSetByPrefix('mdi');
 console.log(mdi?.name);  // 'Material Design Icons'
@@ -2013,7 +2013,7 @@ function getIconSetByPrefix(prefix: string): IconSetInfo | undefined;
 Get all icon sets in a specific category.
 
 ```tsx
-import { getIconSetsByCategory } from 'rn-iconify';
+import { getIconSetsByCategory } from 'rn-iconify/dev';
 
 const brandIcons = getIconSetsByCategory('brand');
 // [{ prefix: 'fa6-brands', ... }, { prefix: 'simple-icons', ... }, ...]
@@ -2037,7 +2037,7 @@ function getIconSetsByCategory(
 Search icon sets by name or prefix.
 
 ```tsx
-import { searchIconSets } from 'rn-iconify';
+import { searchIconSets } from 'rn-iconify/dev';
 
 const results = searchIconSets('material');
 // [{ prefix: 'mdi', name: 'Material Design Icons', ... },
@@ -2057,7 +2057,7 @@ function searchIconSets(query: string): IconSetInfo[];
 Generate an import statement for an icon.
 
 ```tsx
-import { generateImportStatement } from 'rn-iconify';
+import { generateImportStatement } from 'rn-iconify/dev';
 
 generateImportStatement('mdi:home');
 // "import { Mdi } from 'rn-iconify';"
@@ -2079,7 +2079,7 @@ function generateImportStatement(iconName: string): string;
 Generate JSX code for rendering an icon.
 
 ```tsx
-import { generateIconJSX } from 'rn-iconify';
+import { generateIconJSX } from 'rn-iconify/dev';
 
 generateIconJSX('mdi:home');
 // '<Mdi name="home" size={24} color="currentColor" />'
@@ -2338,7 +2338,7 @@ const DEFAULT_ANIMATION_LOOPS = {
 Default Icon Explorer configuration.
 
 ```tsx
-import { DEFAULT_EXPLORER_CONFIG } from 'rn-iconify';
+import { DEFAULT_EXPLORER_CONFIG } from 'rn-iconify/dev';
 
 const DEFAULT_EXPLORER_CONFIG = {
   iconSets: [],  // All icon sets
@@ -2354,7 +2354,7 @@ const DEFAULT_EXPLORER_CONFIG = {
 Default preview configuration for Icon Explorer.
 
 ```tsx
-import { DEFAULT_PREVIEW_CONFIG } from 'rn-iconify';
+import { DEFAULT_PREVIEW_CONFIG } from 'rn-iconify/dev';
 
 const DEFAULT_PREVIEW_CONFIG = {
   sizes: [16, 24, 32, 48, 64],

@@ -14,12 +14,14 @@ module.exports = {
     '!src/**/index.ts',
     '!src/**/__tests__/**',
   ],
+  // Set just under what the suite actually reaches, so a real regression
+  // fails while ordinary movement does not.
   coverageThreshold: {
     global: {
-      branches: 69,
-      functions: 83,
-      lines: 80,
-      statements: 80,
+      branches: 77,
+      functions: 89,
+      lines: 91,
+      statements: 90,
     },
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],

@@ -8,14 +8,14 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
+import { Mdi } from 'rn-iconify';
 import {
-  Mdi,
   enablePerformanceMonitoring,
   disablePerformanceMonitoring,
   getPerformanceReport,
   printPerformanceReport,
   PerformanceMonitor,
-} from 'rn-iconify';
+} from 'rn-iconify/dev';
 import { Section } from '../../components/common';
 import type { IconLoadEvent, PerformanceReport } from 'rn-iconify';
 
@@ -288,7 +288,7 @@ export default function PerformanceScreen() {
   enablePerformanceMonitoring,
   getPerformanceReport,
   PerformanceMonitor,
-} from 'rn-iconify';
+} from 'rn-iconify/dev';
 
 // Enable monitoring
 enablePerformanceMonitoring();

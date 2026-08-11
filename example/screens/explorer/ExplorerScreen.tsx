@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from 'react-native';
-import { IconExplorer } from 'rn-iconify';
+import { IconExplorer } from 'rn-iconify/dev';
 import Clipboard from '@react-native-clipboard/clipboard';
 
 export default function ExplorerScreen() {

@@ -10,7 +10,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { IconThemeProvider, enablePerformanceMonitoring } from 'rn-iconify';
+import { IconThemeProvider } from 'rn-iconify';
+import { enablePerformanceMonitoring } from 'rn-iconify/dev';
 
 import DrawerNavigator from './navigation/DrawerNavigator';
 

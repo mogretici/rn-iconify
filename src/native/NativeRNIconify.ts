@@ -90,6 +90,11 @@ export interface Spec extends TurboModule {
 /**
  * Get the native module instance
  * Returns null if TurboModules are not available (Old Architecture)
+ *
+ * Codegen reads this file to generate the native interface and requires it to
+ * contain exactly one TurboModuleRegistry call. Anything that needs a
+ * different way of reaching the module belongs in a file codegen does not
+ * read — see `../native/index.ts`, which is where the fallback lives.
  */
 export function getNativeIconifyModule(): Spec | null {
   try {
@@ -98,18 +103,3 @@ export function getNativeIconifyModule(): Spec | null {
     return null;
   }
 }
-
-/**
- * Get the native module, throwing if not available
- * Use when native module is required
- */
-export function getEnforcingNativeIconifyModule(): Spec {
-  return TurboModuleRegistry.getEnforcing<Spec>('RNIconify');
-}
-
-// Default export is lazy to avoid throwing at import time in test environments
-export default {
-  get module(): Spec {
-    return getEnforcingNativeIconifyModule();
-  },
-};
