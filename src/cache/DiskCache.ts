@@ -21,6 +21,16 @@ interface MMKVStorage {
   getAllKeys(): string[];
 }
 
+interface MMKVConfig {
+  id: string;
+}
+
+/** v3 exposes `delete`; `remove` is adapted onto it below. */
+interface MMKVv3Storage extends Omit<MMKVStorage, 'remove'> {
+  delete?: (key: string) => boolean | void;
+  remove?: (key: string) => boolean | void;
+}
+
 /**
  * Create MMKV instance compatible with both v3.x and v4.x
  *
@@ -37,10 +47,18 @@ function createStorage(id: string): MMKVStorage {
 
   // v3.x: MMKV is a constructor (uses `delete`, needs `remove` adapter)
   if ('MMKV' in MMKVModule && typeof MMKVModule.MMKV === 'function') {
-    const instance = new (MMKVModule.MMKV as any)(config);
+    // The two majors export incompatible shapes, so the constructor is
+    // described here rather than taken from whichever version is installed.
+    const MMKVConstructor = MMKVModule.MMKV as unknown as new (
+      options: MMKVConfig
+    ) => MMKVv3Storage;
+
+    const instance = new MMKVConstructor(config);
+
     if (typeof instance.remove !== 'function' && typeof instance.delete === 'function') {
       instance.remove = instance.delete.bind(instance);
     }
+
     return instance as MMKVStorage;
   }
 
