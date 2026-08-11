@@ -314,4 +314,159 @@ describe('Scanner', () => {
       expect(icons).toContain('ion:home');
     });
   });
+
+  /**
+   * Applications rarely write <Ion name="..."> at every call site. They build
+   * a row, a button or an empty state that takes `icon`, and the name stays a
+   * literal — it just sits on the wrapper. Those were invisible to the scan,
+   * so they were left to be fetched from the network at runtime: a request per
+   * icon on every install, a placeholder until it lands, and nothing at all
+   * offline.
+   *
+   * The prop's declared type is what makes this exact. `icon?: IonIconName`
+   * names the set, so no prefix is ever inferred.
+   */
+  describe('icons handed to wrapper components', () => {
+    const project = (files: Record<string, string>) => {
+      mockReaddirSync.mockImplementation((dir: string) =>
+        dir === '/project' ? Object.keys(files).map((f) => createDirent(f, false)) : []
+      );
+      mockReadFileSync.mockImplementation((filePath: string) => {
+        const name = path.basename(String(filePath));
+        return files[name] ?? '';
+      });
+    };
+
+    it('follows a name given to a component that declares an icon prop', () => {
+      project({
+        'Row.tsx': `
+          import { Ion } from 'rn-iconify';
+          import type { IonIconName } from 'rn-iconify';
+          interface RowProps { icon?: IonIconName }
+          export function Row({ icon }: RowProps) {
+            return icon ? <Ion name={icon} /> : null;
+          }
+        `,
+        'Screen.tsx': `
+          import { Row } from './Row';
+          export function Screen() {
+            return <Row icon="person-outline" />;
+          }
+        `,
+      });
+
+      expect(scanProjectForIcons('/project')).toContain('ion:person-outline');
+    });
+
+    it('takes the icon set from the prop type, not from a guess', () => {
+      project({
+        'Bar.tsx': `
+          import { MaterialSymbols } from 'rn-iconify';
+          import type { MaterialSymbolsIconName } from 'rn-iconify';
+          function Button({ icon }: { icon: MaterialSymbolsIconName }) {
+            return <MaterialSymbols name={icon} />;
+          }
+          export function Bar() { return <Button icon="favorite" />; }
+        `,
+      });
+
+      const icons = scanProjectForIcons('/project');
+      expect(icons).toContain('material-symbols:favorite');
+      expect(icons).not.toContain('ion:favorite');
+    });
+
+    // The button inside a bar, the row inside a list: declared locally, used
+    // ten lines down, never exported.
+    it('follows a component the file never exports', () => {
+      project({
+        'Bar.tsx': `
+          import { Ion } from 'rn-iconify';
+          import type { IonIconName } from 'rn-iconify';
+          function LocalButton({ icon }: { icon: IonIconName }) {
+            return <Ion name={icon} />;
+          }
+          export function Bar() { return <LocalButton icon="settings-outline" />; }
+        `,
+      });
+
+      expect(scanProjectForIcons('/project')).toContain('ion:settings-outline');
+    });
+
+    it('handles a component with more than one icon prop', () => {
+      project({
+        'Empty.tsx': `
+          import { Ion } from 'rn-iconify';
+          import type { IonIconName } from 'rn-iconify';
+          export function Empty(props: { icon?: IonIconName; defaultIcon?: IonIconName }) {
+            return <Ion name={props.icon ?? props.defaultIcon} />;
+          }
+        `,
+        'Use.tsx': `
+          import { Empty } from './Empty';
+          export const Use = () => <Empty icon="search-outline" defaultIcon="alert-outline" />;
+        `,
+      });
+
+      const icons = scanProjectForIcons('/project');
+      expect(icons).toContain('ion:search-outline');
+      expect(icons).toContain('ion:alert-outline');
+    });
+
+    it('reads a name spread across several lines of props', () => {
+      project({
+        'Row.tsx': `
+          import { Ion } from 'rn-iconify';
+          import type { IonIconName } from 'rn-iconify';
+          export function Row({ icon }: { icon: IonIconName }) { return <Ion name={icon} />; }
+        `,
+        'Screen.tsx': `
+          import { Row } from './Row';
+          export const Screen = () => (
+            <Row
+              label="Settings"
+              onPress={handlePress}
+              icon="cog-outline"
+            />
+          );
+        `,
+      });
+
+      expect(scanProjectForIcons('/project')).toContain('ion:cog-outline');
+    });
+
+    it('leaves alone a prop that has nothing to do with icons', () => {
+      project({
+        'Card.tsx': `
+          import { Ion } from 'rn-iconify';
+          import type { IonIconName } from 'rn-iconify';
+          export function Card({ icon, variant }: { icon: IonIconName; variant: string }) {
+            return <Ion name={icon} />;
+          }
+        `,
+        'Screen.tsx': `
+          import { Card } from './Card';
+          export const Screen = () => <Card icon="star" variant="rounded-outline" />;
+        `,
+      });
+
+      const icons = scanProjectForIcons('/project');
+      expect(icons).toContain('ion:star');
+      expect(icons).not.toContain('ion:rounded-outline');
+    });
+
+    it('reads every file once, however many passes it takes', () => {
+      project({
+        'Row.tsx': `
+          import { Ion } from 'rn-iconify';
+          import type { IonIconName } from 'rn-iconify';
+          export function Row({ icon }: { icon: IonIconName }) { return <Ion name={icon} />; }
+        `,
+        'Screen.tsx': `import { Row } from './Row'; export const S = () => <Row icon="home" />;`,
+      });
+
+      scanProjectForIcons('/project');
+
+      expect(mockReadFileSync).toHaveBeenCalledTimes(2);
+    });
+  });
 });

@@ -267,6 +267,73 @@ describe('IconRenderer', () => {
   // 3. Network fetch
   // ═══════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Falling back to the network is the moment the build's coverage gap turns
+   * into a cost the user pays, and it used to happen in silence. Development
+   * hides it twice: the fetch succeeds, and the name is written into
+   * usage.json so the next build looks healthy. Saying it out loud here is
+   * the only point at which a developer can see which icon was missed.
+   */
+  describe('warning when an icon is not bundled', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it('says which icon the build missed', async () => {
+      setupNetworkSuccess();
+
+      renderIcon({ iconName: 'mdi:unbundled-one' });
+
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('mdi:unbundled-one'));
+      await act(async () => {
+        await Promise.resolve();
+      });
+    });
+
+    it('points at the command that lists them all', async () => {
+      setupNetworkSuccess();
+
+      renderIcon({ iconName: 'mdi:unbundled-two' });
+
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('rn-iconify doctor'));
+      await act(async () => {
+        await Promise.resolve();
+      });
+    });
+
+    it('stays quiet for an icon that was bundled', async () => {
+      mockCacheGet.mockReturnValue('<svg />');
+
+      renderIcon({ iconName: 'mdi:bundled' });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    // A list rendering the same icon fifty times should say it once.
+    it('says it once however often the icon appears', async () => {
+      setupNetworkSuccess();
+
+      renderIcon({ iconName: 'mdi:repeated' });
+      renderIcon({ iconName: 'mdi:repeated' });
+      renderIcon({ iconName: 'mdi:repeated' });
+
+      const forThisIcon = warnSpy.mock.calls.filter((call) =>
+        String(call[0]).includes('mdi:repeated')
+      );
+      expect(forThisIcon).toHaveLength(1);
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+    });
+  });
+
   describe('Network fetch', () => {
     it('calls fetchIcon when cache misses', async () => {
       setupNetworkSuccess();
