@@ -140,23 +140,72 @@ Bundled icons add to your JavaScript bundle:
 | 1,000 icons | ~500 KB |
 
 :::warning
-  The plugin only bundles icons it detects in your code. If you use dynamic icon names, consider using the `include` option to ensure they're bundled.
+  An icon the plugin does not detect is not missing — it is fetched from the
+  Iconify API at runtime, in release builds too. That is a request on every
+  install, a placeholder until it lands, and nothing at all offline. Run
+  `npx rn-iconify doctor` to see which icons are in that state.
 :::
 
-## Dynamic Icon Names
+:::danger
+  `include` and `exclude` **filter** what was detected. They never add
+  anything. Setting `include: ['mdi:loading']` does not bundle that icon — it
+  discards every icon that does not match, leaving the rest to be fetched at
+  runtime. To add names the plugin cannot see, use `defineIcons`.
+:::
 
-Dynamic icon names aren't auto-detected. Use `include` to bundle them:
+## Names Chosen at Runtime
+
+Most icon names are found in your source even when they are not written on the
+icon component. A component that declares an icon prop names its set in the
+type, so anything handed to it is detected:
 
 ```tsx
-// Not detected (dynamic name)
-const iconName = `mdi:${state}`;
-<Mdi name={iconName} />
+// Detected — the prop type says which set 'person-outline' belongs to
+function Row({ icon }: { icon: IonIconName }) {
+  return <Ion name={icon} />;
+}
 
-// Solution: Add to include list
-['rn-iconify/babel', {
-  include: ['mdi:loading', 'mdi:success', 'mdi:error'],
-}]
+<Row icon="person-outline" />;
 ```
+
+What cannot be detected is a name the source never states as belonging to a
+set:
+
+```tsx
+// Nothing here says 'hanger' is an Mdi icon
+const CATEGORY_ICON: Record<string, string> = { OUTFIT: 'hanger' };
+
+// Nor here — the name does not exist until it runs
+const iconName = `mdi:${state}`;
+```
+
+Declare those with `defineIcons`:
+
+```tsx
+import { defineIcons } from 'rn-iconify';
+import type { MdiIconName } from 'rn-iconify';
+
+const CATEGORY_ICON = defineIcons<MdiIconName>({
+  OUTFIT: 'hanger',
+  SPOTLIGHT: 'theater',
+});
+
+const STATES = defineIcons<MdiIconName>(['loading', 'success', 'error']);
+```
+
+The type argument does two things: it stops a typo reaching a build, and it
+tells the plugin which set the names belong to.
+
+Typing the map is equally good, and needs no extra call:
+
+```tsx
+const CATEGORY_ICON: Record<string, MdiIconName> = { OUTFIT: 'hanger' };
+```
+
+:::tip
+  `npx rn-iconify doctor` lists every icon still being fetched at runtime, so
+  you can see whether any are left.
+:::
 
 ## Expo Configuration
 

@@ -359,7 +359,7 @@ configure({
 module.exports = {
   plugins: [
     ['rn-iconify/babel', {
-      include: ['mdi:*'], // Bundle all MDI icons
+      include: ['mdi:*'], // Keep only MDI icons; discards everything else
     }],
   ],
 };
