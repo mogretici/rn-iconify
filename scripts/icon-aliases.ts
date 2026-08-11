@@ -44,6 +44,23 @@ export function selectAliases(
 }
 
 /**
+ * Picks the deprecated icons worth keeping.
+ *
+ * Iconify hides an icon it no longer recommends instead of deleting it — the
+ * API still returns valid SVG for `solar:4k-bold-duotone` long after it left
+ * the listing. Dropping those from this package takes working icons away from
+ * applications that use them, which is a breaking change for a decision
+ * upstream did not make.
+ *
+ * A hidden name that also appears in the listing is already covered.
+ */
+export function selectDeprecated(names: readonly string[], hidden: readonly string[]): string[] {
+  const live = new Set(names);
+
+  return hidden.filter((name) => !live.has(name)).sort((a, b) => a.localeCompare(b));
+}
+
+/**
  * Renders the icon map for a generated component.
  *
  * `true` means the key is the icon name. A string means the key resolves to a
@@ -52,7 +69,8 @@ export function selectAliases(
  */
 export function renderIconEntries(
   names: readonly string[],
-  aliases: Readonly<Record<string, string>>
+  aliases: Readonly<Record<string, string>>,
+  deprecated: readonly string[] = []
 ): string {
   const lines = names.map((name) => {
     const key = sanitizeIconName(name);
@@ -67,15 +85,30 @@ export function renderIconEntries(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, to]) => `  '${key}': '${to}',`);
 
-  if (aliasLines.length === 0) {
-    return lines.join('\n');
+  const deprecatedLines = deprecated
+    .map((name) => [sanitizeIconName(name), name] as const)
+    .filter(([key]) => !generated.has(key) && !aliases[key])
+    .map(([key, name]) => (key !== name ? `  '${key}': '${name}',` : `  '${name}': true,`));
+
+  const sections = [...lines];
+
+  if (aliasLines.length > 0) {
+    sections.push(
+      '',
+      '  // Names upstream has renamed. Kept so existing code keeps working;',
+      '  // each resolves to the icon that is current.',
+      ...aliasLines
+    );
   }
 
-  return [
-    ...lines,
-    '',
-    '  // Names upstream has renamed. Kept so existing code keeps working;',
-    '  // each resolves to the icon that is current.',
-    ...aliasLines,
-  ].join('\n');
+  if (deprecatedLines.length > 0) {
+    sections.push(
+      '',
+      '  // Deprecated upstream: hidden from the listing but still served.',
+      '  // Kept so existing code keeps working.',
+      ...deprecatedLines
+    );
+  }
+
+  return sections.join('\n');
 }

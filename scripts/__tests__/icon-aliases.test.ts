@@ -1,4 +1,9 @@
-import { renderIconEntries, sanitizeIconName, selectAliases } from '../icon-aliases';
+import {
+  renderIconEntries,
+  sanitizeIconName,
+  selectAliases,
+  selectDeprecated,
+} from '../icon-aliases';
 
 describe('sanitizeIconName', () => {
   it('leaves a valid name alone', () => {
@@ -81,5 +86,54 @@ describe('renderIconEntries', () => {
     const order = [...output.matchAll(/'([abc])':/g)].map((m) => m[1]);
 
     expect(order).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('selectDeprecated', () => {
+  /**
+   * Iconify hides an icon it no longer recommends rather than deleting it —
+   * the API still returns valid SVG for `solar:4k-bold-duotone` long after it
+   * left the listing. Dropping those takes working icons away from
+   * applications for a decision upstream did not make. One sync would have
+   * removed 152 of them from `solar` alone.
+   */
+  it('keeps a name upstream hid but still serves', () => {
+    expect(selectDeprecated(['home'], ['4k-bold-duotone'])).toEqual(['4k-bold-duotone']);
+  });
+
+  it('ignores a hidden name that is also listed', () => {
+    expect(selectDeprecated(['home'], ['home'])).toEqual([]);
+  });
+
+  it('sorts so regenerating produces a stable diff', () => {
+    expect(selectDeprecated([], ['c', 'a', 'b'])).toEqual(['a', 'b', 'c']);
+  });
+
+  it('returns nothing when there is nothing hidden', () => {
+    expect(selectDeprecated(['home'], [])).toEqual([]);
+  });
+});
+
+describe('renderIconEntries with deprecated icons', () => {
+  it('emits deprecated names under their own comment', () => {
+    const output = renderIconEntries(['home'], {}, ['old-icon']);
+
+    expect(output).toContain("  'old-icon': true,");
+    expect(output).toContain('Deprecated upstream');
+  });
+
+  it('keeps renamed and deprecated names in separate sections', () => {
+    const output = renderIconEntries(['5'], { five: '5' }, ['old-icon']);
+
+    expect(output).toContain("  'five': '5',");
+    expect(output).toContain("  'old-icon': true,");
+    expect(output.indexOf('renamed')).toBeLessThan(output.indexOf('Deprecated'));
+  });
+
+  it('does not let a deprecated name shadow a real icon or an alias', () => {
+    const output = renderIconEntries(['home'], { house: 'home' }, ['home', 'house']);
+    const keys = [...output.matchAll(/^ {2}'?([^':]+)'?:/gm)].map((m) => m[1]);
+
+    expect(keys).toEqual(['home', 'house']);
   });
 });
