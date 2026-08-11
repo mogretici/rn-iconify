@@ -1,3 +1,9 @@
+## [4.0.1](https://github.com/mogretici/rn-iconify/compare/v4.0.0...v4.0.1) (2026-08-11)
+
+### Bug Fixes
+
+- **docs:** stop parsing the changelog as MDX ([#16](https://github.com/mogretici/rn-iconify/issues/16)) ([019d1b0](https://github.com/mogretici/rn-iconify/commit/019d1b0d76094166e2652a78b0a9e19459fef4d4))
+
 # [4.0.0](https://github.com/mogretici/rn-iconify/compare/v3.2.2...v4.0.0) (2026-08-11)
 
 - Ship the native module, fix type resolution, and close the gaps that hid both ([#15](https://github.com/mogretici/rn-iconify/issues/15)) ([6c47eb1](https://github.com/mogretici/rn-iconify/commit/6c47eb1d1ae9949bd3fde5b0045ebc5d30bc1b09))
