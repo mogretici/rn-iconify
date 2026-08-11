@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import prettier from 'prettier';
 import { renderIconEntries, selectAliases } from './icon-aliases';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -82,6 +83,25 @@ function toPascalCase(str: string): string {
     .split(/[-_]/)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join('');
+}
+
+/**
+ * Writes a generated file the way Prettier would.
+ *
+ * These files go through lint like any other source, and the generator's own
+ * quoting does not match the project's style — it quotes every key, Prettier
+ * only quotes the ones that need it. Formatting here keeps a sync from
+ * producing thousands of lint errors, and keeps regenerating locally from
+ * showing a diff that is purely formatting.
+ */
+async function writeFormatted(filePath: string, content: string): Promise<void> {
+  const config = await prettier.resolveConfig(filePath);
+  const formatted = await prettier.format(content, {
+    ...config,
+    filepath: filePath,
+  });
+
+  fs.writeFileSync(filePath, formatted);
 }
 
 async function fetchCollections(): Promise<Record<string, Collection>> {
@@ -224,7 +244,7 @@ async function generateComponents(): Promise<void> {
 
       const content = generateComponentContent(prefix, componentName, icons);
       const filePath = path.join(COMPONENTS_DIR, `${fileName}.tsx`);
-      fs.writeFileSync(filePath, content);
+      await writeFormatted(filePath, content);
 
       generatedComponents.push({
         componentName,
@@ -249,7 +269,7 @@ async function generateComponents(): Promise<void> {
 
   console.log('\nGenerating index.ts...');
   const indexContent = generateIndexContent(generatedComponents);
-  fs.writeFileSync(path.join(COMPONENTS_DIR, 'index.ts'), indexContent);
+  await writeFormatted(path.join(COMPONENTS_DIR, 'index.ts'), indexContent);
 
   console.log('\n' + '='.repeat(50));
   console.log('Generation Complete!');
