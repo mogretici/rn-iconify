@@ -1,3 +1,9 @@
+## [3.1.5](https://github.com/mogretici/rn-iconify/compare/v3.1.4...v3.1.5) (2026-08-11)
+
+### Bug Fixes
+
+- resolve aliases that point at a hidden icon ([995752c](https://github.com/mogretici/rn-iconify/commit/995752c86f2f4cc76ea3677f034bcf8be6c77f1a))
+
 ## [3.1.4](https://github.com/mogretici/rn-iconify/compare/v3.1.3...v3.1.4) (2026-08-11)
 
 ### Bug Fixes
