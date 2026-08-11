@@ -1,3 +1,9 @@
+## [3.1.3](https://github.com/mogretici/rn-iconify/compare/v3.1.2...v3.1.3) (2026-08-11)
+
+### Bug Fixes
+
+- emit generated components already formatted ([5d19059](https://github.com/mogretici/rn-iconify/commit/5d1905952643894dc75ce9511866cb8b3bc0fc01))
+
 ## [3.1.2](https://github.com/mogretici/rn-iconify/compare/v3.1.1...v3.1.2) (2026-08-11)
 
 ### Bug Fixes
