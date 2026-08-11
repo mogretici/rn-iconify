@@ -140,4 +140,61 @@ describe('createIconSet with different prefixes', () => {
 
     expect(CustomSet.displayName).toBe('CustomSetIcon');
   });
+
+  describe('mapped names', () => {
+    /**
+     * A mapped entry resolves to a different icon than its key. It covers two
+     * cases the generator produces: keys that had to be sanitized to be valid
+     * TypeScript (`_500px`), and names Iconify has since renamed, which are
+     * kept so upgrading this package does not break existing code.
+     */
+    const mappedIcons = {
+      _500px: '500px',
+      five: '5',
+      'nine-one-one': '911',
+      home: true,
+    } as const;
+
+    const MappedSet = createIconSet<keyof typeof mappedIcons>('pinhead', mappedIcons);
+
+    it('requests the sanitized key under its real name', () => {
+      render(<MappedSet name="_500px" />);
+
+      expect(mockIconRenderer).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'pinhead:500px' })
+      );
+    });
+
+    it('requests a renamed icon under its current name', () => {
+      render(<MappedSet name="five" />);
+
+      expect(mockIconRenderer).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'pinhead:5' })
+      );
+    });
+
+    it('resolves a renamed icon whose new name looks unrelated', () => {
+      render(<MappedSet name="nine-one-one" />);
+
+      expect(mockIconRenderer).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'pinhead:911' })
+      );
+    });
+
+    it('still passes plain entries through unchanged', () => {
+      render(<MappedSet name="home" />);
+
+      expect(mockIconRenderer).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'pinhead:home' })
+      );
+    });
+
+    it('labels the icon with the name the caller used', () => {
+      render(<MappedSet name="five" />);
+
+      expect(mockIconRenderer).toHaveBeenCalledWith(
+        expect.objectContaining({ accessibilityLabel: 'five' })
+      );
+    });
+  });
 });

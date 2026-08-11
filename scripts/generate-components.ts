@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { renderIconEntries, selectAliases } from './icon-aliases';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,6 +66,15 @@ interface CollectionData {
   title: string;
   uncategorized?: string[];
   categories?: Record<string, string[]>;
+  /** Renamed icons: the old name maps to the one that is current. */
+  aliases?: Record<string, string>;
+}
+
+interface CollectionIcons {
+  /** Icon names that exist under their own name. */
+  names: string[];
+  /** Old name -> current name, for icons upstream has since renamed. */
+  aliases: Record<string, string>;
 }
 
 function toPascalCase(str: string): string {
@@ -72,14 +82,6 @@ function toPascalCase(str: string): string {
     .split(/[-_]/)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join('');
-}
-
-function sanitizeIconName(name: string): string {
-  let sanitized = name.replace(/[^a-zA-Z0-9_-]/g, '_');
-  if (/^[0-9]/.test(sanitized)) {
-    sanitized = '_' + sanitized;
-  }
-  return sanitized;
 }
 
 async function fetchCollections(): Promise<Record<string, Collection>> {
@@ -91,7 +93,17 @@ async function fetchCollections(): Promise<Record<string, Collection>> {
   return (await response.json()) as Record<string, Collection>;
 }
 
-async function fetchCollectionIcons(prefix: string): Promise<string[]> {
+/**
+ * Fetches a collection's icons along with the aliases Iconify keeps for names
+ * it has renamed.
+ *
+ * The aliases matter as much as the icons. Upstream renames happen routinely —
+ * `pinhead:five` became `pinhead:5`, `fluent:text-add-28-filled` became
+ * `text-add-t-28-filled` — and Iconify keeps the old name working. Generating
+ * from the icon list alone silently drops those names from this package, which
+ * breaks every app using them. Keeping them costs one line of output each.
+ */
+async function fetchCollectionIcons(prefix: string): Promise<CollectionIcons> {
   const response = await fetch(`${ICONIFY_API}/collection?prefix=${prefix}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch collection ${prefix}: ${response.status}`);
@@ -103,26 +115,21 @@ async function fetchCollectionIcons(prefix: string): Promise<string[]> {
       icons.push(...categoryIcons);
     }
   }
-  return [...new Set(icons)];
+
+  const names = [...new Set(icons)];
+
+  return { names, aliases: selectAliases(names, data.aliases ?? {}) };
 }
 
 function generateComponentContent(
   prefix: string,
   componentName: string,
-  iconNames: string[]
+  icons: CollectionIcons
 ): string {
   const typeName = `${componentName}IconName`;
   const varName = prefix.replace(/-/g, '_');
 
-  const iconNamesObj = iconNames
-    .map((name) => {
-      const key = sanitizeIconName(name);
-      if (key !== name) {
-        return `  '${key}': '${name}',`;
-      }
-      return `  '${name}': true,`;
-    })
-    .join('\n');
+  const iconNamesObj = renderIconEntries(icons.names, icons.aliases);
 
   return `/**
  * ${componentName} Icon Set
@@ -207,15 +214,15 @@ async function generateComponents(): Promise<void> {
     const fileName = componentName;
 
     try {
-      const iconNames = await fetchCollectionIcons(prefix);
+      const icons = await fetchCollectionIcons(prefix);
 
-      if (iconNames.length === 0) {
+      if (icons.names.length === 0) {
         console.log(`⏭️  Skipping ${prefix} (no icons)`);
         skipCount++;
         continue;
       }
 
-      const content = generateComponentContent(prefix, componentName, iconNames);
+      const content = generateComponentContent(prefix, componentName, icons);
       const filePath = path.join(COMPONENTS_DIR, `${fileName}.tsx`);
       fs.writeFileSync(filePath, content);
 
@@ -223,11 +230,15 @@ async function generateComponents(): Promise<void> {
         componentName,
         typeName,
         fileName,
-        iconCount: iconNames.length,
+        iconCount: icons.names.length,
       });
 
       successCount++;
-      console.log(`✅ ${componentName} (${iconNames.length} icons) - ${collection.name || prefix}`);
+      const aliasCount = Object.keys(icons.aliases).length;
+      const aliasNote = aliasCount > 0 ? ` +${aliasCount} renamed` : '';
+      console.log(
+        `✅ ${componentName} (${icons.names.length} icons${aliasNote}) - ${collection.name || prefix}`
+      );
 
       await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
