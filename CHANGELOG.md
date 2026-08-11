@@ -1,3 +1,9 @@
+## [3.2.2](https://github.com/mogretici/rn-iconify/compare/v3.2.1...v3.2.2) (2026-08-11)
+
+### Bug Fixes
+
+- **cache:** stop the disk cache growing without end ([#12](https://github.com/mogretici/rn-iconify/issues/12)) ([8b7d788](https://github.com/mogretici/rn-iconify/commit/8b7d788ae82f4876fd6728f2b5054f02dc5b9c91))
+
 ## [3.2.1](https://github.com/mogretici/rn-iconify/compare/v3.2.0...v3.2.1) (2026-08-11)
 
 ### Bug Fixes
