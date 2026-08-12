@@ -1,3 +1,9 @@
+# [4.2.0](https://github.com/mogretici/rn-iconify/compare/v4.1.0...v4.2.0) (2026-08-12)
+
+### Features
+
+- **babel:** find icons wherever the source already proves them ([1f28bd3](https://github.com/mogretici/rn-iconify/commit/1f28bd36024f63ea85a9dbad6658206a79ca8ab7))
+
 # [4.1.0](https://github.com/mogretici/rn-iconify/compare/v4.0.1...v4.1.0) (2026-08-12)
 
 ### Features
