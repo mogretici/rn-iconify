@@ -1,3 +1,9 @@
+# [4.3.0](https://github.com/mogretici/rn-iconify/compare/v4.2.0...v4.3.0) (2026-08-12)
+
+### Features
+
+- **babel:** follow the icon type written onto the field ([#21](https://github.com/mogretici/rn-iconify/issues/21)) ([162a079](https://github.com/mogretici/rn-iconify/commit/162a07963f7bd56a57a9ac81303bcf24d714aeee))
+
 # [4.2.0](https://github.com/mogretici/rn-iconify/compare/v4.1.0...v4.2.0) (2026-08-12)
 
 ### Features
