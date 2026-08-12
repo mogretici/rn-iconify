@@ -101,6 +101,42 @@ describe('icons in a field the file has typed', () => {
     expect(icons).toContain('ion:person-add');
   });
 
+  /**
+   * The same type, written onto the field instead of into an alias. There is
+   * no name to look up, so the annotation itself has to be read — and this is
+   * how a wrapper component usually declares the prop.
+   */
+  it('follows the type written straight onto the field', () => {
+    write(
+      'ShareOverlay.tsx',
+      `
+      import { Ion } from 'rn-iconify';
+      import type { ComponentProps } from 'react';
+
+      interface ShareOptionProps {
+        icon: ComponentProps<typeof Ion>['name'];
+        label: string;
+      }
+
+      function ShareOption({ icon }: ShareOptionProps) {
+        return <Ion name={icon} />;
+      }
+
+      export const ShareOverlay = () => (
+        <>
+          <ShareOption icon="logo-whatsapp" label="WhatsApp" />
+          <ShareOption icon="logo-instagram" label="Instagram" />
+        </>
+      );
+      `
+    );
+
+    const icons = scanProjectForIcons(projectRoot);
+
+    expect(icons).toContain('ion:logo-whatsapp');
+    expect(icons).toContain('ion:logo-instagram');
+  });
+
   it('follows the same alias written through the React namespace', () => {
     write(
       'types.ts',
