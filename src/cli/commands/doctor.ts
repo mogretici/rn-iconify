@@ -21,6 +21,13 @@ import * as path from 'path';
 import { scanProjectForIcons } from '../../babel/scanner';
 import { EXIT_CODES } from '../types';
 import type { DoctorOptions, DoctorResult } from '../types';
+import {
+  pruneUsage,
+  readUsageFile,
+  usageFilePath,
+  usageNames,
+  writeUsageFile,
+} from '../../metro/usageFile';
 
 interface UsageFile {
   version: string;
@@ -37,19 +44,12 @@ interface UsageFile {
  * artefact that happens to be committed.
  */
 function readLearnedIcons(projectRoot: string): { icons: string[]; updatedAt: string | null } {
-  const usagePath = path.join(projectRoot, '.rn-iconify', 'usage.json');
+  const usagePath = usageFilePath(projectRoot);
+  if (!fs.existsSync(usagePath)) return { icons: [], updatedAt: null };
 
-  try {
-    if (!fs.existsSync(usagePath)) return { icons: [], updatedAt: null };
-    const usage: UsageFile = JSON.parse(fs.readFileSync(usagePath, 'utf-8'));
-    if (Array.isArray(usage.icons)) {
-      return { icons: usage.icons, updatedAt: usage.updatedAt ?? null };
-    }
-  } catch {
-    // A malformed usage file tells us nothing; treat it as empty.
-  }
+  const usage = readUsageFile(usagePath, new Date().toISOString());
 
-  return { icons: [], updatedAt: null };
+  return { icons: usageNames(usage), updatedAt: usage.updatedAt ?? null };
 }
 
 /**
@@ -172,12 +172,91 @@ function formatReport(result: DoctorResult): string {
   return lines.join('\n');
 }
 
+/** How long a name may go unrendered before it is treated as gone. */
+const DEFAULT_STALE_DAYS = 30;
+
+/**
+ * Drop the names development has not seen for a while.
+ *
+ * usage.json exists so an icon the scan cannot prove still ships, which means
+ * nothing in it can be removed by looking at the source — that is exactly the
+ * set of names the source does not mention. The only evidence that a name is
+ * gone is that nobody has rendered it since the screen was deleted, and that
+ * is what the timestamps are for.
+ *
+ * Deliberately a command rather than something the dev server does on its own.
+ * A screen opened twice a year is still a screen, and dropping its icons
+ * quietly would put them back on the network for the one person who opens it.
+ * This says exactly what it took, and takes nothing without saying it.
+ */
+function pruneCommand(projectRoot: string, staleDays: number): number {
+  const usagePath = usageFilePath(projectRoot);
+
+  if (!fs.existsSync(usagePath)) {
+    console.log('[rn-iconify] No usage.json to prune.');
+    return EXIT_CODES.SUCCESS;
+  }
+
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - staleDays * 24 * 60 * 60 * 1000);
+  const file = readUsageFile(usagePath, now.toISOString());
+
+  // Every name in a version 1 file carries the file's own timestamp, so they
+  // are all exactly as old as each other. Pruning on that would remove the
+  // names still in daily use alongside the ones that are gone, which is the
+  // opposite of what was asked for.
+  if (file.upgraded) {
+    writeUsageFile(usagePath, { ...file, upgraded: undefined });
+    console.log(
+      '[rn-iconify] Upgraded usage.json to record when each name was last rendered.\n' +
+        '\n' +
+        '  Nothing was removed. The file it replaced had one timestamp for the\n' +
+        '  whole list, so every name in it looks equally old and there is no way\n' +
+        '  to tell which are still in use.\n' +
+        '\n' +
+        '  Run the app in development for a while, then prune again — the names\n' +
+        '  still being rendered will have moved on, and the ones left behind are\n' +
+        '  the ones to drop.'
+    );
+    return EXIT_CODES.SUCCESS;
+  }
+
+  const { pruned, removed } = pruneUsage(file, cutoff);
+
+  if (removed.length === 0) {
+    console.log(
+      `[rn-iconify] Nothing to prune — all ${usageNames(file).length} name(s) were rendered ` +
+        `within the last ${staleDays} day(s).`
+    );
+    return EXIT_CODES.SUCCESS;
+  }
+
+  writeUsageFile(usagePath, pruned);
+
+  console.log(
+    `[rn-iconify] Removed ${removed.length} name(s) not rendered in ${staleDays} day(s):`
+  );
+  for (const { icon, lastSeen } of removed) {
+    console.log(`  · ${icon} — last seen ${lastSeen}`);
+  }
+  console.log(
+    `\n  ${usageNames(pruned).length} name(s) left. If one of these was still in use, ` +
+      `open the screen once in development and it comes back.`
+  );
+
+  return EXIT_CODES.SUCCESS;
+}
+
 export async function doctorCommand(options: DoctorOptions): Promise<number> {
   const projectRoot = path.resolve(options.src ?? process.cwd());
 
   if (!fs.existsSync(projectRoot)) {
     console.error(`[rn-iconify] No such directory: ${projectRoot}`);
     return EXIT_CODES.ERROR;
+  }
+
+  if (options.prune) {
+    return pruneCommand(projectRoot, options.staleDays ?? DEFAULT_STALE_DAYS);
   }
 
   const result = diagnose(projectRoot, options.verbose ?? false);

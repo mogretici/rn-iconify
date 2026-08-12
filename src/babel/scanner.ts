@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { COMPONENT_PREFIX_MAP } from './types';
 import { isValidIconName } from './ast-utils';
+import { readUsageFile, usageFilePath, usageNames } from '../metro/usageFile';
 
 /**
  * Scanner options
@@ -48,15 +49,6 @@ const DEFAULT_EXCLUDE_DIRS = new Set([
 ]);
 
 /**
- * Usage.json file structure (from Metro dev server learning)
- */
-interface UsageFile {
-  version: string;
-  icons: string[];
-  updatedAt: string;
-}
-
-/**
  * Build a single combined regex that captures both the component name
  * and the icon name in one match — O(n) single pass instead of O(n²)
  *
@@ -70,9 +62,33 @@ interface UsageFile {
 function buildCombinedRegex(): RegExp {
   const componentNames = Object.keys(COMPONENT_PREFIX_MAP).join('|');
   return new RegExp(
-    `<(${componentNames})\\s[^>]*?name=(?:"([^"]+)"|\\{'([^']+)'\\}|\\{"([^"]+)"\\}|\\\`([^\`]+)\\\`)`,
+    `<(${componentNames})\\s[^>]*?name=(?:"([^"]+)"|\\{([^}]*)\\}|\\\`([^\`]+)\\\`)`,
     'g'
   );
+}
+
+/**
+ * The icon names an attribute value can produce.
+ *
+ * `name="home"` is one. `name={paused ? 'play' : 'pause'}` is two, and it is
+ * how a React component says an icon depends on state — the names are still
+ * literals, still in the source, still certain. Reading only the first quoted
+ * string missed every one of them, so an icon that toggles was fetched over
+ * the network the first time it toggled.
+ *
+ * Every literal in the expression is taken; a string that is not an icon in
+ * that set is dropped by the validity check downstream.
+ */
+function literalsIn(value: string): string[] {
+  const names: string[] = [];
+
+  STRING_ITEM_REGEX.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = STRING_ITEM_REGEX.exec(value)) !== null) {
+    if (match[1]) names.push(match[1]);
+  }
+
+  return names;
 }
 
 /**
@@ -141,11 +157,22 @@ function scanFile(
 
   while ((match = combinedRegex.exec(content)) !== null) {
     const componentName = match[1];
-    const iconName = match[2] || match[3] || match[4] || match[5];
-    if (!componentName || !iconName) continue;
+    if (!componentName) continue;
 
     const prefix = COMPONENT_PREFIX_MAP[componentName];
-    if (prefix) {
+    if (!prefix) continue;
+
+    // A quoted attribute is the name itself; a braced one is an expression
+    // that may hold more than one.
+    const candidates = match[2]
+      ? [match[2]]
+      : match[3] !== undefined
+        ? literalsIn(match[3])
+        : match[4]
+          ? [match[4]]
+          : [];
+
+    for (const iconName of candidates) {
       const fullName = `${prefix}:${iconName}`;
       if (!isValidIconName(fullName)) continue;
       icons.push(fullName);
@@ -222,8 +249,31 @@ function scanFile(
 type WrapperProps = Map<string, string>;
 type WrapperMap = Map<string, WrapperProps>;
 
-/** `IonIconName` -> `ion`, via the component name the type is built from. */
-const ICON_NAME_TYPE_REGEX = /(\w+)\s*\??\s*:\s*(\w+)IconName\b/g;
+/** Any field annotated with a type: `icon?: IonIconName`, `name: IoniconName`. */
+const TYPED_FIELD_REGEX = /(\w+)\s*\??\s*:\s*(\w+)\b/g;
+
+/**
+ * A name for an icon set's name type, declared in the file itself.
+ *
+ * `type IoniconName = ComponentProps<typeof Ion>['name']` is the same
+ * statement as `IonIconName`, written the way someone reaches for when they
+ * want the type of a prop rather than the exported alias. Without this the
+ * field it annotates names no set, and every icon assigned to it is fetched
+ * at runtime.
+ */
+const TYPE_ALIAS_REGEX =
+  /type\s+(\w+)\s*=\s*(?:React\.)?ComponentProps<\s*typeof\s+(\w+)\s*>\s*\[\s*['"]name['"]\s*\]/g;
+
+/**
+ * A field assigned a string, anywhere: `{ icon: 'explore' }`.
+ *
+ * Only ever consulted for a field this file has already annotated with an
+ * icon set, so the match is narrow despite the pattern being wide.
+ */
+const FIELD_LITERAL_REGEX = /(\w+)\s*:\s*['"]([^'"]+)['"]/g;
+
+/** A table whose values are all icons: `Record<string, MdiIconName> = {`. */
+const RECORD_TYPE_REGEX = /:\s*(?:Readonly<)?Record<[^,>]+,\s*(\w+)\s*>>?\s*=\s*\{/g;
 
 /**
  * Component-shaped declarations in a file, exported or not.
@@ -234,6 +284,50 @@ const ICON_NAME_TYPE_REGEX = /(\w+)\s*\??\s*:\s*(\w+)IconName\b/g;
  */
 const COMPONENT_DECLARATION_REGEX =
   /(?:^|\n)\s*(?:export\s+(?:default\s+)?)?(?:function|const|class)\s+([A-Z]\w*)/g;
+
+/**
+ * Every name in one file that means "an icon of this set".
+ *
+ * `IonIconName` always does. So does anything the file declares for the same
+ * purpose — see TYPE_ALIAS_REGEX.
+ */
+function collectIconTypes(content: string): Map<string, string> {
+  const types = new Map<string, string>();
+
+  for (const [component, prefix] of Object.entries(COMPONENT_PREFIX_MAP)) {
+    types.set(`${component}IconName`, prefix);
+  }
+
+  TYPE_ALIAS_REGEX.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = TYPE_ALIAS_REGEX.exec(content)) !== null) {
+    const alias = match[1];
+    const component = match[2];
+    if (!alias || !component) continue;
+    const prefix = COMPONENT_PREFIX_MAP[component];
+    if (prefix) types.set(alias, prefix);
+  }
+
+  return types;
+}
+
+/** Fields this file has annotated with an icon set: `icon` -> `ion`. */
+function collectIconFields(content: string): WrapperProps {
+  const types = collectIconTypes(content);
+  const fields: WrapperProps = new Map();
+
+  TYPED_FIELD_REGEX.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = TYPED_FIELD_REGEX.exec(content)) !== null) {
+    const field = match[1];
+    const type = match[2];
+    if (!field || !type) continue;
+    const prefix = types.get(type);
+    if (prefix) fields.set(field, prefix);
+  }
+
+  return fields;
+}
 
 /**
  * Find components that accept an icon name as a prop.
@@ -247,16 +341,8 @@ function collectWrappers(sources: Map<string, string>, verbose: boolean): Wrappe
   for (const [filePath, content] of sources) {
     if (!content.includes('IconName')) continue;
 
-    const props: WrapperProps = new Map();
-    ICON_NAME_TYPE_REGEX.lastIndex = 0;
+    const props = collectIconFields(content);
     let match: RegExpExecArray | null;
-    while ((match = ICON_NAME_TYPE_REGEX.exec(content)) !== null) {
-      const propName = match[1];
-      const componentName = match[2];
-      if (!propName || !componentName) continue;
-      const prefix = COMPONENT_PREFIX_MAP[componentName];
-      if (prefix) props.set(propName, prefix);
-    }
 
     if (props.size === 0) continue;
 
@@ -292,6 +378,83 @@ function collectWrappers(sources: Map<string, string>, verbose: boolean): Wrappe
 }
 
 /**
+ * Scan one file for icon names assigned to a field it has typed with a set.
+ *
+ * A name does not have to reach `<Ion>` directly to be known at build time. It
+ * is just as certain in a table the file declares:
+ *
+ * ```ts
+ * interface TabConfig { icon: MaterialSymbolsIconName }
+ * const TABS: TabConfig[] = [{ icon: 'explore', route: 'Home' }]
+ * ```
+ *
+ * The type says which set, the literal says which icon, and both are in the
+ * file. Reading only JSX attributes and `defineIcons` left every table like
+ * this out of the bundle — correct, idiomatic code, fetched over the network
+ * on first render because the scan stopped short of it.
+ *
+ * Scoped to the file: a field is only read as an icon where that file has
+ * annotated it with a set.
+ */
+function scanFileForTypedFields(filePath: string, content: string, verbose: boolean): string[] {
+  if (!content.includes('IconName') && !content.includes('ComponentProps')) return [];
+
+  const types = collectIconTypes(content);
+  const fields = collectIconFields(content);
+  const icons: string[] = [];
+
+  // `const ICONS: Record<string, MdiIconName> = { WIN: 'trophy' }` — no field
+  // is named an icon here; the whole table is one. Every value in it is.
+  RECORD_TYPE_REGEX.lastIndex = 0;
+  let record: RegExpExecArray | null;
+  while ((record = RECORD_TYPE_REGEX.exec(content)) !== null) {
+    const prefix = types.get(record[1] ?? '');
+    if (!prefix) continue;
+
+    const body = extractBalanced(
+      content,
+      content.indexOf('{', record.index + record[0].length - 1),
+      '{'
+    );
+    if (!body) continue;
+
+    STRING_ITEM_REGEX.lastIndex = 0;
+    let item: RegExpExecArray | null;
+    while ((item = STRING_ITEM_REGEX.exec(body)) !== null) {
+      const fullName = `${prefix}:${item[1]}`;
+      if (!isValidIconName(fullName)) continue;
+      icons.push(fullName);
+      if (verbose) {
+        console.log(`[rn-iconify:scanner] Found ${fullName} via a typed record in ${filePath}`);
+      }
+    }
+  }
+
+  if (fields.size === 0) return icons;
+
+  FIELD_LITERAL_REGEX.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = FIELD_LITERAL_REGEX.exec(content)) !== null) {
+    const field = match[1];
+    const value = match[2];
+    if (!field || !value) continue;
+
+    const prefix = fields.get(field);
+    if (!prefix) continue;
+
+    const fullName = `${prefix}:${value}`;
+    if (!isValidIconName(fullName)) continue;
+
+    icons.push(fullName);
+    if (verbose) {
+      console.log(`[rn-iconify:scanner] Found ${fullName} via ${field}: in ${filePath}`);
+    }
+  }
+
+  return icons;
+}
+
+/**
  * Scan one file for icon names handed to wrapper components.
  */
 function scanFileForWrappers(
@@ -307,23 +470,24 @@ function scanFileForWrappers(
 
     for (const [propName, prefix] of props) {
       const regex = new RegExp(
-        `<${componentName}\\s(?:[^>]|\\n)*?\\b${propName}=(?:"([^"]+)"|\\{'([^']+)'\\}|\\{"([^"]+)"\\})`,
+        `<${componentName}\\s(?:[^>]|\\n)*?\\b${propName}=(?:"([^"]+)"|\\{([^}]*)\\})`,
         'g'
       );
 
       let match: RegExpExecArray | null;
       while ((match = regex.exec(content)) !== null) {
-        const iconName = match[1] || match[2] || match[3];
-        if (!iconName) continue;
+        const candidates = match[1] ? [match[1]] : literalsIn(match[2] ?? '');
 
-        const fullName = `${prefix}:${iconName}`;
-        if (!isValidIconName(fullName)) continue;
+        for (const iconName of candidates) {
+          const fullName = `${prefix}:${iconName}`;
+          if (!isValidIconName(fullName)) continue;
 
-        icons.push(fullName);
-        if (verbose) {
-          console.log(
-            `[rn-iconify:scanner] Found ${fullName} via <${componentName} ${propName}> in ${filePath}`
-          );
+          icons.push(fullName);
+          if (verbose) {
+            console.log(
+              `[rn-iconify:scanner] Found ${fullName} via <${componentName} ${propName}> in ${filePath}`
+            );
+          }
         }
       }
     }
@@ -364,27 +528,15 @@ function walkDirSync(
 /**
  * Read usage.json from the .rn-iconify directory
  */
-function readUsageFile(projectRoot: string, verbose: boolean): string[] {
-  const usagePath = path.join(projectRoot, '.rn-iconify', 'usage.json');
+function readUsageIcons(projectRoot: string, verbose: boolean): string[] {
+  const file = readUsageFile(usageFilePath(projectRoot), new Date().toISOString());
+  const names = usageNames(file);
 
-  try {
-    if (!fs.existsSync(usagePath)) return [];
-    const content = fs.readFileSync(usagePath, 'utf-8');
-    const usage: UsageFile = JSON.parse(content);
-
-    if (usage.version === '1.0.0' && Array.isArray(usage.icons)) {
-      if (verbose) {
-        console.log(`[rn-iconify:scanner] Read ${usage.icons.length} icons from usage.json`);
-      }
-      return usage.icons;
-    }
-  } catch {
-    if (verbose) {
-      console.log('[rn-iconify:scanner] Could not read usage.json');
-    }
+  if (verbose && names.length > 0) {
+    console.log(`[rn-iconify:scanner] Read ${names.length} icons from usage.json`);
   }
 
-  return [];
+  return names;
 }
 
 /**
@@ -439,10 +591,13 @@ export function scanProjectForIcons(projectRoot: string, options: ScannerOptions
         allIcons.add(icon);
       }
     }
+    for (const icon of scanFileForTypedFields(file, content, verbose)) {
+      allIcons.add(icon);
+    }
   }
 
   // 6. Merge with usage.json (dev-learned icons)
-  const usageIcons = readUsageFile(projectRoot, verbose);
+  const usageIcons = readUsageIcons(projectRoot, verbose);
   for (const icon of usageIcons) {
     allIcons.add(icon);
   }

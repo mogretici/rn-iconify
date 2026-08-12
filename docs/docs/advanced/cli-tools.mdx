@@ -159,11 +159,47 @@ is what this command is for.
 |--------|-------------|---------|
 | `--src <path>` | Project root to inspect | cwd |
 | `--strict` | Exit non-zero if any icon is fetched at runtime | `false` |
+| `--prune` | Drop names not rendered lately from `usage.json` | `false` |
+| `--stale-days <n>` | How long a name may go unrendered before `--prune` drops it | `30` |
 | `--format <type>` | `text` or `json` | `text` |
 | `--verbose` | Show detailed output | `false` |
 
 Not strict by default: a project part-way through fixing this should be able to
 see the number without being blocked by it.
+
+### Clearing out names that are gone
+
+`usage.json` is written by the development server as your app renders icons the
+build could not find, and it is why those icons still ship. That also means
+nothing in it can be checked against your source — it is exactly the set of
+names your source does not mention.
+
+The only evidence a name is gone is that nobody has rendered it since the
+screen was deleted, which is why each name carries the time it was last seen:
+
+```bash
+npx rn-iconify doctor --prune
+```
+
+```
+[rn-iconify] Removed 3 name(s) not rendered in 30 day(s):
+  · ion:airplane-outline — last seen 2026-05-02T09:14:22.101Z
+  · ion:cafe-outline — last seen 2026-05-02T09:14:31.660Z
+  · ion:trail-sign-outline — last seen 2026-04-28T17:02:08.934Z
+```
+
+Nothing is removed without being named, and nothing is lost by being wrong: if
+one of them was still in use, open that screen once in development and it comes
+back.
+
+This is a command rather than something the dev server does on its own. A
+screen opened twice a year is still a screen, and dropping its icons quietly
+would put them back on the network for the one person who opens it.
+
+Upgrading a file written before names carried their own timestamps removes
+nothing. When each was last rendered was never recorded, so they are all
+stamped as seen at the upgrade — the clock starts there and tells the truth
+from there on.
 
 ### In CI
 
@@ -181,14 +217,33 @@ Most of what appears there is a name the source cannot tie to an icon set:
 const CATEGORY_ICON: Record<string, string> = { OUTFIT: 'hanger' };
 ```
 
-Either type the values, or declare them with
-[`defineIcons`](../api-reference/utilities#defineicons):
+Typing it is usually all it takes. The build follows an icon set type wherever
+you use it, so each of these is found without anything else:
+
+```tsx
+// A record whose values are icons
+const CATEGORY_ICON: Record<string, MdiIconName> = { OUTFIT: 'hanger' };
+
+// A field, and the table that fills it
+interface TabConfig { icon: IonIconName; route: string }
+const TABS: TabConfig[] = [{ icon: 'home', route: 'Home' }];
+
+// The type written out rather than imported
+type IoniconName = ComponentProps<typeof Ion>['name'];
+
+// An icon that depends on state — both names are read
+<Ion name={paused ? 'play' : 'pause'} />
+```
+
+Names handed to your own components need nothing either — the prop type is
+enough.
+
+[`defineIcons`](../api-reference/utilities#defineicons) is for what is left:
+a name assembled at runtime, or one that genuinely cannot carry a type.
 
 ```tsx
 const CATEGORY_ICON = defineIcons<MdiIconName>({ OUTFIT: 'hanger' });
 ```
-
-Names handed to your own components need nothing — the prop type is enough.
 
 :::note
   `.rn-iconify/usage.json` collects icons the app fetched during development

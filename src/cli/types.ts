@@ -186,6 +186,19 @@ export interface DoctorOptions {
   src?: string;
 
   /**
+   * Drop names from usage.json that have not been rendered for a while, and
+   * say which. Nothing is removed without being named.
+   * @default false
+   */
+  prune?: boolean;
+
+  /**
+   * How long a name may go unrendered before --prune drops it.
+   * @default 30
+   */
+  staleDays?: number;
+
+  /**
    * Exit non-zero when any icon would be fetched at runtime.
    * Off by default so the number can be looked at before it is enforced.
    * @default false
