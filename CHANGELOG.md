@@ -1,3 +1,9 @@
+# [4.4.0](https://github.com/mogretici/rn-iconify/compare/v4.3.0...v4.4.0) (2026-08-12)
+
+### Features
+
+- **cli:** drop the names doctor --prune can prove are redundant ([#22](https://github.com/mogretici/rn-iconify/issues/22)) ([108245e](https://github.com/mogretici/rn-iconify/commit/108245eecc07318b809657061e9516375470c2e5))
+
 # [4.3.0](https://github.com/mogretici/rn-iconify/compare/v4.2.0...v4.3.0) (2026-08-12)
 
 ### Features
