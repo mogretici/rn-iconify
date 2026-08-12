@@ -151,3 +151,30 @@ export function pruneUsage(
 
   return { pruned: { ...file, icons }, removed };
 }
+
+/**
+ * Drop the names the build can prove on its own.
+ *
+ * This file exists to carry what the scan cannot find. A name it now finds is
+ * carried for no reason — and after the scan learns a new shape, that is most
+ * of the file: one application had 175 names, 149 of which its own source had
+ * proved all along.
+ *
+ * Unlike the age of a name, this is not a judgement. The scan found it; the
+ * build ships it either way; removing it changes nothing.
+ */
+export function dropResolved(
+  file: UsageFile,
+  resolved: readonly string[]
+): { pruned: UsageFile; removed: string[] } {
+  const found = new Set(resolved);
+  const icons: Record<string, string> = {};
+  const removed: string[] = [];
+
+  for (const [icon, lastSeen] of Object.entries(file.icons)) {
+    if (found.has(icon)) removed.push(icon);
+    else icons[icon] = lastSeen;
+  }
+
+  return { pruned: { ...file, icons }, removed };
+}

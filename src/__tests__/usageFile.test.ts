@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
+  dropResolved,
   emptyUsageFile,
   pruneUsage,
   readUsageFile,
@@ -157,5 +158,42 @@ describe('usage file', () => {
 
     expect(fs.existsSync(`${usagePath}.tmp`)).toBe(false);
     expect(JSON.parse(fs.readFileSync(usagePath, 'utf-8')).icons['ion:home']).toBe(NOW);
+  });
+});
+
+describe('dropResolved', () => {
+  const NOW = '2026-08-12T10:00:00.000Z';
+
+  /**
+   * The file carries what the scan cannot find. A name it now finds is carried
+   * for no reason, and after the scan learns a new shape that is most of the
+   * file — one application had 175 names, 149 of which its source had proved
+   * all along.
+   */
+  it('drops a name the scan proves', () => {
+    const file = emptyUsageFile(NOW);
+    recordUsage(file, 'ion:home', NOW);
+    recordUsage(file, 'ion:only-here', NOW);
+
+    const { pruned, removed } = dropResolved(file, ['ion:home']);
+
+    expect(usageNames(pruned)).toEqual(['ion:only-here']);
+    expect(removed).toEqual(['ion:home']);
+  });
+
+  // Unlike the age of a name, this needs no judgement: the build ships it
+  // either way, so removing it cannot change anything.
+  it('keeps a name the scan does not prove', () => {
+    const file = emptyUsageFile(NOW);
+    recordUsage(file, 'ion:only-here', NOW);
+
+    expect(dropResolved(file, ['ion:home']).removed).toEqual([]);
+  });
+
+  it('keeps the timestamps of what it leaves', () => {
+    const file = emptyUsageFile(NOW);
+    recordUsage(file, 'ion:only-here', '2026-01-01T00:00:00.000Z');
+
+    expect(dropResolved(file, []).pruned.icons['ion:only-here']).toBe('2026-01-01T00:00:00.000Z');
   });
 });

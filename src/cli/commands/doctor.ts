@@ -22,6 +22,7 @@ import { scanProjectForIcons } from '../../babel/scanner';
 import { EXIT_CODES } from '../types';
 import type { DoctorOptions, DoctorResult } from '../types';
 import {
+  dropResolved,
   pruneUsage,
   readUsageFile,
   usageFilePath,
@@ -221,9 +222,31 @@ function pruneCommand(projectRoot: string, staleDays: number): number {
     return EXIT_CODES.SUCCESS;
   }
 
-  const { pruned, removed } = pruneUsage(file, cutoff);
+  // First the names the scan proves on its own. Those are carried for no
+  // reason at all, and dropping one cannot change what the build ships — which
+  // makes this the part that needs no judgement and no waiting.
+  const resolved = scanWithoutLearnedIcons(projectRoot, false);
+  const { pruned: withoutResolved, removed: redundant } = dropResolved(file, resolved);
+
+  if (redundant.length > 0) {
+    console.log(
+      `[rn-iconify] Removed ${redundant.length} name(s) the build now finds in your source.\n` +
+        '  Nothing changes: they were already being bundled from the code itself.\n'
+    );
+  }
+
+  const { pruned, removed } = pruneUsage(withoutResolved, cutoff);
 
   if (removed.length === 0) {
+    if (redundant.length > 0) {
+      writeUsageFile(usagePath, pruned);
+      console.log(
+        `[rn-iconify] ${usageNames(pruned).length} name(s) left, all rendered within the last ` +
+          `${staleDays} day(s).`
+      );
+      return EXIT_CODES.SUCCESS;
+    }
+
     console.log(
       `[rn-iconify] Nothing to prune — all ${usageNames(file).length} name(s) were rendered ` +
         `within the last ${staleDays} day(s).`

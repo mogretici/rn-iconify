@@ -174,14 +174,25 @@ build could not find, and it is why those icons still ship. That also means
 nothing in it can be checked against your source — it is exactly the set of
 names your source does not mention.
 
-The only evidence a name is gone is that nobody has rendered it since the
-screen was deleted, which is why each name carries the time it was last seen:
-
 ```bash
 npx rn-iconify doctor --prune
 ```
 
+It clears two things.
+
+**Names the build now finds on its own.** This file carries what the scan
+cannot prove, so a name it can prove is carried for no reason — and after the
+scan learns a new shape, that is usually most of the file. Removing one cannot
+change what ships, so nothing is weighed and nothing is waited for.
+
+**Names nobody has rendered lately.** The only evidence a name is gone is that
+it has not been rendered since the screen was deleted, which is why each one
+carries the time it was last seen.
+
 ```
+[rn-iconify] Removed 149 name(s) the build now finds in your source.
+  Nothing changes: they were already being bundled from the code itself.
+
 [rn-iconify] Removed 3 name(s) not rendered in 30 day(s):
   · ion:airplane-outline — last seen 2026-05-02T09:14:22.101Z
   · ion:cafe-outline — last seen 2026-05-02T09:14:31.660Z
