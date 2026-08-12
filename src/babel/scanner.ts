@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { COMPONENT_PREFIX_MAP } from './types';
 import { isValidIconName } from './ast-utils';
+import { readUsageFile, usageFilePath, usageNames } from '../metro/usageFile';
 
 /**
  * Scanner options
@@ -46,15 +47,6 @@ const DEFAULT_EXCLUDE_DIRS = new Set([
   'ios',
   'coverage',
 ]);
-
-/**
- * Usage.json file structure (from Metro dev server learning)
- */
-interface UsageFile {
-  version: string;
-  icons: string[];
-  updatedAt: string;
-}
 
 /**
  * Build a single combined regex that captures both the component name
@@ -536,27 +528,15 @@ function walkDirSync(
 /**
  * Read usage.json from the .rn-iconify directory
  */
-function readUsageFile(projectRoot: string, verbose: boolean): string[] {
-  const usagePath = path.join(projectRoot, '.rn-iconify', 'usage.json');
+function readUsageIcons(projectRoot: string, verbose: boolean): string[] {
+  const file = readUsageFile(usageFilePath(projectRoot), new Date().toISOString());
+  const names = usageNames(file);
 
-  try {
-    if (!fs.existsSync(usagePath)) return [];
-    const content = fs.readFileSync(usagePath, 'utf-8');
-    const usage: UsageFile = JSON.parse(content);
-
-    if (usage.version === '1.0.0' && Array.isArray(usage.icons)) {
-      if (verbose) {
-        console.log(`[rn-iconify:scanner] Read ${usage.icons.length} icons from usage.json`);
-      }
-      return usage.icons;
-    }
-  } catch {
-    if (verbose) {
-      console.log('[rn-iconify:scanner] Could not read usage.json');
-    }
+  if (verbose && names.length > 0) {
+    console.log(`[rn-iconify:scanner] Read ${names.length} icons from usage.json`);
   }
 
-  return [];
+  return names;
 }
 
 /**
@@ -617,7 +597,7 @@ export function scanProjectForIcons(projectRoot: string, options: ScannerOptions
   }
 
   // 6. Merge with usage.json (dev-learned icons)
-  const usageIcons = readUsageFile(projectRoot, verbose);
+  const usageIcons = readUsageIcons(projectRoot, verbose);
   for (const icon of usageIcons) {
     allIcons.add(icon);
   }

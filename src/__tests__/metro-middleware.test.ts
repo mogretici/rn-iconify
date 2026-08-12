@@ -96,11 +96,14 @@ describe('Metro Dev Server Middleware', () => {
       // Verify the written content contains the icon
       const writtenContent = mockWriteFileSync.mock.calls[0][1] as string;
       const parsed = JSON.parse(writtenContent);
-      expect(parsed.icons).toContain('ion:shirt');
-      expect(parsed.version).toBe('1.0.0');
+      expect(Object.keys(parsed.icons)).toContain('ion:shirt');
+      expect(parsed.version).toBe('2.0.0');
+      // The timestamp is what tells a name still in use from one whose screen
+      // was deleted, so it has to be written with the name.
+      expect(Date.parse(parsed.icons['ion:shirt'])).not.toBeNaN();
     });
 
-    it('deduplicates icons', async () => {
+    it('records a name it already has, so its timestamp moves', async () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
@@ -121,8 +124,13 @@ describe('Metro Dev Server Middleware', () => {
       await middleware(req, res, next);
 
       expect(res.writeHead).toHaveBeenCalledWith(200, expect.any(Object));
-      // Should NOT write since icon already exists
-      expect(mockWriteFileSync).not.toHaveBeenCalled();
+
+      // Written every time, not only the first: a name last rendered today
+      // must not look like one last rendered a year ago.
+      expect(mockWriteFileSync).toHaveBeenCalled();
+      const parsed = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
+      expect(Object.keys(parsed.icons)).toEqual(['ion:shirt']);
+      expect(parsed.icons['ion:shirt']).not.toBe('2026-01-01');
     });
 
     it('rejects invalid icon names', async () => {

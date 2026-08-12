@@ -57,6 +57,7 @@ Examples:
   npx rn-iconify analyze --detailed
   npx rn-iconify doctor
   npx rn-iconify doctor --strict
+  npx rn-iconify doctor --prune --stale-days 30
 
 Bundle Options:
   --src <path>       Source directory to analyze (default: ./src)
@@ -168,6 +169,8 @@ async function main(): Promise<void> {
       const doctorOptions: DoctorOptions = {
         src: options.src as string,
         strict: options.strict as boolean,
+        prune: options.prune as boolean,
+        staleDays: options['stale-days'] ? Number(options['stale-days']) : undefined,
         format: options.format as 'text' | 'json',
         verbose: options.verbose as boolean,
       };

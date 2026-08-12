@@ -3,46 +3,12 @@
  * Handles runtime icon usage reporting from the app
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import type { IncomingMessage, ServerResponse } from 'http';
-import type { UsageFile, RnIconifyMetroOptions } from './types';
+import type { RnIconifyMetroOptions } from './types';
+import { readUsageFile, recordUsage, usageNames, usageFilePath, writeUsageFile } from './usageFile';
 
 const USAGE_ENDPOINT = '/__rn_iconify_log';
 const STATUS_ENDPOINT = '/__rn_iconify_status';
-
-/**
- * Read the current usage file
- */
-function readUsageFile(usagePath: string): UsageFile {
-  try {
-    if (fs.existsSync(usagePath)) {
-      const content = fs.readFileSync(usagePath, 'utf-8');
-      const data = JSON.parse(content) as UsageFile;
-      if (data.version === '1.0.0' && Array.isArray(data.icons)) {
-        return data;
-      }
-    }
-  } catch {
-    // File corrupted or doesn't exist
-  }
-
-  return { version: '1.0.0', icons: [], updatedAt: new Date().toISOString() };
-}
-
-/**
- * Write usage file atomically (temp file + rename)
- */
-function writeUsageFile(usagePath: string, data: UsageFile): void {
-  const dir = path.dirname(usagePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
-  const tmpPath = usagePath + '.tmp';
-  fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
-  fs.renameSync(tmpPath, usagePath);
-}
 
 /**
  * Parse JSON body from request
@@ -70,9 +36,7 @@ function parseBody(req: IncomingMessage): Promise<Record<string, unknown>> {
 export function createDevServerMiddleware(options: RnIconifyMetroOptions = {}) {
   const { outputDir = '.rn-iconify', verbose = false } = options;
   const projectRoot = process.cwd();
-  const usagePath = path.isAbsolute(outputDir)
-    ? path.join(outputDir, 'usage.json')
-    : path.join(projectRoot, outputDir, 'usage.json');
+  const usagePath = usageFilePath(projectRoot, outputDir);
 
   return async function handleRequest(
     req: IncomingMessage,
@@ -93,18 +57,19 @@ export function createDevServerMiddleware(options: RnIconifyMetroOptions = {}) {
           return;
         }
 
-        // Read existing usage
-        const usage = readUsageFile(usagePath);
+        // The timestamp is rewritten on every sighting, not only the first.
+        // A name still being rendered has to look different from one whose
+        // screen was deleted, and that is the only thing telling them apart.
+        const now = new Date().toISOString();
+        const usage = readUsageFile(usagePath, now);
+        const isNew = recordUsage(usage, icon, now);
 
-        // Deduplicate
-        if (!usage.icons.includes(icon)) {
-          usage.icons.push(icon);
-          usage.updatedAt = new Date().toISOString();
-          writeUsageFile(usagePath, usage);
+        writeUsageFile(usagePath, usage);
 
-          if (verbose) {
-            console.log(`[rn-iconify:metro] Learned icon: ${icon} (total: ${usage.icons.length})`);
-          }
+        if (verbose && isNew) {
+          console.log(
+            `[rn-iconify:metro] Learned icon: ${icon} (total: ${usageNames(usage).length})`
+          );
         }
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -118,13 +83,14 @@ export function createDevServerMiddleware(options: RnIconifyMetroOptions = {}) {
 
     // GET /__rn_iconify_status — debug stats
     if (req.method === 'GET' && url === STATUS_ENDPOINT) {
-      const usage = readUsageFile(usagePath);
+      const usage = readUsageFile(usagePath, new Date().toISOString());
+      const names = usageNames(usage);
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({
-          iconCount: usage.icons.length,
-          icons: usage.icons,
+          iconCount: names.length,
+          icons: names,
           updatedAt: usage.updatedAt,
         })
       );
