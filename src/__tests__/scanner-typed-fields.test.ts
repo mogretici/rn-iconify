@@ -309,3 +309,82 @@ describe('icons in a field the file has typed', () => {
     expect(icons).not.toContain('mdi:home');
   });
 });
+
+/**
+ * This package ships `createIconAliases` and recommends it as the way to keep
+ * icon choices in one place. Its own scan did not read it, so an application
+ * following that recommendation paid a network fetch on first render for every
+ * alias it declared — one had 62.
+ */
+describe('icons in a createIconAliases registry', () => {
+  let projectRoot: string;
+
+  const write = (relative: string, contents: string) => {
+    const full = path.join(projectRoot, relative);
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.writeFileSync(full, contents);
+  };
+
+  beforeEach(() => {
+    projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rn-iconify-alias-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
+
+  it('reads the names a registry declares', () => {
+    write(
+      'icons.ts',
+      `
+      import { createIconAliases } from 'rn-iconify';
+
+      export const { Icon } = createIconAliases({
+        aliases: {
+          back: 'ion:chevron-back',
+          settings: 'mdi:cog',
+        },
+      });
+      `
+    );
+
+    const icons = scanProjectForIcons(projectRoot);
+
+    expect(icons).toContain('ion:chevron-back');
+    expect(icons).toContain('mdi:cog');
+  });
+
+  it('reads a registry written with a type argument', () => {
+    write(
+      'icons.ts',
+      `
+      import { createIconAliases } from 'rn-iconify';
+
+      export const { Icon } = createIconAliases<{ home: 'ion:home' }>({
+        aliases: { home: 'ion:home' },
+      });
+      `
+    );
+
+    expect(scanProjectForIcons(projectRoot)).toContain('ion:home');
+  });
+
+  // The config holds more than aliases, and none of the rest is an icon.
+  it('leaves the rest of the config alone', () => {
+    write(
+      'icons.ts',
+      `
+      import { createIconAliases } from 'rn-iconify';
+
+      export const { Icon } = createIconAliases({
+        aliases: { back: 'ion:chevron-back' },
+        fallback: 'some:nonsense-that-is-not-an-icon',
+      });
+      `
+    );
+
+    const icons = scanProjectForIcons(projectRoot);
+
+    expect(icons).toEqual(['ion:chevron-back']);
+  });
+});
