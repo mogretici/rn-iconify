@@ -35,9 +35,20 @@ export function parseIconNames(source: string): string[] {
   const names: string[] = [];
 
   for (const line of source.split('\n')) {
-    const match = /^\s{2}'?([A-Za-z0-9_-]+)'?:\s*(?:true|'[^']*'),$/.exec(line);
-    if (match) {
-      names.push(match[1] as string);
+    const entry = /^\s{2}'?([A-Za-z0-9_-]+)'?:\s*(?:true|'[^']*'),$/.exec(line);
+    if (entry) {
+      names.push(entry[1] as string);
+      continue;
+    }
+
+    // Names upstream has renamed or hidden live in a union rather than the
+    // object, so they cost nothing at runtime. They are still names an
+    // application can pass, so losing one is still a breaking change — reading
+    // only the object would report that as no change at all.
+    // The last member carries the semicolon that ends the type.
+    const member = /^\s{2}\|\s'([^']+)';?$/.exec(line);
+    if (member) {
+      names.push(member[1] as string);
     }
   }
 
@@ -116,4 +127,62 @@ export function formatDiff(diff: InventoryDiff): string {
   }
 
   return lines.join('\n');
+}
+
+/**
+ * Writes what changed as the body of a release.
+ *
+ * The sync commits and publishes without anyone reading it, so this text is
+ * the whole contract: someone deciding whether to take the upgrade has nothing
+ * else to look at. That rules out the two shortcuts the pull-request table
+ * takes — it lists every set whether or not anything left it, and it stops
+ * after eight removed names. A name that is not written down here is a name
+ * that disappears from an application's build with no explanation.
+ *
+ * Lines are wrapped because commitlint holds the body to 250 characters, and a
+ * release should not fail over a set that lost a lot of names at once.
+ */
+export function formatReleaseNotes(diff: InventoryDiff): string {
+  const sets = Object.keys(diff).sort();
+  const added = sets.filter((set) => (diff[set]?.added.length ?? 0) > 0);
+  const removed = sets.filter((set) => (diff[set]?.removed.length ?? 0) > 0);
+
+  const totalAdded = sets.reduce((sum, set) => sum + (diff[set]?.added.length ?? 0), 0);
+  const totalRemoved = sets.reduce((sum, set) => sum + (diff[set]?.removed.length ?? 0), 0);
+
+  const lines = [`${totalAdded} names added, ${totalRemoved} removed.`];
+
+  if (removed.length > 0) {
+    lines.push('', 'Removed — code using one of these no longer compiles:');
+    for (const set of removed) {
+      lines.push('', `${set}:`, ...wrap((diff[set] as IconChanges).removed));
+    }
+  }
+
+  if (added.length > 0) {
+    lines.push('', 'Added:');
+    lines.push(...wrap(added.map((set) => `${set} ${diff[set]?.added.length}`)));
+  }
+
+  return lines.join('\n');
+}
+
+/** Joins names into comma-separated lines no wider than 100 characters. */
+function wrap(items: readonly string[]): string[] {
+  const lines: string[] = [];
+  let line = '';
+
+  for (const item of items) {
+    const next = line ? `${line}, ${item}` : `  ${item}`;
+    if (next.length > 100) {
+      lines.push(`${line},`);
+      line = `  ${item}`;
+    } else {
+      line = next;
+    }
+  }
+
+  if (line) lines.push(line);
+
+  return lines;
 }

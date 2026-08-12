@@ -2,7 +2,9 @@ name: Sync Icons
 
 permissions:
   contents: write
+  issues: write
   pull-requests: write
+  id-token: write
 
 on:
   schedule:
@@ -15,7 +17,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # semantic-release runs in this job, and needs the tags to know what the
+      # last version was.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -26,9 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Icon names are this package's public API, so what the sync changes has
-      # to be visible on the pull request rather than buried in a diff of
-      # thousands of generated lines.
+      # Icon names are this package's public API, and this sync publishes
+      # without anyone reading it. What it changes has to be written into the
+      # release rather than buried in a diff of thousands of generated lines.
       - name: Record current icon names
         run: npx tsx scripts/report-icon-changes.ts snapshot .icon-inventory.json
 
@@ -38,17 +44,13 @@ jobs:
       - name: Summarise icon changes
         id: icons
         run: |
-          # Written to a file first: the script appends `breaking=` to
-          # $GITHUB_OUTPUT itself, and interleaving that with the heredoc below
-          # would corrupt both values.
-          npx tsx scripts/report-icon-changes.ts report .icon-inventory.json > icon-changes.md
-          {
-            echo 'summary<<ICON_SUMMARY'
-            cat icon-changes.md
-            echo 'ICON_SUMMARY'
-          } >> "$GITHUB_OUTPUT"
-          cat icon-changes.md >> "$GITHUB_STEP_SUMMARY"
-          rm -f .icon-inventory.json icon-changes.md
+          # `report` writes `breaking=` to $GITHUB_OUTPUT itself, so it runs on
+          # its own; `notes` is the longer text the release carries.
+          npx tsx scripts/report-icon-changes.ts report .icon-inventory.json \
+            >> "$GITHUB_STEP_SUMMARY"
+          npx tsx scripts/report-icon-changes.ts notes .icon-inventory.json \
+            > .icon-notes.txt
+          rm -f .icon-inventory.json
 
       - name: Lint
         run: npm run lint
@@ -62,6 +64,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Everything a pull request would have checked runs here, because there
+      # is no pull request. size-limit is the one that earned its place: a sync
+      # that kept 6,363 renamed names as map entries doubled what every
+      # application installs, and nothing was looking.
+      - name: Check bundle size (size-limit)
+        run: npx size-limit
+
+      - name: Validate package.json (publint)
+        run: npx publint
+
+      - name: Validate TypeScript exports (attw)
+        run: npx @arethetypeswrong/cli --pack . --ignore-rules cjs-only-exports-default
+
       - name: Check for changes
         id: changes
         run: |
@@ -73,34 +88,51 @@ jobs:
             echo "No icon changes"
           fi
 
-      - name: Create Pull Request
+      # Published without review, including when a name is removed.
+      #
+      # A removal is a breaking change and is released as one: the commit says
+      # `feat!` with a BREAKING CHANGE footer, semantic-release cuts a major,
+      # and the notes name every icon that left. Nobody is upgraded against
+      # their will by that — a major is opt-in, and the person deciding has the
+      # list in front of them. Holding it for someone to press merge would not
+      # have made the removal safer, only later, and staying current would have
+      # depended on somebody remembering.
+      - name: Publish
         if: steps.changes.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # A removed name breaks anyone using it, so the commit has to say so
-          # — semantic-release reads this to decide major vs minor.
-          commit-message: |
-            ${{ steps.icons.outputs.breaking == 'true'
-                && 'feat!: sync icon sets with Iconify API'
-                || 'feat: sync icon sets with Iconify API' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          BREAKING: ${{ steps.icons.outputs.breaking }}
+        run: |
+          set -euo pipefail
 
-            ${{ steps.icons.outputs.breaking == 'true'
-                && 'BREAKING CHANGE: icon names were removed upstream and could not be aliased.'
-                || 'Adds icons published upstream since the last sync.' }}
-          title: |
-            ${{ steps.icons.outputs.breaking == 'true'
-                && 'feat!: sync icon sets with Iconify API' 
-                || 'feat: sync icon sets with Iconify API' }}
-          body: |
-            Updates the generated icon components from the Iconify API.
+          if [ "$BREAKING" = "true" ]; then
+            subject='feat!: sync icon sets with Iconify API'
+            footer='BREAKING CHANGE: names were removed upstream and could not be kept as aliases. They are listed above.'
+          else
+            subject='feat: sync icon sets with Iconify API'
+            footer=''
+          fi
 
-            ${{ steps.icons.outputs.summary }}
+          {
+            echo "$subject"
+            echo
+            cat .icon-notes.txt
+            if [ -n "$footer" ]; then
+              echo
+              echo "$footer"
+            fi
+          } > .commit-message.txt
+          rm -f .icon-notes.txt
 
-            Renamed icons keep their old name as an alias, so a rename upstream
-            does not remove anything here. A removal in the table above means
-            the icon is gone upstream entirely — check before merging.
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/components
+          git commit --file .commit-message.txt
+          rm -f .commit-message.txt
+          git push
 
-            Auto-generated by the weekly sync workflow.
-          branch: sync-icons
-          delete-branch: true
+          # That push carries GITHUB_TOKEN, and GitHub does not start workflows
+          # for those — the Release workflow will never see it. The release has
+          # to happen here or not at all.
+          npx semantic-release

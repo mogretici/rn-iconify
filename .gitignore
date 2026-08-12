@@ -56,3 +56,4 @@ example/ios/Pods/
 example/ios/build/
 example/ios/**/xcuserdata/
 example/android/
+.docs-imports-check/

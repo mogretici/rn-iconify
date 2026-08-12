@@ -6,6 +6,7 @@
  *   tsx scripts/report-icon-changes.ts snapshot .icon-inventory.json
  *   npm run generate-components
  *   tsx scripts/report-icon-changes.ts report .icon-inventory.json
+ *   tsx scripts/report-icon-changes.ts notes .icon-inventory.json
  *
  * The report goes to stdout as markdown. It exits 0 either way — a removal is
  * something to surface on the pull request, not a reason to abort the sync —
@@ -19,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import {
   diffInventories,
   formatDiff,
+  formatReleaseNotes,
   hasRemovals,
   parseIconNames,
   type SetInventory,
@@ -46,8 +48,8 @@ function readInventory(): SetInventory[] {
 function main(): void {
   const [mode, target] = process.argv.slice(2);
 
-  if (mode !== 'snapshot' && mode !== 'report') {
-    console.error('Usage: report-icon-changes.ts <snapshot|report> <file>');
+  if (mode !== 'snapshot' && mode !== 'report' && mode !== 'notes') {
+    console.error('Usage: report-icon-changes.ts <snapshot|report|notes> <file>');
     process.exit(2);
   }
 
@@ -68,9 +70,13 @@ function main(): void {
   const diff = diffInventories(before, readInventory());
   const breaking = hasRemovals(diff);
 
-  console.log(formatDiff(diff));
+  // `notes` is what the release itself carries, so it names every removal
+  // rather than a sample; `report` is the shorter table for a job summary.
+  console.log(mode === 'notes' ? formatReleaseNotes(diff) : formatDiff(diff));
 
-  if (process.env.GITHUB_OUTPUT) {
+  // Only the report writes it. `notes` runs straight after on the same diff,
+  // and a second identical line in the output file is noise at best.
+  if (mode === 'report' && process.env.GITHUB_OUTPUT) {
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `breaking=${breaking}\n`);
   }
 }
