@@ -7,6 +7,38 @@ on:
     branches: [main]
 
 jobs:
+  # A squash merge takes the pull request title as the commit subject, and that
+  # subject is the only thing semantic-release reads to decide whether anything
+  # is released. A title that is not a conventional commit does not fail
+  # anything — it merges, CI is green, and the work simply never reaches npm.
+  # That happened, and the only sign of it was a version that did not move.
+  #
+  # Checked with the project's own commitlint config, so the rule that decides
+  # the release is the rule enforced here.
+  pull-request-title:
+    name: Pull request title
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check the title is a conventional commit
+        # Through the environment rather than interpolated into the script: a
+        # title is arbitrary text written by whoever opened the request.
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s' "$PR_TITLE" | npx commitlint
+
   quality:
     name: Lint, Typecheck & Test
     runs-on: ubuntu-latest
