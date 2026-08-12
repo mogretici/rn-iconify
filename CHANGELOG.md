@@ -1,3 +1,9 @@
+# [4.5.0](https://github.com/mogretici/rn-iconify/compare/v4.4.0...v4.5.0) (2026-08-12)
+
+### Features
+
+- **babel:** read the alias registry this package tells people to use ([#23](https://github.com/mogretici/rn-iconify/issues/23)) ([1a422d6](https://github.com/mogretici/rn-iconify/commit/1a422d69c8ee630a4446b7395251166e1a11bcbb))
+
 # [4.4.0](https://github.com/mogretici/rn-iconify/compare/v4.3.0...v4.4.0) (2026-08-12)
 
 ### Features
