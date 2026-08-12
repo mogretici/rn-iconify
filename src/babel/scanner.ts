@@ -6,7 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { COMPONENT_PREFIX_MAP } from './types';
+import { COMPONENT_PREFIX_MAP, VALID_PREFIXES } from './types';
 import { isValidIconName } from './ast-utils';
 import { readUsageFile, usageFilePath, usageNames } from '../metro/usageFile';
 
@@ -100,6 +100,17 @@ function literalsIn(value: string): string[] {
  * carefully as the icon components themselves.
  */
 const DEFINE_ICONS_REGEX = /defineIcons\s*<\s*(\w+)IconName\s*>\s*\(\s*([[{])/g;
+
+/**
+ * Matches a createIconAliases call and captures its body.
+ *
+ * `createIconAliases({ aliases: { back: 'ion:chevron-back' } })` is this
+ * package's own registry, and the names in it are already written as
+ * `prefix:name` — as certain as anything on an icon component. The scan did
+ * not read it, so an application following the pattern this package
+ * recommends paid a network fetch for every alias it declared. One had 62.
+ */
+const CREATE_ICON_ALIASES_REGEX = /createIconAliases\s*(?:<[^>]*>)?\s*\(\s*\{/g;
 
 /**
  * Regex to match prefetchIcons calls
@@ -207,6 +218,30 @@ function scanFile(
       icons.push(fullName);
       if (verbose) {
         console.log(`[rn-iconify:scanner] Found ${fullName} via defineIcons in ${filePath}`);
+      }
+    }
+  }
+
+  // Scan for createIconAliases registries
+  CREATE_ICON_ALIASES_REGEX.lastIndex = 0;
+  while ((match = CREATE_ICON_ALIASES_REGEX.exec(content)) !== null) {
+    const body = extractBalanced(content, match.index + match[0].length - 1, '{');
+    if (body === null) continue;
+
+    STRING_ITEM_REGEX.lastIndex = 0;
+    let itemMatch: RegExpExecArray | null;
+    while ((itemMatch = STRING_ITEM_REGEX.exec(body)) !== null) {
+      const iconName = itemMatch[1];
+      // The config holds more than aliases, and any string in it reaches here.
+      // A well-formed name is not enough to tell an alias from a fallback
+      // label, so the prefix has to name a set this package actually knows.
+      if (!iconName || !isValidIconName(iconName)) continue;
+      const [prefix] = iconName.split(':');
+      if (!prefix || !VALID_PREFIXES.has(prefix)) continue;
+
+      icons.push(iconName);
+      if (verbose) {
+        console.log(`[rn-iconify:scanner] Found ${iconName} via createIconAliases in ${filePath}`);
       }
     }
   }
