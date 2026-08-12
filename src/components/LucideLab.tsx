@@ -383,5 +383,27 @@ const lucide_labIconNames = {
   'yin-yang': true,
 } as const;
 
-export type LucideLabIconName = keyof typeof lucide_labIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type LucideLabIconAlias =
+  | 'chef-hat'
+  | 'circle-dollar-sign'
+  | 'coffee'
+  | 'concierge-bell'
+  | 'flower-2'
+  | 'grape'
+  | 'hard-hat'
+  | 'home'
+  | 'save'
+  | 'save-all'
+  | 'shirt'
+  | 'square-code'
+  | 'utensils'
+  | 'utensils-crossed'
+  | 'vote';
+
+export type LucideLabIconName = keyof typeof lucide_labIconNames | LucideLabIconAlias;
 export const LucideLab = createIconSet<LucideLabIconName>('lucide-lab', lucide_labIconNames);

@@ -1605,7 +1605,16 @@ const fluent_emoji_high_contrastIconNames = {
   'world-map': true,
 } as const;
 
-export type FluentEmojiHighContrastIconName = keyof typeof fluent_emoji_high_contrastIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type FluentEmojiHighContrastIconAlias = 'japanese-hear-button';
+
+export type FluentEmojiHighContrastIconName =
+  | keyof typeof fluent_emoji_high_contrastIconNames
+  | FluentEmojiHighContrastIconAlias;
 export const FluentEmojiHighContrast = createIconSet<FluentEmojiHighContrastIconName>(
   'fluent-emoji-high-contrast',
   fluent_emoji_high_contrastIconNames

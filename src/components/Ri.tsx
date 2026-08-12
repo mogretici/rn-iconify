@@ -3198,5 +3198,68 @@ const riIconNames = {
   'windy-line': true,
 } as const;
 
-export type RiIconName = keyof typeof riIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type RiIconAlias =
+  | 'arrow-down-circle-fill-2'
+  | 'battery-low-fill-2'
+  | 'book-mark-fill'
+  | 'book-mark-line'
+  | 'brain-4-fill'
+  | 'brain-4-line'
+  | 'certificate-2-fill'
+  | 'certificate-2-line'
+  | 'certificate-fill'
+  | 'certificate-line'
+  | 'chat-1-fill-2'
+  | 'connector-fill'
+  | 'connector-line'
+  | 'cookie-fill'
+  | 'cookie-line'
+  | 'cursor-ai-fill'
+  | 'cursor-ai-line'
+  | 'draw-fill'
+  | 'draw-line'
+  | 'file-2-line-2'
+  | 'file-mark-fill'
+  | 'file-mark-line'
+  | 'font-sans'
+  | 'ghost-4-fill'
+  | 'ghost-4-line'
+  | 'gitbook-fill'
+  | 'gitbook-line'
+  | 'grok-ai-fill'
+  | 'grok-ai-line'
+  | 'hand-2'
+  | 'hard-drive-2-fill-2'
+  | 'heading-2'
+  | 'megaphone-2-fill'
+  | 'megaphone-2-line'
+  | 'menu-fold-3-line-2'
+  | 'menu-unfold-3-line-2'
+  | 'menu-unfold-4-line-2'
+  | 'microsoft-copilot-fill'
+  | 'microsoft-copilot-line'
+  | 'mosaic-fill'
+  | 'mosaic-line'
+  | 'qr-scan-ai-fill'
+  | 'qr-scan-ai-line'
+  | 'qwen-ai-fill'
+  | 'qwen-ai-line'
+  | 'reddit-2-fill'
+  | 'reddit-2-line'
+  | 'sim-card-warning-fill'
+  | 'sim-card-warning-line'
+  | 'space-ship-2-fill'
+  | 'space-ship-2-line'
+  | 'sticky-note-2-fill-2'
+  | 'subreddit-fill'
+  | 'subreddit-line'
+  | 'zhipu-ai-fill'
+  | 'zhipu-ai-line';
+
+export type RiIconName = keyof typeof riIconNames | RiIconAlias;
 export const Ri = createIconSet<RiIconName>('ri', riIconNames);

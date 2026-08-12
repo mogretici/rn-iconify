@@ -1225,5 +1225,41 @@ const uilIconNames = {
   windy: true,
 } as const;
 
-export type UilIconName = keyof typeof uilIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type UilIconAlias =
+  | 'atm-card'
+  | 'ball'
+  | 'bitcoin-bold'
+  | 'calcualtor'
+  | 'cart'
+  | 'cloud-set'
+  | 'code'
+  | 'commnet-alt-slash'
+  | 'computer-mouse'
+  | 'creative-commons-pd-alt'
+  | 'document'
+  | 'down-arrow'
+  | 'entry'
+  | 'food'
+  | 'game'
+  | 'graduation-hat'
+  | 'location'
+  | 'medical'
+  | 'mobey-bill-slash'
+  | 'raddit-alien-alt'
+  | 'science'
+  | 'shopping-trolley'
+  | 'sport'
+  | 'symbol'
+  | 'technology'
+  | 'truck-case'
+  | 'user-hard-hat'
+  | 'yellow'
+  | 'youtube-alt';
+
+export type UilIconName = keyof typeof uilIconNames | UilIconAlias;
 export const Uil = createIconSet<UilIconName>('uil', uilIconNames);

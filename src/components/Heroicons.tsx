@@ -1298,5 +1298,21 @@ const heroiconsIconNames = {
   'x-mark-solid': true,
 } as const;
 
-export type HeroiconsIconName = keyof typeof heroiconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type HeroiconsIconAlias =
+  | 'code-solid'
+  | 'code-square-solid'
+  | 'exclaimation-circle'
+  | 'exclaimation-circle-solid'
+  | 'exclaimation-triangle'
+  | 'exclaimation-triangle-solid'
+  | 'viewfinder-dot'
+  | 'viewfinder-dot-20-solid'
+  | 'viewfinder-dot-solid';
+
+export type HeroiconsIconName = keyof typeof heroiconsIconNames | HeroiconsIconAlias;
 export const Heroicons = createIconSet<HeroiconsIconName>('heroicons', heroiconsIconNames);

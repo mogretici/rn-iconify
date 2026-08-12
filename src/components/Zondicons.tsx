@@ -307,5 +307,12 @@ const zondiconsIconNames = {
   'zoom-out': true,
 } as const;
 
-export type ZondiconsIconName = keyof typeof zondiconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type ZondiconsIconAlias = 'bookmarkcopy2' | 'bookmarkcopy3' | 'radarcopy2' | 'toolscopy';
+
+export type ZondiconsIconName = keyof typeof zondiconsIconNames | ZondiconsIconAlias;
 export const Zondicons = createIconSet<ZondiconsIconName>('zondicons', zondiconsIconNames);

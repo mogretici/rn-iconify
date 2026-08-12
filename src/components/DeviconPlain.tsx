@@ -765,7 +765,46 @@ const devicon_plainIconNames = {
   zustand: true,
 } as const;
 
-export type DeviconPlainIconName = keyof typeof devicon_plainIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type DeviconPlainIconAlias =
+  | '3dsmax'
+  | 'amazonwebservices-wordmark'
+  | 'appwrite'
+  | 'c'
+  | 'codepen'
+  | 'digitalocean'
+  | 'digitalocean-wordmark'
+  | 'gatling'
+  | 'gatsby'
+  | 'gradle'
+  | 'gradle-wordmark'
+  | 'jasmine'
+  | 'jasmine-wordmark'
+  | 'laravel'
+  | 'laravel-wordmark'
+  | 'lua-wordmark'
+  | 'mysql'
+  | 'nestjs'
+  | 'nestjs-wordmark'
+  | 'opensuse'
+  | 'opensuse-wordmark'
+  | 'postcss'
+  | 'processing-wordmark'
+  | 'rust'
+  | 'spring'
+  | 'spring-wordmark'
+  | 'typo3'
+  | 'vyper'
+  | 'vyper-wordmark'
+  | 'web3'
+  | 'zend'
+  | 'zend-wordmark';
+
+export type DeviconPlainIconName = keyof typeof devicon_plainIconNames | DeviconPlainIconAlias;
 export const DeviconPlain = createIconSet<DeviconPlainIconName>(
   'devicon-plain',
   devicon_plainIconNames

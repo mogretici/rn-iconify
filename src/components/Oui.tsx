@@ -447,5 +447,19 @@ const ouiIconNames = {
   'ws-selector': true,
 } as const;
 
-export type OuiIconName = keyof typeof ouiIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type OuiIconAlias =
+  | 'empty'
+  | 'menu'
+  | 'play-filled'
+  | 'submodule'
+  | 'symlink'
+  | 'timeslider'
+  | 'unlink';
+
+export type OuiIconName = keyof typeof ouiIconNames | OuiIconAlias;
 export const Oui = createIconSet<OuiIconName>('oui', ouiIconNames);

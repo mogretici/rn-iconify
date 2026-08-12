@@ -1489,5 +1489,31 @@ const ixIconNames = {
   'zoom-selection': true,
 } as const;
 
-export type IxIconName = keyof typeof ixIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type IxIconAlias =
+  | 'battery-bolt'
+  | 'battery-upright-bolt'
+  | 'checkbox-component-checked'
+  | 'checkbox-component-mixed'
+  | 'checkbox-component-unchecked'
+  | 'corner-arrow-up-left'
+  | 'filter-outline'
+  | 'folder-new-outline'
+  | 'folder-open-outline'
+  | 'folder-outline'
+  | 'full-screeen'
+  | 'full-screeen-exit'
+  | 'landing-page-logo'
+  | 'location-outline'
+  | 'new-indicator'
+  | 'new-indicator-filled'
+  | 'plant-outline'
+  | 'user-reading-reading'
+  | 'validate';
+
+export type IxIconName = keyof typeof ixIconNames | IxIconAlias;
 export const Ix = createIconSet<IxIconName>('ix', ixIconNames);

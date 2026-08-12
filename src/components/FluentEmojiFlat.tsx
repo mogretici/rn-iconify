@@ -3155,7 +3155,52 @@ const fluent_emoji_flatIconNames = {
   'world-map': true,
 } as const;
 
-export type FluentEmojiFlatIconName = keyof typeof fluent_emoji_flatIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type FluentEmojiFlatIconAlias =
+  | 'japanese-hear-button'
+  | 'man-with-bunny-ears-dark'
+  | 'man-with-bunny-ears-light'
+  | 'man-with-bunny-ears-medium'
+  | 'man-with-bunny-ears-medium-dark'
+  | 'man-with-bunny-ears-medium-light'
+  | 'man-wrestling-dark'
+  | 'man-wrestling-light'
+  | 'man-wrestling-medium'
+  | 'man-wrestling-medium-dark'
+  | 'man-wrestling-medium-light'
+  | 'person-with-bunny-ears-dark'
+  | 'person-with-bunny-ears-light'
+  | 'person-with-bunny-ears-medium'
+  | 'person-with-bunny-ears-medium-dark'
+  | 'person-with-bunny-ears-medium-light'
+  | 'person-wrestling-dark'
+  | 'person-wrestling-light'
+  | 'person-wrestling-medium'
+  | 'person-wrestling-medium-dark'
+  | 'person-wrestling-medium-light'
+  | 'skier-dark'
+  | 'skier-light'
+  | 'skier-medium'
+  | 'skier-medium-dark'
+  | 'skier-medium-light'
+  | 'woman-with-bunny-ears-dark'
+  | 'woman-with-bunny-ears-light'
+  | 'woman-with-bunny-ears-medium'
+  | 'woman-with-bunny-ears-medium-dark'
+  | 'woman-with-bunny-ears-medium-light'
+  | 'woman-wrestling-dark'
+  | 'woman-wrestling-light'
+  | 'woman-wrestling-medium'
+  | 'woman-wrestling-medium-dark'
+  | 'woman-wrestling-medium-light';
+
+export type FluentEmojiFlatIconName =
+  | keyof typeof fluent_emoji_flatIconNames
+  | FluentEmojiFlatIconAlias;
 export const FluentEmojiFlat = createIconSet<FluentEmojiFlatIconName>(
   'fluent-emoji-flat',
   fluent_emoji_flatIconNames

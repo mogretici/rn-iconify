@@ -342,5 +342,25 @@ const radix_iconsIconNames = {
   'zoom-out': true,
 } as const;
 
-export type RadixIconsIconName = keyof typeof radix_iconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type RadixIconsIconAlias =
+  | 'align-center'
+  | 'align-end'
+  | 'align-horizontal-centers'
+  | 'align-start'
+  | 'align-stretch'
+  | 'align-vertical-centers'
+  | 'dot-solid'
+  | 'drawing-pin-solid'
+  | 'justify-center'
+  | 'justify-end'
+  | 'justify-start'
+  | 'justify-stretch'
+  | 'sewing-pin-solid';
+
+export type RadixIconsIconName = keyof typeof radix_iconsIconNames | RadixIconsIconAlias;
 export const RadixIcons = createIconSet<RadixIconsIconName>('radix-icons', radix_iconsIconNames);

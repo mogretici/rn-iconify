@@ -429,5 +429,22 @@ const oouiIconNames = {
   'zoom-out': true,
 } as const;
 
-export type OouiIconName = keyof typeof oouiIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type OouiIconAlias =
+  | 'book-ltr'
+  | 'book-rtl'
+  | 'draggable'
+  | 'funnel-ltr'
+  | 'funnel-rtl'
+  | 'image-gallery'
+  | 'outline-ltr'
+  | 'outline-rtl'
+  | 'reference'
+  | 'window';
+
+export type OouiIconName = keyof typeof oouiIconNames | OouiIconAlias;
 export const Ooui = createIconSet<OouiIconName>('ooui', oouiIconNames);

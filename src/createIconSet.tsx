@@ -103,9 +103,14 @@ function findClosestMatch(name: string, validNames: string[]): string | null {
  * <Mdi name="home" size={24} color="blue" />
  * ```
  */
+// The map does not have to cover `T`. Names upstream has renamed or hidden are
+// part of the accepted type but deliberately absent from the object, because a
+// union costs nothing at runtime and an object entry costs its every byte.
+// Anything the map does not have falls through as itself, which is the name the
+// Iconify API answers to.
 export function createIconSet<T extends string>(
   prefix: string,
-  iconNames: Record<T, IconNameValue>
+  iconNames: Readonly<Record<string, IconNameValue>>
 ) {
   // Cache valid names for fuzzy matching (only computed once per icon set)
   let cachedValidNames: string[] | null = null;
@@ -125,8 +130,13 @@ export function createIconSet<T extends string>(
         }
         const suggestion = findClosestMatch(name, cachedValidNames);
         const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
+        // Not "unknown": names upstream has renamed or hidden are typed but
+        // deliberately absent from this list, and the API resolves them. This
+        // says what is actually known — the name is not one of the current
+        // ones — rather than claiming it does not exist.
         console.warn(
-          `[rn-iconify] Unknown icon name "${name}" for ${toPascalCase(prefix)}.${suggestionText}`
+          `[rn-iconify] "${name}" is not a current ${toPascalCase(prefix)} icon; ` +
+            `it will be requested from the Iconify API.${suggestionText}`
         );
       }
 

@@ -554,5 +554,45 @@ const proiconsIconNames = {
   'zoom-out': true,
 } as const;
 
-export type ProiconsIconName = keyof typeof proiconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type ProiconsIconAlias =
+  | 'add-circular'
+  | 'add-square-multiple-var'
+  | 'apps-list'
+  | 'arrow-foward'
+  | 'arrow-up-down-1'
+  | 'attatch'
+  | 'bar-graph'
+  | 'bookmark-multiple-var'
+  | 'box-drag'
+  | 'box-margins'
+  | 'checkbox-intermediate-2'
+  | 'checkmark-checked'
+  | 'checkmark-intermediate'
+  | 'chrome-restore-var'
+  | 'comment-multiple-var'
+  | 'copy-var'
+  | 'fast-foward'
+  | 'museum'
+  | 'panel-left-open-1'
+  | 'phone-accept'
+  | 'phone-hang-up'
+  | 'play-circular'
+  | 'save-as'
+  | 'slash-box'
+  | 'tag-multiple-var'
+  | 'text-bullet-list'
+  | 'text-bullet-list-square'
+  | 'text-bullet-list-square-add'
+  | 'text-bullet-list-tree'
+  | 'volume-0'
+  | 'volume-1'
+  | 'volume-medium'
+  | 'window-multiple-var';
+
+export type ProiconsIconName = keyof typeof proiconsIconNames | ProiconsIconAlias;
 export const Proicons = createIconSet<ProiconsIconName>('proicons', proiconsIconNames);

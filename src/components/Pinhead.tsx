@@ -8,6 +8,63 @@
 import { createIconSet } from '../createIconSet';
 
 const pinheadIconNames = {
+  _0: '0',
+  '_0-above-water': '0-above-water',
+  _1: '1',
+  '_1-above-water': '1-above-water',
+  '_1-minus': '1-minus',
+  '_1-minus-above-water': '1-minus-above-water',
+  '_1-plus': '1-plus',
+  '_1-plus-above-water': '1-plus-above-water',
+  _10: '10',
+  _11: '11',
+  _111: '111',
+  _112: '112',
+  _12: '12',
+  _123: '123',
+  _2: '2',
+  '_2-above-water': '2-above-water',
+  '_2-minus': '2-minus',
+  '_2-minus-above-water': '2-minus-above-water',
+  '_2-plus': '2-plus',
+  '_2-plus-above-water': '2-plus-above-water',
+  _211: '211',
+  _3: '3',
+  '_3-above-water': '3-above-water',
+  '_3-minus': '3-minus',
+  '_3-minus-above-water': '3-minus-above-water',
+  '_3-plus': '3-plus',
+  '_3-plus-above-water': '3-plus-above-water',
+  _311: '311',
+  _4: '4',
+  '_4-above-water': '4-above-water',
+  '_4-minus': '4-minus',
+  '_4-minus-above-water': '4-minus-above-water',
+  '_4-plus': '4-plus',
+  '_4-plus-above-water': '4-plus-above-water',
+  _411: '411',
+  _5: '5',
+  '_5-above-water': '5-above-water',
+  '_5-minus': '5-minus',
+  '_5-minus-above-water': '5-minus-above-water',
+  '_5-plus': '5-plus',
+  '_5-plus-above-water': '5-plus-above-water',
+  _511: '511',
+  _6: '6',
+  '_6-above-water': '6-above-water',
+  '_6-minus': '6-minus',
+  '_6-minus-above-water': '6-minus-above-water',
+  '_6-plus': '6-plus',
+  '_6-plus-above-water': '6-plus-above-water',
+  _611: '611',
+  _7: '7',
+  _711: '711',
+  _8: '8',
+  _811: '811',
+  _9: '9',
+  _911: '911',
+  _988: '988',
+  _999: '999',
   a: true,
   'a-frame-sidewall-tent': true,
   'a-frame-sidewall-tents': true,
@@ -28,6 +85,8 @@ const pinheadIconNames = {
   'aerialway-pole': true,
   africa: true,
   'africa-and-madagascar': true,
+  'ahimsa-hand': true,
+  'ahimsa-hand-on-square': true,
   'ahimsa-hand-outline': true,
   airboat: true,
   'airboat-on-water': true,
@@ -56,6 +115,7 @@ const pinheadIconNames = {
   'anguished-face-with-spots-in-circle-outline': true,
   'anime-eye-and-eyebrow': true,
   ankh: true,
+  'ankh-on-square': true,
   'antenna-array': true,
   antibody: true,
   antler: true,
@@ -201,6 +261,7 @@ const pinheadIconNames = {
   'bench-with-backrest-with-plaque': true,
   'bench-with-plaque': true,
   'bench-with-plaque-and-armrests': true,
+  'bent-tobacco-pipe': true,
   bicycle: true,
   'bicycle-and-arrow-right-above-arrow-left': true,
   'bicycle-and-baht': true,
@@ -269,6 +330,7 @@ const pinheadIconNames = {
   'bowling-ball': true,
   'bowling-pin': true,
   'bowling-pin-and-bowling-ball': true,
+  'bowling-pin-top-right': true,
   'bowling-pins': true,
   'box-truck': true,
   'boxes-on-pallet': true,
@@ -362,6 +424,7 @@ const pinheadIconNames = {
   campsites: true,
   can: true,
   'candle-with-flame': true,
+  candlepin: true,
   'candlepin-with-ball': true,
   candlepins: true,
   'canister-vacuum-cleaner': true,
@@ -511,7 +574,9 @@ const pinheadIconNames = {
   'coffee-bean': true,
   'coffee-mug-with-steam': true,
   coffin: true,
+  'coffin-with-ahimsa-hand': true,
   'coffin-with-angel-moroni': true,
+  'coffin-with-ankh': true,
   'coffin-with-dharma-wheel': true,
   'coffin-with-flaming-chalice': true,
   'coffin-with-khanda': true,
@@ -708,8 +773,6 @@ const pinheadIconNames = {
   'ear-with-hearing-aid': true,
   egg: true,
   'egg-with-crack': true,
-  eight: true,
-  'eight-one-one': true,
   'electrical-circuit-and-bolt': true,
   'electrical-current-transformer-and-bolt': true,
   'electrical-curved-circuit-breaker-and-bolt': true,
@@ -782,14 +845,7 @@ const pinheadIconNames = {
   'fish-under-paragraph': true,
   'fish-under-water': true,
   fishes: true,
-  five: true,
-  'five-above-water': true,
-  'five-minus': true,
-  'five-minus-above-water': true,
-  'five-one-one': true,
   'five-pips': true,
-  'five-plus': true,
-  'five-plus-above-water': true,
   flag: true,
   'flag-above-railway-track': true,
   'flag-checkered': true,
@@ -827,18 +883,11 @@ const pinheadIconNames = {
   'fountain-from-fountain-basin': true,
   'fountain-from-ground': true,
   'fountain-from-water': true,
-  four: true,
-  'four-above-water': true,
   'four-legged-octopus': true,
   'four-legged-octopus-with-cartoon-eyes': true,
   'four-legged-squid': true,
   'four-legged-squid-with-cartoon-eyes': true,
-  'four-minus': true,
-  'four-minus-above-water': true,
-  'four-one-one': true,
   'four-pips': true,
-  'four-plus': true,
-  'four-plus-above-water': true,
   'four-square-court': true,
   'four-square-court-with-ball': true,
   'freight-car': true,
@@ -1152,7 +1201,9 @@ const pinheadIconNames = {
   megalith: true,
   megaphone: true,
   'memorial-stone': true,
+  'memorial-stone-with-ahimsa-hand': true,
   'memorial-stone-with-angel-moroni': true,
+  'memorial-stone-with-ankh': true,
   'memorial-stone-with-dharma-wheel': true,
   'memorial-stone-with-flaming-chalice': true,
   'memorial-stone-with-inscription': true,
@@ -1291,10 +1342,6 @@ const pinheadIconNames = {
   'new-york-with-capital-star': true,
   newspaper: true,
   'newspaper-box-with-newspaper': true,
-  nine: true,
-  'nine-eight-eight': true,
-  'nine-nine-nine': true,
-  'nine-one-one': true,
   'nine-point-star': true,
   'nine-point-star-outline': true,
   'no-entry': true,
@@ -1325,19 +1372,7 @@ const pinheadIconNames = {
   'oklahoma-with-capital-star': true,
   om: true,
   'om-on-square': true,
-  one: true,
-  'one-above-water': true,
-  'one-minus': true,
-  'one-minus-above-water': true,
-  'one-one': true,
-  'one-one-one': true,
-  'one-one-two': true,
   'one-pip': true,
-  'one-plus': true,
-  'one-plus-above-water': true,
-  'one-two': true,
-  'one-two-three': true,
-  'one-zero': true,
   'open-book': true,
   'open-book-above-outstretched-hand': true,
   'open-book-under-roof': true,
@@ -1614,21 +1649,21 @@ const pinheadIconNames = {
   'phone-bars-weakest-signal': true,
   'phone-bottom-right': true,
   'phone-down': true,
-  'phone-down-above-eight-one-one': true,
-  'phone-down-above-five-one-one': true,
-  'phone-down-above-four-one-one': true,
+  'phone-down-above-111': true,
+  'phone-down-above-112': true,
+  'phone-down-above-123': true,
+  'phone-down-above-211': true,
+  'phone-down-above-311': true,
+  'phone-down-above-411': true,
+  'phone-down-above-511': true,
+  'phone-down-above-611': true,
+  'phone-down-above-711': true,
+  'phone-down-above-811': true,
+  'phone-down-above-911': true,
+  'phone-down-above-988': true,
+  'phone-down-above-999': true,
   'phone-down-above-keyboard': true,
-  'phone-down-above-nine-eight-eight': true,
-  'phone-down-above-nine-nine-nine': true,
-  'phone-down-above-nine-one-one': true,
-  'phone-down-above-one-one-one': true,
-  'phone-down-above-one-one-two': true,
-  'phone-down-above-one-two-three': true,
-  'phone-down-above-seven-one-one': true,
-  'phone-down-above-six-one-one': true,
   'phone-down-above-sos-text': true,
-  'phone-down-above-three-one-one': true,
-  'phone-down-above-two-one-one': true,
   'phone-right': true,
   'phone-right-with-beams-from-receiver': true,
   'phone-right-with-exclamation-point': true,
@@ -1672,12 +1707,21 @@ const pinheadIconNames = {
   'pin-pad-with-shekel': true,
   'pin-pad-with-yen-yuan': true,
   'pint-glass': true,
-  pipe: true,
   'pixel-anchor': true,
   'pixel-ape-face': true,
   'pixel-ape-face-with-eye-patch': true,
   'pixel-apple': true,
+  'pixel-arrow-bottom-left': true,
+  'pixel-arrow-bottom-right': true,
+  'pixel-arrow-down': true,
+  'pixel-arrow-left': true,
+  'pixel-arrow-right': true,
+  'pixel-arrow-top-left': true,
+  'pixel-arrow-top-right': true,
+  'pixel-arrow-up': true,
+  'pixel-arrows-left-right': true,
   'pixel-arrows-left-right-above-water': true,
+  'pixel-arrows-up-down': true,
   'pixel-baht': true,
   'pixel-bell': true,
   'pixel-bicycle': true,
@@ -1913,8 +1957,6 @@ const pinheadIconNames = {
   'sedan-with-raised-hood-under-wrench': true,
   'semi-trailer': true,
   'semi-trailer-with-bolt': true,
-  seven: true,
-  'seven-one-one': true,
   'sewage-pipe-cross-section': true,
   'shaker-pint-glass': true,
   'shark-dorsal-fin-in-water': true,
@@ -1962,14 +2004,7 @@ const pinheadIconNames = {
   'sitting-tank-toilet-and-droplet': true,
   'sitting-tank-toilet-beside-wc-text': true,
   'sitting-tank-toilet-with-droplet': true,
-  six: true,
-  'six-above-water': true,
-  'six-minus': true,
-  'six-minus-above-water': true,
-  'six-one-one': true,
   'six-pips': true,
-  'six-plus': true,
-  'six-plus-above-water': true,
   skateboard: true,
   skull: true,
   'skull-above-crossed-bones': true,
@@ -2170,20 +2205,13 @@ const pinheadIconNames = {
   texas: true,
   'texas-with-capital-star': true,
   'thatched-roof-hut': true,
-  three: true,
-  'three-above-water': true,
   'three-books-stacked': true,
   'three-dot-horizontal-line': true,
   'three-dot-horizontal-line-in-rectangle': true,
   'three-dot-vertical-line': true,
   'three-dot-vertical-line-in-rectangle': true,
   'three-inch-floppy-disk': true,
-  'three-minus': true,
-  'three-minus-above-water': true,
-  'three-one-one': true,
   'three-pips': true,
-  'three-plus': true,
-  'three-plus-above-water': true,
   'thumbs-down-hand-with-sleeve': true,
   'thumbs-up-hand-with-sleeve': true,
   thyroid: true,
@@ -2301,21 +2329,15 @@ const pinheadIconNames = {
   turntable: true,
   'turtle-shell-top': true,
   'turtle-top': true,
-  two: true,
-  'two-above-water': true,
+  'tv-screen': true,
   'two-button-computer-mouse-with-scroll-wheel': true,
   'two-dot-horizontal-line-in-rectangle': true,
   'two-dot-vertical-line-in-rectangle': true,
-  'two-minus': true,
-  'two-minus-above-water': true,
-  'two-one-one': true,
   'two-people-above-car': true,
   'two-people-above-pickup-truck': true,
   'two-people-above-sedan': true,
   'two-people-above-station-wagon': true,
   'two-pips': true,
-  'two-plus': true,
-  'two-plus-above-water': true,
   'typha-and-duck-in-water': true,
   'typha-in-water': true,
   u: true,
@@ -2473,9 +2495,170 @@ const pinheadIconNames = {
   'yin-yang': true,
   'yin-yang-on-square': true,
   z: true,
-  zero: true,
-  'zero-above-water': true,
 } as const;
 
-export type PinheadIconName = keyof typeof pinheadIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type PinheadIconAlias =
+  | 'bicycle-and-key'
+  | 'bicycle-and-taxi-checkerboard'
+  | 'bicycle-and-wrench'
+  | 'campsite-over-water'
+  | 'campsite-over-waters'
+  | 'canoe-and-key'
+  | 'canoe-and-taxi-checkerboard'
+  | 'car-and-key'
+  | 'car-and-wrench'
+  | 'car-beside-car-under-car-beside-car'
+  | 'car-with-checkmark'
+  | 'car-with-taxi-checkerboard'
+  | 'cargobike-and-key'
+  | 'cargobike-and-taxi-checkerboard'
+  | 'cargobike-and-wrench'
+  | 'conifer-tree-and-flower-and-mountain-snowcapped'
+  | 'ear-atop-slash'
+  | 'ear-atop-slash-with-t'
+  | 'eight'
+  | 'eight-one-one'
+  | 'eleven'
+  | 'fillet-knife-and-fish'
+  | 'fish-and-hook'
+  | 'fish-and-hook-under-ice'
+  | 'five'
+  | 'five-above-water'
+  | 'five-minus'
+  | 'five-minus-above-water'
+  | 'five-minus-over-water'
+  | 'five-one-one'
+  | 'five-over-water'
+  | 'five-plus'
+  | 'five-plus-above-water'
+  | 'five-plus-over-water'
+  | 'flag-over-railway-track'
+  | 'four'
+  | 'four-above-water'
+  | 'four-minus'
+  | 'four-minus-above-water'
+  | 'four-minus-over-water'
+  | 'four-one-one'
+  | 'four-over-water'
+  | 'four-plus'
+  | 'four-plus-above-water'
+  | 'four-plus-over-water'
+  | 'garage-and-key'
+  | 'garage-and-wrench'
+  | 'hammer-with-nail'
+  | 'hand-holding-heart'
+  | 'inscribed-stone'
+  | 'kerb-flush'
+  | 'kerb-flush-under-shoe'
+  | 'kerb-lowered'
+  | 'kerb-lowered-under-shoe'
+  | 'kerb-raised'
+  | 'kerb-raised-under-shoe'
+  | 'kerb-rolled'
+  | 'kerb-rolled-under-shoe'
+  | 'motorboat-and-key'
+  | 'motorboat-and-taxi-checkerboard'
+  | 'motorboat-and-wrench'
+  | 'motorcycle-and-key'
+  | 'motorcycle-and-taxi-checkerboard'
+  | 'motorcycle-and-wrench'
+  | 'nine'
+  | 'nine-eight-eight'
+  | 'nine-nine-nine'
+  | 'nine-one-one'
+  | 'one'
+  | 'one-above-water'
+  | 'one-minus'
+  | 'one-minus-above-water'
+  | 'one-minus-over-water'
+  | 'one-one'
+  | 'one-one-one'
+  | 'one-one-two'
+  | 'one-over-water'
+  | 'one-plus'
+  | 'one-plus-above-water'
+  | 'one-plus-over-water'
+  | 'one-two'
+  | 'one-two-three'
+  | 'one-zero'
+  | 'people-above-car'
+  | 'people-above-pickup-truck'
+  | 'people-above-sedan'
+  | 'people-above-station-wagon'
+  | 'person-wearing-backpack-walking-with-hiking-pole-in-gable-roofed-building'
+  | 'phone-down-above-eight-one-one'
+  | 'phone-down-above-five-one-one'
+  | 'phone-down-above-four-one-one'
+  | 'phone-down-above-nine-eight-eight'
+  | 'phone-down-above-nine-nine-nine'
+  | 'phone-down-above-nine-one-one'
+  | 'phone-down-above-one-one-one'
+  | 'phone-down-above-one-one-two'
+  | 'phone-down-above-one-two-three'
+  | 'phone-down-above-seven-one-one'
+  | 'phone-down-above-six-one-one'
+  | 'phone-down-above-three-one-one'
+  | 'phone-down-above-two-one-one'
+  | 'pipe'
+  | 'roman-numeral-i-over-water'
+  | 'roman-numeral-ii-over-water'
+  | 'roman-numeral-iii-over-water'
+  | 'roman-numeral-iv-over-water'
+  | 'roman-numeral-v-over-water'
+  | 'roman-numeral-vi-over-water'
+  | 'roof-with-fireplace-and-chimney'
+  | 'scissors-open'
+  | 'seaplane-takeoff-over-water'
+  | 'seven'
+  | 'seven-one-one'
+  | 'six'
+  | 'six-above-water'
+  | 'six-minus'
+  | 'six-minus-above-water'
+  | 'six-minus-over-water'
+  | 'six-one-one'
+  | 'six-over-water'
+  | 'six-plus'
+  | 'six-plus-above-water'
+  | 'six-plus-over-water'
+  | 'skull-over-water'
+  | 'snowflake-and-icicles'
+  | 'suitcase-and-key'
+  | 'suitcase-in-rectangle-outline-and-key'
+  | 'taxi-and-taxi-checkerboard'
+  | 'ten'
+  | 'three'
+  | 'three-above-water'
+  | 'three-minus'
+  | 'three-minus-above-water'
+  | 'three-minus-over-water'
+  | 'three-one-one'
+  | 'three-over-water'
+  | 'three-plus'
+  | 'three-plus-above-water'
+  | 'three-plus-over-water'
+  | 'tree-and-bench-with-backrest'
+  | 'twelve'
+  | 'two'
+  | 'two-above-water'
+  | 'two-minus'
+  | 'two-minus-above-water'
+  | 'two-minus-over-water'
+  | 'two-one-one'
+  | 'two-over-water'
+  | 'two-plus'
+  | 'two-plus-above-water'
+  | 'two-plus-over-water'
+  | 'x-over-water'
+  | 'zero'
+  | 'zero-above-water'
+  | 'zero-with-slash'
+  | 'zero-with-slash-over-water';
+
+export type PinheadIconName = keyof typeof pinheadIconNames | PinheadIconAlias;
 export const Pinhead = createIconSet<PinheadIconName>('pinhead', pinheadIconNames);

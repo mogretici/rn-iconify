@@ -1957,7 +1957,37 @@ const icon_park_solidIconNames = {
   'thunderstorm-one': true,
 } as const;
 
-export type IconParkSolidIconName = keyof typeof icon_park_solidIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type IconParkSolidIconAlias =
+  | 'a-cane'
+  | 'archers-bow'
+  | 'behance'
+  | 'check-correct'
+  | 'clap'
+  | 'cocktail'
+  | 'croissant'
+  | 'dragon-zodiac'
+  | 'empty'
+  | 'goblet-one'
+  | 'hair-clip'
+  | 'jinritoutiao'
+  | 'journey'
+  | 'lark-one'
+  | 'list-two'
+  | 'pencil'
+  | 'photograph'
+  | 'proportional-scaling'
+  | 'rugby'
+  | 'snake-zodiac'
+  | 'stretching'
+  | 'tencent-qq'
+  | 'tower-of-pisa';
+
+export type IconParkSolidIconName = keyof typeof icon_park_solidIconNames | IconParkSolidIconAlias;
 export const IconParkSolid = createIconSet<IconParkSolidIconName>(
   'icon-park-solid',
   icon_park_solidIconNames

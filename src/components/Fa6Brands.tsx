@@ -505,5 +505,35 @@ const fa6_brandsIconNames = {
   'wizards-of-the-coast': true,
 } as const;
 
-export type Fa6BrandsIconName = keyof typeof fa6_brandsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type Fa6BrandsIconAlias =
+  | 'behance-square'
+  | 'dribbble-square'
+  | 'facebook-square'
+  | 'git-square'
+  | 'github-square'
+  | 'google-plus-square'
+  | 'hacker-news-square'
+  | 'instagram-square'
+  | 'js-square'
+  | 'lastfm-square'
+  | 'odnoklassniki-square'
+  | 'pied-piper-square'
+  | 'pinterest-square'
+  | 'reddit-square'
+  | 'snapchat-square'
+  | 'steam-square'
+  | 'tumblr-square'
+  | 'twitter-square'
+  | 'viadeo-square'
+  | 'vimeo-square'
+  | 'whatsapp-square'
+  | 'xing-square'
+  | 'youtube-square';
+
+export type Fa6BrandsIconName = keyof typeof fa6_brandsIconNames | Fa6BrandsIconAlias;
 export const Fa6Brands = createIconSet<Fa6BrandsIconName>('fa6-brands', fa6_brandsIconNames);

@@ -305,5 +305,18 @@ const bxlIconNames = {
   'zoom-workplace': true,
 } as const;
 
-export type BxlIconName = keyof typeof bxlIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type BxlIconAlias =
+  | 'bitcoin'
+  | 'drupal'
+  | 'google-plus'
+  | 'google-plus-circle'
+  | 'windows'
+  | 'zoom';
+
+export type BxlIconName = keyof typeof bxlIconNames | BxlIconAlias;
 export const Bxl = createIconSet<BxlIconName>('bxl', bxlIconNames);

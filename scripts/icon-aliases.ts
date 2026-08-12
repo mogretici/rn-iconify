@@ -63,52 +63,50 @@ export function selectDeprecated(names: readonly string[], hidden: readonly stri
 /**
  * Renders the icon map for a generated component.
  *
- * `true` means the key is the icon name. A string means the key resolves to a
- * different name — used both for keys that had to be sanitized (`_500px` ->
- * `500px`) and for names upstream has renamed.
+ * `true` means the key is the icon name. A string means the key had to be
+ * sanitized to be a valid object key and resolves to the real name.
+ *
+ * Only current names go here. See `renderAliasUnion` for why the others do
+ * not.
  */
-export function renderIconEntries(
+export function renderIconEntries(names: readonly string[]): string {
+  return names
+    .map((name) => {
+      const key = sanitizeIconName(name);
+      return key !== name ? `  '${key}': '${name}',` : `  '${name}': true,`;
+    })
+    .join('\n');
+}
+
+/**
+ * Renders the names that are still valid but are no longer the current one —
+ * renamed upstream, or hidden from the listing while still being served.
+ *
+ * These are a type and not an object, and the difference is the whole point.
+ * Mdi has 7,447 current names and 6,363 renamed ones; as map entries the
+ * second group costs more than the first, because each carries two names
+ * rather than a name and `true`. Written into the object, `import { Mdi }`
+ * went from 36 kB to 73 kB — every application paying, forever, for names it
+ * does not use.
+ *
+ * Nothing needs them at runtime. The Iconify API resolves an alias itself:
+ * asking for `mdi:1-2-3` returns `numeric`. So an unrecognised name already
+ * falls through as itself and arrives at an icon. A union gives autocomplete
+ * every one of these names and compiles to nothing at all.
+ *
+ * They are also not sanitized. A key has to be a valid identifier or quoted;
+ * a string literal type has no such rule, so the name is written as upstream
+ * spells it — which is the name the API answers to.
+ */
+export function renderAliasUnion(
   names: readonly string[],
   aliases: Readonly<Record<string, string>>,
   deprecated: readonly string[] = []
-): string {
-  const lines = names.map((name) => {
-    const key = sanitizeIconName(name);
-    return key !== name ? `  '${key}': '${name}',` : `  '${name}': true,`;
-  });
+): string[] {
+  const current = new Set(names);
 
-  const generated = new Set(names.map(sanitizeIconName));
-  const aliasLines = Object.entries(aliases)
-    .map(([from, to]) => [sanitizeIconName(from), to] as const)
-    // A sanitized alias key can collide with a real icon; the real one wins.
-    .filter(([key]) => !generated.has(key))
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, to]) => `  '${key}': '${to}',`);
-
-  const deprecatedLines = deprecated
-    .map((name) => [sanitizeIconName(name), name] as const)
-    .filter(([key]) => !generated.has(key) && !aliases[key])
-    .map(([key, name]) => (key !== name ? `  '${key}': '${name}',` : `  '${name}': true,`));
-
-  const sections = [...lines];
-
-  if (aliasLines.length > 0) {
-    sections.push(
-      '',
-      '  // Names upstream has renamed. Kept so existing code keeps working;',
-      '  // each resolves to the icon that is current.',
-      ...aliasLines
-    );
-  }
-
-  if (deprecatedLines.length > 0) {
-    sections.push(
-      '',
-      '  // Deprecated upstream: hidden from the listing but still served.',
-      '  // Kept so existing code keeps working.',
-      ...deprecatedLines
-    );
-  }
-
-  return sections.join('\n');
+  return [...Object.keys(aliases), ...deprecated]
+    .filter((name) => !current.has(name))
+    .filter((name, index, all) => all.indexOf(name) === index)
+    .sort((a, b) => a.localeCompare(b));
 }

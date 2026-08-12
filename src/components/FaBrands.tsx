@@ -467,5 +467,12 @@ const fa_brandsIconNames = {
   'wizards-of-the-coast': true,
 } as const;
 
-export type FaBrandsIconName = keyof typeof fa_brandsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type FaBrandsIconAlias = 'adobe' | 'nintendo-switch' | 'r' | 'rendact';
+
+export type FaBrandsIconName = keyof typeof fa_brandsIconNames | FaBrandsIconAlias;
 export const FaBrands = createIconSet<FaBrandsIconName>('fa-brands', fa_brandsIconNames);

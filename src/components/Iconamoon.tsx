@@ -1791,5 +1791,49 @@ const iconamoonIconNames = {
   'volume-up-thin': true,
 } as const;
 
-export type IconamoonIconName = keyof typeof iconamoonIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type IconamoonIconAlias =
+  | 'apps-duotone'
+  | 'arrow-bottom-left-1-duotone'
+  | 'arrow-bottom-left-2-duotone'
+  | 'arrow-bottom-right-1-duotone'
+  | 'arrow-top-left-1-duotone'
+  | 'arrow-top-left-2-duotone'
+  | 'arrow-top-right-1-duotone'
+  | 'arrow-top-right-2-duotone'
+  | 'download-duotone'
+  | 'exit-duotone'
+  | 'menu-kebab-horizontal-duotone'
+  | 'menu-kebab-vertical-duotone'
+  | 'number-1-duotone'
+  | 'number-3-duotone'
+  | 'number-4-duotone'
+  | 'number-5-duotone'
+  | 'number-7-duotone'
+  | 'playlist-duotone'
+  | 'playlist-repeat-list-duotone'
+  | 'playlist-repeat-song-duotone'
+  | 'scanner-duotone'
+  | 'sign-division-slash-duotone'
+  | 'sign-equal-duotone'
+  | 'sign-f-duotone'
+  | 'sign-factorial-duotone'
+  | 'sign-minus-duotone'
+  | 'sign-percent-duotone'
+  | 'sign-pi-duotone'
+  | 'sign-plus-duotone'
+  | 'sign-plus-minus-duotone'
+  | 'sign-radical-duotone'
+  | 'sign-x-duotone'
+  | 'sign-y-duotone'
+  | 'swap-duotone'
+  | 'trend-down-duotone'
+  | 'trend-up-duotone'
+  | 'upload-duotone';
+
+export type IconamoonIconName = keyof typeof iconamoonIconNames | IconamoonIconAlias;
 export const Iconamoon = createIconSet<IconamoonIconName>('iconamoon', iconamoonIconNames);

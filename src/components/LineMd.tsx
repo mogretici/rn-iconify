@@ -1228,5 +1228,73 @@ const line_mdIconNames = {
   'weather-cloudy-loop': true,
 } as const;
 
-export type LineMdIconName = keyof typeof line_mdIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type LineMdIconAlias =
+  | 'arrow-long-diagonal'
+  | 'arrow-long-diagonal-rotated'
+  | 'beer-alt-solid'
+  | 'beer-alt-solid-loop'
+  | 'beer-solid'
+  | 'bell-twotone-alert'
+  | 'bell-twotone-alert-loop'
+  | 'calendar-out'
+  | 'cellphonearrow-down'
+  | 'cellphonearrow-down-twotone'
+  | 'cellphonearrow-up'
+  | 'cellphonearrow-up-twotone'
+  | 'cellphonescreenshot'
+  | 'cellphonescreenshot-twotone'
+  | 'chat-bubble-off-filled'
+  | 'chat-bubble-off-twotone'
+  | 'chat-off-filled'
+  | 'chat-off-twotone'
+  | 'chat-round-off-filled'
+  | 'chat-round-off-twotone'
+  | 'check-list-3-solid'
+  | 'clipboard-twotone-to-clipboard-twotone-check-transition'
+  | 'cloud-braces-loop'
+  | 'cloud-download-loop'
+  | 'cloud-download-outline-loop'
+  | 'cloud-loop'
+  | 'cloud-off-outline-loop'
+  | 'cloud-outline-loop'
+  | 'cloud-print-loop'
+  | 'cloud-print-outline-loop'
+  | 'cloud-tags-loop'
+  | 'cloud-upload-loop'
+  | 'cloud-upload-outline-loop'
+  | 'compass-twotone-off'
+  | 'edit-twotone-full'
+  | 'email-opened-twotone-alt'
+  | 'email-twotone-alt'
+  | 'grid-3-solid'
+  | 'home-md-twotone-alt'
+  | 'home-twotone-alt'
+  | 'list-3-solid'
+  | 'map-marker-off-alt'
+  | 'map-marker-off-alt-filled'
+  | 'map-marker-off-alt-filled-loop'
+  | 'map-marker-off-alt-loop'
+  | 'map-marker-off-alt-twotone'
+  | 'map-marker-off-alt-twotone-loop'
+  | 'moon-filled-alt-loop'
+  | 'moon-rising-filled-alt-loop'
+  | 'moon-rising-twotone-alt-loop'
+  | 'moon-twotone-alt-loop'
+  | 'pencil-twotone-alt'
+  | 'star-filled-half'
+  | 'star-filled-right-half'
+  | 'star-twotone-half'
+  | 'star-twotone-right-half'
+  | 'sunny-filled-loop-to-moon-alt-filled-loop-transition'
+  | 'sunny-outline'
+  | 'sunny-outline-loop'
+  | 'sunny-outline-twotone'
+  | 'sunny-outline-twotone-loop';
+
+export type LineMdIconName = keyof typeof line_mdIconNames | LineMdIconAlias;
 export const LineMd = createIconSet<LineMdIconName>('line-md', line_mdIconNames);

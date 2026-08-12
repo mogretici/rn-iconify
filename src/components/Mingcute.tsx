@@ -3330,5 +3330,56 @@ const mingcuteIconNames = {
   'zoom-out-line': true,
 } as const;
 
-export type MingcuteIconName = keyof typeof mingcuteIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type MingcuteIconAlias =
+  | 'arow-to-down-fill'
+  | 'arow-to-down-line'
+  | 'arow-to-left-fill'
+  | 'arow-to-left-line'
+  | 'arow-to-right-fill'
+  | 'arow-to-right-line'
+  | 'arow-to-up-fill'
+  | 'arow-to-up-line'
+  | 'barcode-scan-fill'
+  | 'barcode-scan-line'
+  | 'chines-knot-fill'
+  | 'chines-knot-line'
+  | 'computer-camera-fill'
+  | 'computer-camera-line'
+  | 'document-fill'
+  | 'document-line'
+  | 'exchange-bitcoin-2-fill'
+  | 'exchange-bitcoin-2-line'
+  | 'file-infor-fill'
+  | 'file-infor-line'
+  | 'folder-infor-fill'
+  | 'folder-infor-line'
+  | 'ins-fill'
+  | 'ins-line'
+  | 'loading-2-fill'
+  | 'loading-2-line'
+  | 'loading-4-fill'
+  | 'loading-4-line'
+  | 'loading-fill'
+  | 'loading-line'
+  | 'palace-2-fill'
+  | 'palace-2-line'
+  | 'radar-fill'
+  | 'radar-line'
+  | 'tower-2-fill'
+  | 'tower-2-line'
+  | 'tower-3-fill'
+  | 'tower-3-line'
+  | 'tower-4-fill'
+  | 'tower-4-line'
+  | 'tower-5-fill'
+  | 'tower-5-line'
+  | 'tv-towe-fill'
+  | 'tv-towe-line';
+
+export type MingcuteIconName = keyof typeof mingcuteIconNames | MingcuteIconAlias;
 export const Mingcute = createIconSet<MingcuteIconName>('mingcute', mingcuteIconNames);

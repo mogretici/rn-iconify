@@ -1285,7 +1285,37 @@ const pepicons_popIconNames = {
   'yuan-off': true,
 } as const;
 
-export type PepiconsPopIconName = keyof typeof pepicons_popIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type PepiconsPopIconAlias =
+  | 'cloud-down-filled'
+  | 'cloud-filled'
+  | 'cloud-up-filled'
+  | 'exclamation-filled'
+  | 'gear-filled'
+  | 'grab'
+  | 'info-filled'
+  | 'microphone2'
+  | 'monitor2'
+  | 'moon-filled'
+  | 'person-filled'
+  | 'pinpoint-filled'
+  | 'pinpoint-off-filled'
+  | 'question-filled'
+  | 'refresh'
+  | 'reload'
+  | 'send'
+  | 'smartphone'
+  | 'smartphone2'
+  | 'sort'
+  | 'speaker-off'
+  | 'sun-filled'
+  | 'tool';
+
+export type PepiconsPopIconName = keyof typeof pepicons_popIconNames | PepiconsPopIconAlias;
 export const PepiconsPop = createIconSet<PepiconsPopIconName>(
   'pepicons-pop',
   pepicons_popIconNames

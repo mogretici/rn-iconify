@@ -5075,5 +5075,65 @@ const hugeiconsIconNames = {
   zzz: true,
 } as const;
 
-export type HugeiconsIconName = keyof typeof hugeiconsIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type HugeiconsIconAlias =
+  | 'advertisement'
+  | 'arrange-by-letters-az'
+  | 'arrange-by-letters-za'
+  | 'arrange-by-numbers-19'
+  | 'arrange-by-numbers-91'
+  | 'c'
+  | 'ds-3-tool'
+  | 'first-bracket'
+  | 'first-bracket-circle'
+  | 'first-bracket-square'
+  | 'first-brecket'
+  | 'first-brecket-circle'
+  | 'first-brecket-square'
+  | 'four-k'
+  | 'modern-tv-four-k'
+  | 'mp-301'
+  | 'mp-302'
+  | 'mp-401'
+  | 'mp-402'
+  | 'printer-three-d'
+  | 'root-first-bracket'
+  | 'root-first-brecket'
+  | 'root-second-bracket'
+  | 'root-second-brecket'
+  | 'root-third-bracket'
+  | 'root-third-brecket'
+  | 'second-bracket'
+  | 'second-bracket-circle'
+  | 'second-bracket-square'
+  | 'second-brecket'
+  | 'second-brecket-circle'
+  | 'second-brecket-square'
+  | 'seven-z-01'
+  | 'seven-z-02'
+  | 'ski-dice-faces-01'
+  | 'sorting-19'
+  | 'sorting-91'
+  | 'sorting-az-01'
+  | 'sorting-az-02'
+  | 'sorting-za-01'
+  | 'third-bracket'
+  | 'third-bracket-circle'
+  | 'third-bracket-square'
+  | 'third-brecket'
+  | 'third-brecket-circle'
+  | 'third-brecket-square'
+  | 'three-d-move'
+  | 'three-d-printer'
+  | 'three-d-rotate'
+  | 'three-d-scale'
+  | 'three-d-view'
+  | 'trade-mark-circle'
+  | 'tropical-storm-tracks';
+
+export type HugeiconsIconName = keyof typeof hugeiconsIconNames | HugeiconsIconAlias;
 export const Hugeicons = createIconSet<HugeiconsIconName>('hugeicons', hugeiconsIconNames);
