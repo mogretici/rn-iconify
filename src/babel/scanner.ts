@@ -265,6 +265,17 @@ const TYPE_ALIAS_REGEX =
   /type\s+(\w+)\s*=\s*(?:React\.)?ComponentProps<\s*typeof\s+(\w+)\s*>\s*\[\s*['"]name['"]\s*\]/g;
 
 /**
+ * The same type written straight onto the field it annotates:
+ *
+ *   interface ShareOptionProps { icon: ComponentProps<typeof Ion>['name'] }
+ *
+ * No alias is declared, so there is no name to look up — the field has to be
+ * read from the annotation itself.
+ */
+const INLINE_COMPONENT_PROPS_REGEX =
+  /(\w+)\s*\??\s*:\s*(?:React\.)?ComponentProps<\s*typeof\s+(\w+)\s*>\s*\[\s*['"]name['"]\s*\]/g;
+
+/**
  * A field assigned a string, anywhere: `{ icon: 'explore' }`.
  *
  * Only ever consulted for a field this file has already annotated with an
@@ -326,6 +337,15 @@ function collectIconFields(content: string): WrapperProps {
     if (prefix) fields.set(field, prefix);
   }
 
+  INLINE_COMPONENT_PROPS_REGEX.lastIndex = 0;
+  while ((match = INLINE_COMPONENT_PROPS_REGEX.exec(content)) !== null) {
+    const field = match[1];
+    const component = match[2];
+    if (!field || !component) continue;
+    const prefix = COMPONENT_PREFIX_MAP[component];
+    if (prefix) fields.set(field, prefix);
+  }
+
   return fields;
 }
 
@@ -339,7 +359,10 @@ function collectWrappers(sources: Map<string, string>, verbose: boolean): Wrappe
   const wrappers: WrapperMap = new Map();
 
   for (const [filePath, content] of sources) {
-    if (!content.includes('IconName')) continue;
+    // `ComponentProps` as well as `IconName`: a wrapper often declares its prop
+    // as `icon: ComponentProps<typeof Ion>['name']`, which never spells the
+    // word this used to look for.
+    if (!content.includes('IconName') && !content.includes('ComponentProps')) continue;
 
     const props = collectIconFields(content);
     let match: RegExpExecArray | null;
