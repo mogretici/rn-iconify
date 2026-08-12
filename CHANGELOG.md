@@ -1,3 +1,9 @@
+# [4.1.0](https://github.com/mogretici/rn-iconify/compare/v4.0.1...v4.1.0) (2026-08-12)
+
+### Features
+
+- sync icon sets with Iconify API ([#2](https://github.com/mogretici/rn-iconify/issues/2)) ([d8ab97c](https://github.com/mogretici/rn-iconify/commit/d8ab97cd2d4f7961cae9737119a683fb8182ee05))
+
 ## [4.0.1](https://github.com/mogretici/rn-iconify/compare/v4.0.0...v4.0.1) (2026-08-11)
 
 ### Bug Fixes
