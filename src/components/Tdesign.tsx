@@ -2025,6 +2025,8 @@ const tdesignIconNames = {
   'table-filled': true,
   'table-split': true,
   'table-split-filled': true,
+  tablet: true,
+  'tablet-filled': true,
   tag: true,
   'tag-filled': true,
   'tag-state': true,

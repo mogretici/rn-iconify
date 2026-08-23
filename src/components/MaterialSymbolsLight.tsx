@@ -949,6 +949,9 @@ const material_symbols_lightIconNames = {
   terminal: true,
   'terminal-2': true,
   'terminal-2-rounded': true,
+  'terminal-add': true,
+  'terminal-add-rounded': true,
+  'terminal-add-sharp': true,
   'terminal-rounded': true,
   'terminal-sharp': true,
   'time-auto': true,
@@ -3566,6 +3569,12 @@ const material_symbols_lightIconNames = {
   'volume-up-outline': true,
   'volume-up-outline-rounded': true,
   'volume-up-rounded': true,
+  'drive-fusiontable': true,
+  'drive-fusiontable-outline': true,
+  'drive-fusiontable-outline-rounded': true,
+  'drive-fusiontable-outline-sharp': true,
+  'drive-fusiontable-rounded': true,
+  'drive-fusiontable-sharp': true,
   'account-balance': true,
   'account-balance-outline': true,
   'account-balance-outline-rounded': true,
@@ -5274,6 +5283,12 @@ const material_symbols_lightIconNames = {
   'disc-full-outline': true,
   'disc-full-outline-rounded': true,
   'disc-full-rounded': true,
+  'display-add': true,
+  'display-add-outline': true,
+  'display-add-outline-rounded': true,
+  'display-add-outline-sharp': true,
+  'display-add-rounded': true,
+  'display-add-sharp': true,
   'display-settings': true,
   'display-settings-outline': true,
   'display-settings-outline-rounded': true,
@@ -9023,12 +9038,6 @@ const material_symbols_lightIconNames = {
   'fastfood-outline-sharp': true,
   'fastfood-rounded': true,
   'fastfood-sharp': true,
-  'file-map': true,
-  'file-map-outline': true,
-  'file-map-outline-rounded': true,
-  'file-map-outline-sharp': true,
-  'file-map-rounded': true,
-  'file-map-sharp': true,
   'file-map-stack': true,
   'file-map-stack-outline': true,
   'file-map-stack-outline-rounded': true,
@@ -9082,6 +9091,9 @@ const material_symbols_lightIconNames = {
   globe: true,
   'globe-asia': true,
   'globe-asia-sharp': true,
+  'globe-clock': true,
+  'globe-clock-rounded': true,
+  'globe-clock-sharp': true,
   'globe-location-pin': true,
   'globe-location-pin-rounded': true,
   'globe-location-pin-sharp': true,
@@ -18322,6 +18334,12 @@ type MaterialSymbolsLightIconAlias =
   | 'file-download-off-outline'
   | 'file-download-off-outline-rounded'
   | 'file-download-off-outline-sharp'
+  | 'file-map'
+  | 'file-map-outline'
+  | 'file-map-outline-rounded'
+  | 'file-map-outline-sharp'
+  | 'file-map-rounded'
+  | 'file-map-sharp'
   | 'file-upload-off-outline'
   | 'file-upload-off-outline-rounded'
   | 'file-upload-off-outline-sharp'
@@ -18888,6 +18906,9 @@ type MaterialSymbolsLightIconAlias =
   | 'globe-book-outline-rounded'
   | 'globe-book-outline-sharp'
   | 'globe-book-sharp'
+  | 'globe-clock-outline'
+  | 'globe-clock-outline-rounded'
+  | 'globe-clock-outline-sharp'
   | 'globe-location-pin-outline'
   | 'globe-location-pin-outline-rounded'
   | 'globe-location-pin-outline-sharp'
@@ -22856,6 +22877,9 @@ type MaterialSymbolsLightIconAlias =
   | 'terminal-2-outline-rounded'
   | 'terminal-2-outline-sharp'
   | 'terminal-2-sharp'
+  | 'terminal-add-outline'
+  | 'terminal-add-outline-rounded'
+  | 'terminal-add-outline-sharp'
   | 'terminal-outline'
   | 'terminal-outline-rounded'
   | 'terminal-outline-sharp'

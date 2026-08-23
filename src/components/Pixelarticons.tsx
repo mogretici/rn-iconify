@@ -82,6 +82,8 @@ const pixelarticonsIconNames = {
   'analytics-sharp': true,
   anchor: true,
   'anchor-sharp': true,
+  android: true,
+  'android-solid': true,
   angry: true,
   'angry-sharp': true,
   annoyed: true,
@@ -90,6 +92,8 @@ const pixelarticonsIconNames = {
   'app-mac-sharp': true,
   'app-windows': true,
   'app-windows-sharp': true,
+  apple: true,
+  'apple-solid': true,
   archive: true,
   'archive-sharp': true,
   'arrow-bar-down': true,
@@ -188,6 +192,8 @@ const pixelarticonsIconNames = {
   'binary-sharp': true,
   blocks: true,
   'blocks-sharp': true,
+  bluesky: true,
+  bomb: true,
   'book-open': true,
   'book-open-sharp': true,
   bookmark: true,
@@ -263,6 +269,8 @@ const pixelarticonsIconNames = {
   'chart-bar-big-sharp': true,
   'chart-column-decreasing': true,
   'chart-column-decreasing-sharp': true,
+  'chart-line': true,
+  'chart-line-sharp': true,
   'chart-sharp': true,
   check: true,
   'check-double': true,
@@ -287,8 +295,12 @@ const pixelarticonsIconNames = {
   'cigarette-off': true,
   'cigarette-off-sharp': true,
   circle: true,
+  'circle-info': true,
+  'circle-info-solid': true,
   'circle-pile': true,
   'circle-power': true,
+  'circle-question': true,
+  'circle-question-solid': true,
   'circle-square': true,
   'circuit-board': true,
   'circuit-board-sharp': true,
@@ -304,15 +316,19 @@ const pixelarticonsIconNames = {
   'cloud-moon': true,
   'cloud-server': true,
   'cloud-sun': true,
+  code: true,
   coffee: true,
   'coffee-sharp': true,
   coins: true,
+  collapse: true,
   'colors-swatch': true,
   'colors-swatch-sharp': true,
   comment: true,
   'comment-sharp': true,
   'comment-text': true,
   'comment-text-sharp': true,
+  compass: true,
+  'compass-solid': true,
   computer: true,
   'computer-sharp': true,
   contact: true,
@@ -341,6 +357,12 @@ const pixelarticonsIconNames = {
   'cpu-sharp': true,
   'credit-card': true,
   'credit-card-sharp': true,
+  crop: true,
+  'crop-sharp': true,
+  cross: true,
+  'cross-glyph': true,
+  'cross-sharp': true,
+  'cross-solid': true,
   crown: true,
   'crown-sharp': true,
   'cursor-minimal': true,
@@ -351,28 +373,47 @@ const pixelarticonsIconNames = {
   debug: true,
   delete: true,
   'delete-sharp': true,
+  deno: true,
+  'deno-solid': true,
   'diamond-gem': true,
   directions: true,
   'directions-sharp': true,
+  discord: true,
+  'discord-solid': true,
   dock: true,
   'dock-sharp': true,
+  docker: true,
+  'docker-solid': true,
   dog: true,
+  dollar: true,
+  'dollar-sharp': true,
   'door-closed': true,
   'door-closed-sharp': true,
   download: true,
   'download-sharp': true,
+  'drag-and-drop': true,
+  'drag-and-drop-glyph': true,
+  'drag-and-drop-sharp': true,
+  'drag-and-drop-solid': true,
   drum: true,
   earth: true,
+  eraser: true,
+  'eraser-solid': true,
   estate: true,
   'estate-sharp': true,
+  euro: true,
+  'euro-sharp': true,
   expand: true,
   'external-link': true,
   'external-link-sharp': true,
   eye: true,
   'eye-off': true,
+  facebook: true,
+  'facebook-solid': true,
   factory: true,
   'factory-sharp': true,
   feather: true,
+  figma: true,
   file: true,
   'file-sharp': true,
   'file-text': true,
@@ -404,6 +445,8 @@ const pixelarticonsIconNames = {
   'gallery-thumbnails-sharp': true,
   gamepad: true,
   'gamepad-sharp': true,
+  gear: true,
+  'gear-solid': true,
   gift: true,
   'gift-sharp': true,
   'git-branch': true,
@@ -414,8 +457,17 @@ const pixelarticonsIconNames = {
   'git-merge-sharp': true,
   'git-pull-request': true,
   'git-pull-request-sharp': true,
+  github: true,
+  'github-solid': true,
+  gitlab: true,
+  'gitlab-solid': true,
   globe: true,
+  gmail: true,
+  'gmail-solid': true,
   goal: true,
+  google: true,
+  'google-chrome': true,
+  'google-chrome-solid': true,
   gps: true,
   'gps-2': true,
   'gps-2-sharp': true,
@@ -448,6 +500,10 @@ const pixelarticonsIconNames = {
   'home-sharp': true,
   'hotel-bed': true,
   'hotel-bed-sharp': true,
+  hourglass: true,
+  'hourglass-glyph': true,
+  'hourglass-sharp': true,
+  'hourglass-solid': true,
   human: true,
   'human-arms-down': true,
   'human-arms-up': true,
@@ -463,21 +519,44 @@ const pixelarticonsIconNames = {
   'images-sharp': true,
   inbox: true,
   'inbox-sharp': true,
+  infinity: true,
+  'infinity-glyph': true,
+  'infinity-sharp': true,
+  'infinity-solid': true,
   'info-box': true,
   'info-box-sharp': true,
+  instagram: true,
+  'instagram-solid': true,
   invert: true,
   'invert-sharp': true,
   invoice: true,
   'invoice-sharp': true,
   joystick: true,
   'joystick-sharp': true,
+  key: true,
+  'key-solid': true,
+  keyboard: true,
+  'keyboard-glyph': true,
   'keyboard-music': true,
   'keyboard-music-sharp': true,
+  'keyboard-sharp': true,
+  'keyboard-solid': true,
+  label: true,
+  'label-sharp': true,
+  'label-solid': true,
   languages: true,
   'languages-sharp': true,
+  laptop: true,
+  'laptop-glyph': true,
+  'laptop-sharp': true,
+  'laptop-solid': true,
   lasso: true,
   laugh: true,
   'laugh-sharp': true,
+  layout: true,
+  'layout-glyph': true,
+  'layout-sharp': true,
+  'layout-solid': true,
   leaf: true,
   'letter-a': true,
   'letter-a-circle': true,
@@ -536,6 +615,11 @@ const pixelarticonsIconNames = {
   'lightbulb-off': true,
   link: true,
   'link-sharp': true,
+  linkedin: true,
+  'linkedin-2': true,
+  'linkedin-2-solid': true,
+  linux: true,
+  'linux-solid': true,
   'list-box': true,
   'list-box-sharp': true,
   loader: true,
@@ -557,8 +641,12 @@ const pixelarticonsIconNames = {
   'mail-sharp': true,
   mailbox: true,
   'mailbox-sharp': true,
+  map: true,
   'map-pin': true,
   'map-pin-home': true,
+  'map-solid': true,
+  mastodon: true,
+  'mastodon-solid': true,
   megaphone: true,
   'megaphone-sharp': true,
   meh: true,
@@ -572,6 +660,10 @@ const pixelarticonsIconNames = {
   'menu-square': true,
   'menu-square-sharp': true,
   message: true,
+  'message-reply': true,
+  'message-reply-glyph': true,
+  'message-reply-sharp': true,
+  'message-reply-solid': true,
   'message-sharp': true,
   'message-text': true,
   'message-text-sharp': true,
@@ -594,14 +686,22 @@ const pixelarticonsIconNames = {
   'more-vertical': true,
   'more-vertical-sharp': true,
   mouse: true,
+  move: true,
+  mug: true,
+  'mug-glyph': true,
+  'mug-sharp': true,
+  'mug-solid': true,
   music: true,
   'music-sharp': true,
+  netlify: true,
+  'netlify-solid': true,
   note: true,
   'note-sharp': true,
   notebook: true,
   'notebook-sharp': true,
   notes: true,
   'notes-sharp': true,
+  npm: true,
   open: true,
   'open-sharp': true,
   package: true,
@@ -610,11 +710,14 @@ const pixelarticonsIconNames = {
   'parking-off-sharp': true,
   'parking-sharp': true,
   'party-popper': true,
+  pause: true,
+  'pause-solid': true,
   'pc-case': true,
   'pc-case-sharp': true,
   'pen-square': true,
   'pen-square-sharp': true,
   pencil: true,
+  percent: true,
   phone: true,
   'phone-call': true,
   'phone-call-sharp': true,
@@ -628,9 +731,13 @@ const pixelarticonsIconNames = {
   pipette: true,
   pixelarticons: true,
   play: true,
+  plug: true,
+  'plug-solid': true,
   plus: true,
   'plus-box': true,
   'plus-box-sharp': true,
+  pnpm: true,
+  'pnpm-solid': true,
   pointer: true,
   potion: true,
   'potion-sharp': true,
@@ -644,18 +751,28 @@ const pixelarticonsIconNames = {
   projector: true,
   proportions: true,
   'proportions-sharp': true,
+  'qr-code': true,
+  'qr-code-solid': true,
   'quote-text-inline': true,
   radio: true,
   radius: true,
   ratio: true,
+  react: true,
+  'react-solid': true,
   receipt: true,
   'receipt-sharp': true,
   recycle: true,
   redo: true,
   'redo-sharp': true,
+  refresh: true,
+  'refresh-glyph': true,
+  'refresh-sharp': true,
+  'refresh-solid': true,
   reload: true,
   'reload-sharp': true,
   repeat: true,
+  'repeat-1': true,
+  'repeat-1-sharp': true,
   'repeat-sharp': true,
   'road-sign': true,
   robot: true,
@@ -715,6 +832,11 @@ const pixelarticonsIconNames = {
   'siren-sharp': true,
   skull: true,
   'skull-sharp': true,
+  slack: true,
+  'slack-solid': true,
+  sliders: true,
+  'sliders-horizontal': true,
+  'sliders-vertical': true,
   'smart-home': true,
   'smart-home-sharp': true,
   smartphone: true,
@@ -723,6 +845,8 @@ const pixelarticonsIconNames = {
   'smile-sharp': true,
   snail: true,
   snake: true,
+  snowflake: true,
+  'snowflake-solid': true,
   sofa: true,
   'sofa-sharp': true,
   'sort-horizontal': true,
@@ -732,6 +856,7 @@ const pixelarticonsIconNames = {
   'speed-fast': true,
   'speed-medium': true,
   'speed-slow': true,
+  spinner: true,
   'spline-cursor': true,
   spotlight: true,
   'spotlight-sharp': true,
@@ -766,12 +891,16 @@ const pixelarticonsIconNames = {
   'sticky-note-sharp': true,
   'sticky-note-text': true,
   'sticky-note-text-sharp': true,
+  stop: true,
+  'stop-solid': true,
   store: true,
   'store-sharp': true,
   subscriptions: true,
   'subscriptions-sharp': true,
   suitcase: true,
   'suitcase-sharp': true,
+  sun: true,
+  'sun-solid': true,
   sunglasses: true,
   'sunglasses-sharp': true,
   switch: true,
@@ -789,6 +918,10 @@ const pixelarticonsIconNames = {
   'tea-sharp': true,
   teach: true,
   'teach-sharp': true,
+  telegram: true,
+  'telegram-glyph': true,
+  'telegram-sharp': true,
+  'telegram-solid': true,
   tent: true,
   terminal: true,
   'terminal-sharp': true,
@@ -821,23 +954,29 @@ const pixelarticonsIconNames = {
   'thumbs-down-sharp': true,
   'thumbs-up': true,
   'thumbs-up-sharp': true,
+  tiktok: true,
   'toke-circle': true,
   'toke-square': true,
   'toke-square-sharp': true,
   'tool-case': true,
   'tool-case-sharp': true,
+  tools: true,
+  'tools-solid': true,
   tournament: true,
   'tournament-sharp': true,
   trash: true,
   'trash-sharp': true,
   tree: true,
   'tree-pine': true,
+  'trending-up': true,
   trophy: true,
   'trophy-sharp': true,
   truck: true,
   'truck-sharp': true,
   tv: true,
   'tv-sharp': true,
+  'twitter-bird': true,
+  'twitter-bird-solid': true,
   undo: true,
   'undo-sharp': true,
   university: true,
@@ -848,6 +987,10 @@ const pixelarticonsIconNames = {
   'unlock-sharp': true,
   upload: true,
   'upload-sharp': true,
+  usb: true,
+  'usb-glyph': true,
+  'usb-sharp': true,
+  'usb-solid': true,
   user: true,
   'user-minus': true,
   'user-minus-sharp': true,
@@ -859,6 +1002,8 @@ const pixelarticonsIconNames = {
   users: true,
   'users-sharp': true,
   'utility-pole': true,
+  vercel: true,
+  'vercel-solid': true,
   vibrate: true,
   'vibrate-sharp': true,
   video: true,
@@ -867,20 +1012,34 @@ const pixelarticonsIconNames = {
   'volume-1': true,
   'volume-2': true,
   'volume-3': true,
+  'volume-x': true,
+  'volume-x-solid': true,
   wall: true,
   'wall-sharp': true,
   wallet: true,
   'wallet-sharp': true,
+  wand: true,
+  'wand-solid': true,
   warehouse: true,
   'warning-diamond': true,
+  watch: true,
+  'watch-glyph': true,
+  'watch-sharp': true,
+  'watch-solid': true,
   waves: true,
   'waves-arrow-down': true,
   'waves-arrow-up': true,
   webcam: true,
+  whatsapp: true,
+  'whatsapp-solid': true,
   wifi: true,
   wind: true,
   'window-frame': true,
   'window-frame-sharp': true,
+  x: true,
+  'x-solid': true,
+  youtube: true,
+  'youtube-solid': true,
   zap: true,
   'zap-off': true,
   'zoom-in': true,
@@ -909,7 +1068,6 @@ type PixelarticonsIconAlias =
   | 'align-justify'
   | 'align-left'
   | 'align-right'
-  | 'android'
   | 'animation'
   | 'art-text'
   | 'article-multiple'
@@ -979,10 +1137,8 @@ type PixelarticonsIconAlias =
   | 'cloud-download'
   | 'cloud-upload'
   | 'cocktail'
-  | 'code'
   | 'coffee-alt'
   | 'coin'
-  | 'collapse'
   | 'command'
   | 'contact-delete'
   | 'contact-multiple'
@@ -993,7 +1149,6 @@ type PixelarticonsIconAlias =
   | 'credit-card-plus'
   | 'credit-card-settings'
   | 'credit-card-wireless'
-  | 'crop'
   | 'dashbaord'
   | 'dashboard'
   | 'debug-check'
@@ -1011,10 +1166,8 @@ type PixelarticonsIconAlias =
   | 'device-watch'
   | 'devices'
   | 'dice'
-  | 'dollar'
   | 'downasaur'
   | 'draft'
-  | 'drag-and-drop'
   | 'drop'
   | 'drop-area'
   | 'drop-full'
@@ -1023,7 +1176,6 @@ type PixelarticonsIconAlias =
   | 'duplicate-alt'
   | 'edit'
   | 'edit-box'
-  | 'euro'
   | 'eye-closed'
   | 'file-alt'
   | 'file-delete'
@@ -1044,14 +1196,12 @@ type PixelarticonsIconAlias =
   | 'frame-delete'
   | 'frame-minus'
   | 'gif'
-  | 'github'
   | 'github-2'
   | 'grid'
   | 'group'
   | 'hd'
   | 'headset'
   | 'hidden'
-  | 'hourglass'
   | 'hq'
   | 'human-handsdown'
   | 'human-handsup'
@@ -1070,12 +1220,8 @@ type PixelarticonsIconAlias =
   | 'inbox-full'
   | 'iso'
   | 'kanban'
-  | 'keyboard'
-  | 'label'
   | 'label-alt'
   | 'label-alt-multiple'
-  | 'label-sharp'
-  | 'layout'
   | 'layout-align-bottom'
   | 'layout-align-left'
   | 'layout-align-right'
@@ -1100,8 +1246,6 @@ type PixelarticonsIconAlias =
   | 'mail-multiple'
   | 'mail-off'
   | 'mail-unread'
-  | 'map'
-  | 'mastodon'
   | 'message-arrow-left'
   | 'message-arrow-right'
   | 'message-bookmark'
@@ -1112,14 +1256,12 @@ type PixelarticonsIconAlias =
   | 'message-minus'
   | 'message-plus'
   | 'message-processing'
-  | 'message-reply'
   | 'missed-call'
   | 'mood-happy'
   | 'mood-neutral'
   | 'mood-sad'
   | 'moon-star'
   | 'moon-stars'
-  | 'move'
   | 'movie'
   | 'next'
   | 'note-delete'
@@ -1132,8 +1274,6 @@ type PixelarticonsIconAlias =
   | 'notification-off'
   | 'paint-bucket'
   | 'paperclip'
-  | 'pause'
-  | 'percent'
   | 'picture-in-picture-alt'
   | 'pin'
   | 'playlist'
@@ -1154,7 +1294,6 @@ type PixelarticonsIconAlias =
   | 'sd'
   | 'sharp-corner'
   | 'shield-off'
-  | 'sliders'
   | 'sliders-2'
   | 'sort'
   | 'sort-alpabetic'
@@ -1162,7 +1301,6 @@ type PixelarticonsIconAlias =
   | 'sort-numeric'
   | 'speaker'
   | 'subtitles'
-  | 'sun'
   | 'sun-alt'
   | 'sync'
   | 'table'
@@ -1175,7 +1313,6 @@ type PixelarticonsIconAlias =
   | 'trash-alt'
   | 'trending'
   | 'trending-down'
-  | 'trending-up'
   | 'ungroup'
   | 'video-off'
   | 'view-col'
@@ -1186,7 +1323,6 @@ type PixelarticonsIconAlias =
   | 'volume-minus'
   | 'volume-plus'
   | 'volume-vibrate'
-  | 'volume-x'
   | 'warning-box';
 
 export type PixelarticonsIconName = keyof typeof pixelarticonsIconNames | PixelarticonsIconAlias;

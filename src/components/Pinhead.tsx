@@ -140,6 +140,7 @@ const pinheadIconNames = {
   'arrow-bottom-right-to-eight-point-asterisk': true,
   'arrow-down': true,
   'arrow-down-from-banknote-in-slot': true,
+  'arrow-down-from-banknote-stack-in-slot': true,
   'arrow-down-from-book-with-bookmark-in-slot': true,
   'arrow-down-from-envelope-in-slot': true,
   'arrow-down-from-payment-card-in-slot': true,
@@ -165,6 +166,7 @@ const pinheadIconNames = {
   'arrow-up-from-down-bracket': true,
   'arrow-up-from-rectangle-outline': true,
   'arrow-up-to-banknote-in-slot': true,
+  'arrow-up-to-banknote-stack-in-slot': true,
   'arrow-up-to-book-with-bookmark-in-slot': true,
   'arrow-up-to-envelope-in-slot': true,
   'arrow-up-to-payment-card-in-slot': true,
@@ -181,6 +183,7 @@ const pinheadIconNames = {
   'astrologers-hat': true,
   'at-sign': true,
   'atm-text': true,
+  'atm-text-above-banknote-in-slot': true,
   atv: true,
   axe: true,
   'axe-and-chipped-log': true,
@@ -214,6 +217,8 @@ const pinheadIconNames = {
   banknote: true,
   'banknote-in-hand': true,
   'banknote-in-slot': true,
+  'banknote-stack': true,
+  'banknote-stack-in-slot': true,
   'barbecue-grill-wheeled-with-steam': true,
   'barbecue-grill-with-steam': true,
   'barbed-hook': true,
@@ -222,6 +227,7 @@ const pinheadIconNames = {
   'barn-and-silo': true,
   'barrel-with-bunghole': true,
   barricade: true,
+  baseball: true,
   'baseball-bat-and-baseball': true,
   'basket-swing': true,
   basketball: true,
@@ -338,14 +344,29 @@ const pinheadIconNames = {
   'boxing-glove-up': true,
   'brick-trowel': true,
   bridge: true,
+  'bridge-shape-diagonal': true,
+  'bridge-shape-horizontal': true,
+  'bridge-shape-vertical': true,
   'bridge-tied-arch': true,
   briefcase: true,
   'briefcase-with-bolt': true,
+  'briefcase-with-circular-pill-and-capsule-pill': true,
+  'briefcase-with-conifer-tree': true,
   'briefcase-with-droplet': true,
+  'briefcase-with-exclamation-point': true,
+  'briefcase-with-gas-flame': true,
   'briefcase-with-greek-cross': true,
+  'briefcase-with-heart': true,
   'briefcase-with-heavy-six-point-asterisk': true,
   'briefcase-with-info-i': true,
+  'briefcase-with-leaf': true,
+  'briefcase-with-map-pin-with-dot': true,
+  'briefcase-with-question-mark': true,
+  'briefcase-with-rx-symbol': true,
   'briefcase-with-shield': true,
+  'briefcase-with-stardust': true,
+  'briefcase-with-venus': true,
+  'briefcase-with-wifi': true,
   'broadleaved-tree': true,
   'broadleaved-tree-in-water': true,
   bucket: true,
@@ -444,6 +465,8 @@ const pinheadIconNames = {
   'canoe-under-list-beside-checkmark': true,
   'canoe-under-taxi-checkerboard': true,
   'cape-landform': true,
+  'capsule-pill': true,
+  'capsule-pill-beside-rx-symbol': true,
   car: true,
   'car-and-arrow-right-above-arrow-left': true,
   'car-and-locked-lock-with-keyhole': true,
@@ -550,6 +573,9 @@ const pinheadIconNames = {
   'circle-with-dot-outline': true,
   'circle-with-fallout-shelter-symbol': true,
   'circular-labyrinth': true,
+  'circular-pill': true,
+  'circular-pill-and-capsule-pill': true,
+  'circular-pill-and-capsule-pill-above-outstretched-hand': true,
   'city-buildings': true,
   'city-gate': true,
   clapperboard: true,
@@ -582,6 +608,7 @@ const pinheadIconNames = {
   'coffin-with-flaming-chalice': true,
   'coffin-with-khanda': true,
   'coffin-with-latin-cross': true,
+  'coffin-with-nine-point-star-outline': true,
   'coffin-with-om': true,
   'coffin-with-quaker-star': true,
   'coffin-with-star-and-crescent': true,
@@ -611,6 +638,7 @@ const pinheadIconNames = {
   'confused-face-in-circle': true,
   'confused-face-in-circle-outline': true,
   'conifer-tree': true,
+  'conifer-tree-above-outstretched-hand': true,
   'conifer-tree-and-bench-on-ground': true,
   'conifer-tree-and-flower-and-snowcapped-mountain': true,
   'conifer-tree-and-oval-broadleaved-tree': true,
@@ -795,6 +823,7 @@ const pinheadIconNames = {
   'ethernet-port-in-square': true,
   euro: true,
   'exclamation-point': true,
+  'exclamation-point-above-outstretched-hand': true,
   'exclamation-point-above-water': true,
   'exclamation-point-beside-exclamation-point': true,
   'exclamation-point-beside-question-mark': true,
@@ -835,6 +864,7 @@ const pinheadIconNames = {
   fire: true,
   'fire-extinguisher': true,
   fish: true,
+  'fish-beside-sausage': true,
   'fish-head': true,
   'fish-head-beside-barbed-hook-on-line': true,
   'fish-head-beside-barbed-hook-on-line-under-ice': true,
@@ -875,9 +905,10 @@ const pinheadIconNames = {
   'flying-saucer': true,
   foot: true,
   fork: true,
-  'fork-and-knife': true,
-  'fork-and-sausage': true,
-  'fork-and-spoon': true,
+  'fork-beside-fish': true,
+  'fork-beside-knife': true,
+  'fork-beside-sausage': true,
+  'fork-beside-spoon': true,
   'fork-crossing-knife': true,
   fort: true,
   fortress: true,
@@ -885,6 +916,7 @@ const pinheadIconNames = {
   'fountain-from-fountain-basin': true,
   'fountain-from-ground': true,
   'fountain-from-water': true,
+  'four-circular-pills': true,
   'four-legged-octopus': true,
   'four-legged-octopus-with-cartoon-eyes': true,
   'four-legged-squid': true,
@@ -945,6 +977,8 @@ const pinheadIconNames = {
   'greek-cross-above-outstretched-hand': true,
   'greek-cross-outline': true,
   greenhouse: true,
+  groin: true,
+  'groin-with-rememberance-ribbon': true,
   guidepost: true,
   gull: true,
   'gull-and-exclamation-point': true,
@@ -1001,6 +1035,7 @@ const pinheadIconNames = {
   'heart-with-ecg-line': true,
   'heart-with-greek-cross': true,
   'heavy-six-point-asterisk': true,
+  'heavy-six-point-asterisk-above-outstretched-hand': true,
   hedge: true,
   'height-restrictor': true,
   helicopter: true,
@@ -1009,6 +1044,7 @@ const pinheadIconNames = {
   'horizontal-storage-tank-on-supports': true,
   'horn-cleat': true,
   'horse-head-wearing-bridle': true,
+  'horse-high-stepping': true,
   'horse-in-shelter': true,
   horseshoe: true,
   'horseshoe-with-stake': true,
@@ -1110,6 +1146,7 @@ const pinheadIconNames = {
   'laughing-face-in-circle': true,
   'laughing-face-in-circle-outline': true,
   leaf: true,
+  'leaf-above-outstretched-hand': true,
   'leafless-tree': true,
   'left-bracket-and-cube': true,
   leg: true,
@@ -1211,6 +1248,7 @@ const pinheadIconNames = {
   'memorial-stone-with-inscription': true,
   'memorial-stone-with-khanda': true,
   'memorial-stone-with-latin-cross': true,
+  'memorial-stone-with-nine-point-star-outline': true,
   'memorial-stone-with-om': true,
   'memorial-stone-with-quaker-star': true,
   'memorial-stone-with-star-and-crescent': true,
@@ -1261,6 +1299,7 @@ const pinheadIconNames = {
   'montana-with-capital-star': true,
   'mortar-and-pestle': true,
   'mortar-and-pestle-with-greek-cross': true,
+  'mortar-and-pestle-with-rx-symbol': true,
   mosquito: true,
   'motor-scooter': true,
   motorboat: true,
@@ -1346,6 +1385,7 @@ const pinheadIconNames = {
   'newspaper-box-with-newspaper': true,
   'nine-point-star': true,
   'nine-point-star-outline': true,
+  'nine-point-star-outline-on-square': true,
   'no-entry': true,
   'noodle-bowl-and-chopsticks-with-noodles': true,
   'noodle-bowl-with-steam': true,
@@ -1462,6 +1502,10 @@ const pinheadIconNames = {
   'person-baseball-batting': true,
   'person-behind-barred-window': true,
   'person-behind-desk': true,
+  'person-beside-person-above-car': true,
+  'person-beside-person-above-pickup-truck': true,
+  'person-beside-person-above-sedan': true,
+  'person-beside-person-above-station-wagon': true,
   'person-bicycle-racing': true,
   'person-boarding': true,
   'person-boarding-aerial-gondola': true,
@@ -1625,9 +1669,9 @@ const pinheadIconNames = {
   'person-wearing-cheese-wedge-hat': true,
   'person-wearing-cowboy-hat-holding-coiled-rope': true,
   'person-wearing-dress-holding-cane': true,
-  'person-wearing-helmet-padding-raft': true,
-  'person-wearing-helmet-padding-raft-on-water': true,
   'person-wearing-helmet-paddling-kayak-on-water': true,
+  'person-wearing-helmet-paddling-raft': true,
+  'person-wearing-helmet-paddling-raft-on-water': true,
   'person-wearing-helmet-riding-atv': true,
   'person-wearing-martial-arts-belt-front-kicking': true,
   'person-wearing-racing-helmet-driving-go-kart': true,
@@ -1695,9 +1739,11 @@ const pinheadIconNames = {
   'picnic-table-in-shelter': true,
   'pier-mounted-in-water': true,
   'pier-on-water': true,
-  pill: true,
   'pill-bottle': true,
+  'pill-bottle-with-capsule-pill': true,
+  'pill-bottle-with-circular-pill': true,
   'pill-bottle-with-greek-cross': true,
+  'pill-bottle-with-rx-symbol': true,
   pin: true,
   'pin-pad-with-baht': true,
   'pin-pad-with-dollar': true,
@@ -1833,6 +1879,7 @@ const pinheadIconNames = {
   'quaker-star-on-square': true,
   quay: true,
   'question-mark': true,
+  'question-mark-above-outstretched-hand': true,
   'question-mark-above-water': true,
   r: true,
   'racetrack-eight-with-dashes': true,
@@ -1916,6 +1963,8 @@ const pinheadIconNames = {
   rupee: true,
   'russian-cross': true,
   'russian-orthodox-cross': true,
+  'rx-symbol': true,
+  'rx-symbol-above-outstretched-hand': true,
   s: true,
   'sad-face': true,
   'sad-face-in-circle': true,
@@ -2008,6 +2057,8 @@ const pinheadIconNames = {
   'sitting-tank-toilet-with-droplet': true,
   'six-pips': true,
   skateboard: true,
+  'skateboard-deck': true,
+  'skateboard-profile': true,
   skull: true,
   'skull-above-crossed-bones': true,
   'skull-above-crossed-cutlasses': true,
@@ -2071,8 +2122,8 @@ const pinheadIconNames = {
   'spooky-ghost': true,
   spoon: true,
   'spoon-and-chefs-knife-and-pot': true,
-  'spoon-and-chopsticks': true,
-  'spoon-and-fork': true,
+  'spoon-beside-chopsticks': true,
+  'spoon-beside-fork': true,
   'spring-rider': true,
   spyglass: true,
   square: true,
@@ -2095,6 +2146,7 @@ const pinheadIconNames = {
   'star-of-david-with-dot': true,
   'star-outline': true,
   'star-wand-with-stardust': true,
+  stardust: true,
   'stardust-above-outstretched-hand': true,
   'station-wagon': true,
   'station-wagon-and-arrow-right-above-arrow-left': true,
@@ -2200,6 +2252,7 @@ const pinheadIconNames = {
   temaki: true,
   tennessee: true,
   'tennessee-with-capital-star': true,
+  'tennis-ball': true,
   'terminal-screen-with-dollar-prompt': true,
   'terminal-screen-with-greater-than-prompt': true,
   'terminal-screen-with-hash-prompt': true,
@@ -2208,6 +2261,7 @@ const pinheadIconNames = {
   'texas-with-capital-star': true,
   'thatched-roof-hut': true,
   'three-books-stacked': true,
+  'three-circular-pills': true,
   'three-dot-horizontal-line': true,
   'three-dot-horizontal-line-in-rectangle': true,
   'three-dot-vertical-line': true,
@@ -2313,6 +2367,7 @@ const pinheadIconNames = {
   'triangles-up-down': true,
   'triangles-up-down-in-rectangle': true,
   'triangles-up-down-in-rectangle-outline': true,
+  'triangular-pill-and-circular-pill-and-capsule-pill': true,
   'tricorne-hat-with-skull': true,
   'trifold-brochure': true,
   trophy: true,
@@ -2333,12 +2388,9 @@ const pinheadIconNames = {
   'turtle-top': true,
   'tv-screen': true,
   'two-button-computer-mouse-with-scroll-wheel': true,
+  'two-circular-pills': true,
   'two-dot-horizontal-line-in-rectangle': true,
   'two-dot-vertical-line-in-rectangle': true,
-  'two-people-above-car': true,
-  'two-people-above-pickup-truck': true,
-  'two-people-above-sedan': true,
-  'two-people-above-station-wagon': true,
   'two-pips': true,
   'typha-and-duck-in-water': true,
   'typha-in-water': true,
@@ -2540,6 +2592,9 @@ type PinheadIconAlias =
   | 'five-plus-above-water'
   | 'five-plus-over-water'
   | 'flag-over-railway-track'
+  | 'fork-and-knife'
+  | 'fork-and-sausage'
+  | 'fork-and-spoon'
   | 'four'
   | 'four-above-water'
   | 'four-minus'
@@ -2593,6 +2648,8 @@ type PinheadIconAlias =
   | 'people-above-sedan'
   | 'people-above-station-wagon'
   | 'person-wearing-backpack-walking-with-hiking-pole-in-gable-roofed-building'
+  | 'person-wearing-helmet-padding-raft'
+  | 'person-wearing-helmet-padding-raft-on-water'
   | 'phone-down-above-eight-one-one'
   | 'phone-down-above-five-one-one'
   | 'phone-down-above-four-one-one'
@@ -2606,6 +2663,7 @@ type PinheadIconAlias =
   | 'phone-down-above-six-one-one'
   | 'phone-down-above-three-one-one'
   | 'phone-down-above-two-one-one'
+  | 'pill'
   | 'pipe'
   | 'roman-numeral-i-over-water'
   | 'roman-numeral-ii-over-water'
@@ -2630,6 +2688,8 @@ type PinheadIconAlias =
   | 'six-plus-over-water'
   | 'skull-over-water'
   | 'snowflake-and-icicles'
+  | 'spoon-and-chopsticks'
+  | 'spoon-and-fork'
   | 'suitcase-and-key'
   | 'suitcase-in-rectangle-outline-and-key'
   | 'taxi-and-taxi-checkerboard'
@@ -2653,6 +2713,10 @@ type PinheadIconAlias =
   | 'two-minus-over-water'
   | 'two-one-one'
   | 'two-over-water'
+  | 'two-people-above-car'
+  | 'two-people-above-pickup-truck'
+  | 'two-people-above-sedan'
+  | 'two-people-above-station-wagon'
   | 'two-plus'
   | 'two-plus-above-water'
   | 'two-plus-over-water'
