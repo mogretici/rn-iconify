@@ -190,6 +190,7 @@ const oouiIconNames = {
   'level-two-ltr': true,
   'level-two-rtl': true,
   lightbulb: true,
+  'lightbulb-dashed': true,
   'lightbulb-outline': true,
   link: true,
   'link-external-ltr': true,

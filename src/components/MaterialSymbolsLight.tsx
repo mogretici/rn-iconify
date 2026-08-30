@@ -3318,6 +3318,12 @@ const material_symbols_lightIconNames = {
   'spatial-tracking-outline-rounded': true,
   'spatial-tracking-rounded': true,
   'speech-to-text': true,
+  'speech-to-text-2': true,
+  'speech-to-text-2-outline': true,
+  'speech-to-text-2-outline-rounded': true,
+  'speech-to-text-2-outline-sharp': true,
+  'speech-to-text-2-rounded': true,
+  'speech-to-text-2-sharp': true,
   'speech-to-text-rounded': true,
   'speech-to-text-sharp': true,
   speed: true,
@@ -3569,12 +3575,6 @@ const material_symbols_lightIconNames = {
   'volume-up-outline': true,
   'volume-up-outline-rounded': true,
   'volume-up-rounded': true,
-  'drive-fusiontable': true,
-  'drive-fusiontable-outline': true,
-  'drive-fusiontable-outline-rounded': true,
-  'drive-fusiontable-outline-sharp': true,
-  'drive-fusiontable-rounded': true,
-  'drive-fusiontable-sharp': true,
   'account-balance': true,
   'account-balance-outline': true,
   'account-balance-outline-rounded': true,
@@ -3675,6 +3675,10 @@ const material_symbols_lightIconNames = {
   'briefcase-meal-sharp': true,
   'bubble-chart': true,
   'bubble-chart-outline': true,
+  'bullet-chart': true,
+  'bullet-chart-outline': true,
+  'bullet-chart-outline-rounded': true,
+  'bullet-chart-rounded': true,
   calculate: true,
   'calculate-outline': true,
   'calculate-outline-rounded': true,
@@ -3837,6 +3841,8 @@ const material_symbols_lightIconNames = {
   'domain-add': true,
   'domain-add-rounded': true,
   'domain-disabled': true,
+  'domain-disabled-check': true,
+  'domain-disabled-check-rounded': true,
   'domain-disabled-rounded': true,
   'domain-rounded': true,
   'donut-large': true,
@@ -6156,6 +6162,12 @@ const material_symbols_lightIconNames = {
   'settop-component-rounded': true,
   'settop-component-sharp': true,
   'sim-card': true,
+  'sim-card-lock': true,
+  'sim-card-lock-outline': true,
+  'sim-card-lock-outline-rounded': true,
+  'sim-card-lock-outline-sharp': true,
+  'sim-card-lock-rounded': true,
+  'sim-card-lock-sharp': true,
   'sim-card-outline': true,
   'sim-card-outline-rounded': true,
   'sim-card-outline-sharp': true,
@@ -12481,6 +12493,8 @@ const material_symbols_lightIconNames = {
   'line-weight-rounded': true,
   'linear-scale': true,
   list: true,
+  'list-2': true,
+  'list-2-rounded': true,
   'list-alt': true,
   'list-alt-add': true,
   'list-alt-add-outline': true,
@@ -16976,6 +16990,8 @@ type MaterialSymbolsLightIconAlias =
   | 'bubbles-outline-sharp'
   | 'bug-report-outline-sharp'
   | 'bug-report-sharp'
+  | 'bullet-chart-outline-sharp'
+  | 'bullet-chart-sharp'
   | 'bungalow-outline-sharp'
   | 'bungalow-sharp'
   | 'bus-map-pin-2'
@@ -17850,6 +17866,10 @@ type MaterialSymbolsLightIconAlias =
   | 'domain-add-outline-rounded'
   | 'domain-add-outline-sharp'
   | 'domain-add-sharp'
+  | 'domain-disabled-check-outline'
+  | 'domain-disabled-check-outline-rounded'
+  | 'domain-disabled-check-outline-sharp'
+  | 'domain-disabled-check-sharp'
   | 'domain-disabled-outline'
   | 'domain-disabled-outline-rounded'
   | 'domain-disabled-outline-sharp'
@@ -17931,6 +17951,12 @@ type MaterialSymbolsLightIconAlias =
   | 'drive-export-outline-sharp'
   | 'drive-export-sharp'
   | 'drive-folder-upload-outline-sharp'
+  | 'drive-fusiontable'
+  | 'drive-fusiontable-outline'
+  | 'drive-fusiontable-outline-rounded'
+  | 'drive-fusiontable-outline-sharp'
+  | 'drive-fusiontable-rounded'
+  | 'drive-fusiontable-sharp'
   | 'drone-2-outline'
   | 'drone-2-outline-rounded'
   | 'drone-2-outline-sharp'
@@ -19822,6 +19848,10 @@ type MaterialSymbolsLightIconAlias =
   | 'linked-services-sharp'
   | 'lips-outline-sharp'
   | 'lips-sharp'
+  | 'list-2-outline'
+  | 'list-2-outline-rounded'
+  | 'list-2-outline-sharp'
+  | 'list-2-sharp'
   | 'list-arrow-outline'
   | 'list-arrow-outline-rounded'
   | 'list-arrow-outline-sharp'

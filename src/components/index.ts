@@ -2,7 +2,7 @@
  * Icon Set Components
  * Auto-generated - do not edit manually
  *
- * 228 icon sets available
+ * 229 icon sets available
  */
 
 export { Mdi, type MdiIconName } from './Mdi';
@@ -129,6 +129,7 @@ export { Iwwa, type IwwaIconName } from './Iwwa';
 export { Ix, type IxIconName } from './Ix';
 export { Jam, type JamIconName } from './Jam';
 export { K8s, type K8sIconName } from './K8s';
+export { KeylineIcons, type KeylineIconsIconName } from './KeylineIcons';
 export { La, type LaIconName } from './La';
 export { LetsIcons, type LetsIconsIconName } from './LetsIcons';
 export { LineMd, type LineMdIconName } from './LineMd';

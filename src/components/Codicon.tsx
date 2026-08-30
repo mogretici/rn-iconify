@@ -133,6 +133,8 @@ const codiconIconNames = {
   copilot: true,
   'copilot-blocked': true,
   'copilot-compact': true,
+  'copilot-dot': true,
+  'copilot-dot-compact': true,
   'copilot-error': true,
   'copilot-in-progress': true,
   'copilot-large': true,
