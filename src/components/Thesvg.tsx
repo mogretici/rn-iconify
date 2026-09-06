@@ -2605,6 +2605,7 @@ const thesvgIconNames = {
   protondb: true,
   protractor: true,
   proxmox: true,
+  'prusa-research': true,
   pterodactyl: true,
   pubg: true,
   publons: true,

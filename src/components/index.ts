@@ -2,7 +2,7 @@
  * Icon Set Components
  * Auto-generated - do not edit manually
  *
- * 229 icon sets available
+ * 230 icon sets available
  */
 
 export { Mdi, type MdiIconName } from './Mdi';
@@ -123,6 +123,7 @@ export { IconParkOutline, type IconParkOutlineIconName } from './IconParkOutline
 export { IconParkSolid, type IconParkSolidIconName } from './IconParkSolid';
 export { IconParkTwotone, type IconParkTwotoneIconName } from './IconParkTwotone';
 export { Iconamoon, type IconamoonIconName } from './Iconamoon';
+export { Iconmind, type IconmindIconName } from './Iconmind';
 export { Icons8, type Icons8IconName } from './Icons8';
 export { Il, type IlIconName } from './Il';
 export { Iwwa, type IwwaIconName } from './Iwwa';

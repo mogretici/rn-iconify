@@ -341,6 +341,8 @@ const codiconIconNames = {
   'layout-activitybar-left': true,
   'layout-activitybar-right': true,
   'layout-centered': true,
+  'layout-density-compact': true,
+  'layout-density-default': true,
   'layout-menubar': true,
   'layout-panel': true,
   'layout-panel-center': true,

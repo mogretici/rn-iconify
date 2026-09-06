@@ -704,6 +704,7 @@ const selfhstIconNames = {
   bumpsight: true,
   'bumpsight-dark': true,
   'bumpsight-light': true,
+  bun: true,
   bunkerweb: true,
   'bunkerweb-dark': true,
   'bunkerweb-light': true,
@@ -747,6 +748,9 @@ const selfhstIconNames = {
   'calibre-web': true,
   'calibre-web-dark': true,
   'calibre-web-light': true,
+  calico: true,
+  'calico-dark': true,
+  'calico-light': true,
   calmness: true,
   'calmness-dark': true,
   'calmness-light': true,
@@ -1323,6 +1327,9 @@ const selfhstIconNames = {
   dockprobe: true,
   'dockprobe-dark': true,
   'dockprobe-light': true,
+  docktail: true,
+  'docktail-dark': true,
+  'docktail-light': true,
   docmost: true,
   'docmost-dark': true,
   'docmost-light': true,
@@ -1572,8 +1579,6 @@ const selfhstIconNames = {
   'ergo-dark': true,
   'ergo-light': true,
   ersatztv: true,
-  'ersatztv-dark': true,
-  'ersatztv-light': true,
   erugo: true,
   'erugo-dark': true,
   'erugo-light': true,
@@ -2233,6 +2238,12 @@ const selfhstIconNames = {
   'grafana-mimir': true,
   'grafana-mimir-dark': true,
   'grafana-mimir-light': true,
+  'grafana-pyroscope': true,
+  'grafana-pyroscope-dark': true,
+  'grafana-pyroscope-light': true,
+  'grafana-tempo': true,
+  'grafana-tempo-dark': true,
+  'grafana-tempo-light': true,
   gramps: true,
   'gramps-dark': true,
   'gramps-light': true,
@@ -2667,7 +2678,6 @@ const selfhstIconNames = {
   irs: true,
   'irs-dark': true,
   'irs-light': true,
-  iru: true,
   'it-glue': true,
   'it-glue-dark': true,
   'it-glue-light': true,
@@ -3061,6 +3071,9 @@ const selfhstIconNames = {
   librechat: true,
   'librechat-dark': true,
   'librechat-light': true,
+  'libredb-studio': true,
+  'libredb-studio-dark': true,
+  'libredb-studio-light': true,
   librenms: true,
   'librenms-dark': true,
   'librenms-light': true,
@@ -5004,8 +5017,6 @@ const selfhstIconNames = {
   'privatefolio-dark': true,
   'privatefolio-light': true,
   profilarr: true,
-  'profilarr-dark': true,
-  'profilarr-light': true,
   progressive: true,
   'progressive-dark': true,
   'progressive-light': true,
@@ -5170,6 +5181,9 @@ const selfhstIconNames = {
   'quiet-chat': true,
   'quiet-chat-dark': true,
   'quiet-chat-light': true,
+  'quire-ink': true,
+  'quire-ink-dark': true,
+  'quire-ink-light': true,
   qwik: true,
   'qwik-dark': true,
   'qwik-light': true,
@@ -6264,6 +6278,9 @@ const selfhstIconNames = {
   'ties-link-sharing': true,
   'ties-link-sharing-dark': true,
   'ties-link-sharing-light': true,
+  tigera: true,
+  'tigera-dark': true,
+  'tigera-light': true,
   tiktok: true,
   'tiktok-dark': true,
   'tiktok-light': true,
@@ -7117,5 +7134,17 @@ const selfhstIconNames = {
   'zulip-light': true,
 } as const;
 
-export type SelfhstIconName = keyof typeof selfhstIconNames;
+/**
+ * Names upstream has renamed or hidden. Still served, still typed, and
+ * deliberately not in the object above: a union compiles to nothing, while
+ * every entry in that object ships to every application.
+ */
+type SelfhstIconAlias =
+  | 'ersatztv-dark'
+  | 'ersatztv-light'
+  | 'iru'
+  | 'profilarr-dark'
+  | 'profilarr-light';
+
+export type SelfhstIconName = keyof typeof selfhstIconNames | SelfhstIconAlias;
 export const Selfhst = createIconSet<SelfhstIconName>('selfhst', selfhstIconNames);
