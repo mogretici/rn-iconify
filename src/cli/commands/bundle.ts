@@ -8,6 +8,7 @@ import * as path from 'path';
 import type { BundleOptions, IconBundle } from '../types';
 import { EXIT_CODES } from '../types';
 import { analyzeDirectory, getUniqueIcons, parseIconList } from '../parser';
+import { createBundle } from '../../babel/cache-writer';
 
 /**
  * Iconify API base URL
@@ -240,13 +241,8 @@ export async function bundleCommand(options: BundleOptions): Promise<number> {
     return EXIT_CODES.NETWORK_ERROR;
   }
 
-  // Create bundle
-  const bundle: IconBundle = {
-    version: '1.0.0',
-    generatedAt: new Date().toISOString(),
-    icons: fetchedIcons,
-    count: fetchedCount,
-  };
+  // Icons in name order and no timestamp: the same icons give the same file
+  const bundle: IconBundle = createBundle(fetchedIcons);
 
   // Ensure output directory exists
   const outputDir = path.dirname(output);

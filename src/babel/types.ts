@@ -39,14 +39,6 @@ export interface BabelPluginOptions {
    * @default false
    */
   disabled?: boolean;
-
-  /**
-   * Auto-inject loadOfflineBundle call when bundle exists
-   * When true, the plugin will automatically inject import and load
-   * statements for the generated icon bundle.
-   * @default true
-   */
-  autoInject?: boolean;
 }
 
 /**
@@ -213,7 +205,7 @@ export interface CollectedIcon {
  */
 export interface IconBundle {
   version: string;
-  generatedAt: string;
+  generatedAt?: string;
   icons: Record<
     string,
     {

@@ -153,9 +153,10 @@ export interface IconBundle {
   version: string;
 
   /**
-   * Generation timestamp
+   * When the bundle was generated. Bundles written before 5.0.0 carry it; the
+   * CLI and the Babel plugin no longer do, so the same icons give the same file
    */
-  generatedAt: string;
+  generatedAt?: string;
 
   /**
    * Icons in the bundle

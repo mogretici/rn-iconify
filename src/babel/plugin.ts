@@ -2,16 +2,22 @@
  * Babel Plugin Visitor
  * Main visitor logic for the rn-iconify Babel plugin
  *
- * Auto-inject flow:
- * 1. pre hook: scan project → detect icons → check if bundle exists
- * 2. ImportDeclaration visitor: inject loadOfflineBundle + bundle import when bundle exists
- * 3. post hook: generate/update bundle incrementally
+ * 1. pre hook: scan the project for icons and read the existing bundle
+ * 2. visitors: collect icon names from JSX and prefetchIcons() calls
+ * 3. post hook: add newly found icons to the bundle on disk
+ *
+ * The plugin never changes the code it transforms. It used to inject a
+ * loadOfflineBundle() call into whichever file importing rn-iconify it met
+ * first, so the same file compiled one way or the other depending on worker
+ * and build order — and Metro, which caches a transform by the file's
+ * content, paired one compilation's code with the other's dependency map. The
+ * injected require then reached an unrelated module. The library now loads the
+ * bundle itself, from `rn-iconify/bundled-icons` (see rn-iconify/metro).
  */
 
 import * as nodePath from 'path';
 import * as fs from 'fs';
-import type { PluginObj, types as BabelTypes, NodePath } from '@babel/core';
-import type { ImportDeclaration } from '@babel/types';
+import type { PluginObj, types as BabelTypes } from '@babel/core';
 import type { BabelPluginState, BabelPluginOptions } from './types';
 import {
   COMPONENT_PREFIX_MAP,
@@ -85,19 +91,9 @@ let bundleTimer: NodeJS.Timeout | null = null;
 let projectRoot = '';
 
 /**
- * Whether bundle exists at build start (set in pre hook)
- */
-let bundleExists = false;
-
-/**
  * Path to the existing bundle directory
  */
 let bundleDirPath = '';
-
-/**
- * Whether auto-inject has already been done for this build
- */
-let hasInjected = false;
 
 /**
  * Scanned icon names from the pre hook
@@ -116,7 +112,6 @@ let existingBundle: IconBundle | null = null;
 function resetBuildState(): void {
   buildInProgress = false;
   buildStartTime = 0;
-  hasInjected = false;
   scannedIcons = [];
   existingBundle = null;
   processedFiles.clear();
@@ -202,7 +197,6 @@ export function createRnIconifyPlugin(babel: {
       if (!buildInProgress) {
         buildInProgress = true;
         buildStartTime = Date.now();
-        hasInjected = false;
         collector.initialize(opts);
 
         // Detect project root from Babel's root (set from babel.config.js location)
@@ -213,9 +207,7 @@ export function createRnIconifyPlugin(babel: {
         bundleDirPath = resolveBundleDir(outputPath, projectRoot);
         const bundleJsonPath = nodePath.join(bundleDirPath, 'icons.json');
 
-        // Check if bundle exists
         existingBundle = readExistingBundle(bundleJsonPath);
-        bundleExists = existingBundle !== null;
 
         // Use file-based lock to prevent duplicate scans across Metro workers
         const lockPath = nodePath.join(bundleDirPath, '.scan-lock');
@@ -243,105 +235,13 @@ export function createRnIconifyPlugin(babel: {
 
         if (opts.verbose) {
           console.log(`[rn-iconify] Build started. Project root: ${projectRoot}`);
-          console.log(`[rn-iconify] Bundle exists: ${bundleExists}`);
+          console.log(`[rn-iconify] Bundle exists: ${existingBundle !== null}`);
           console.log(`[rn-iconify] Scanner found ${scannedIcons.length} icons`);
         }
       }
     },
 
     visitor: {
-      /**
-       * Visit import declarations to:
-       * 1. Track which icon components are imported
-       * 2. Auto-inject loadOfflineBundle when bundle exists
-       */
-      ImportDeclaration(path: NodePath<ImportDeclaration>, state: BabelPluginState) {
-        const opts = state.opts || {};
-        if (opts.disabled) return;
-
-        const source = path.node.source.value;
-
-        // Only care about imports from rn-iconify
-        if (source !== 'rn-iconify' && !source.startsWith('rn-iconify/')) {
-          return;
-        }
-
-        // Auto-inject: when bundle exists and we haven't injected yet
-        const autoInject = opts.autoInject !== false;
-        if (autoInject && bundleExists && !hasInjected && source === 'rn-iconify') {
-          // Check if this file already has a manual loadOfflineBundle import
-          const program = path.findParent((p) => p.isProgram());
-          if (program && program.isProgram()) {
-            let hasManualLoad = false;
-            for (const stmt of program.node.body) {
-              if (t.isImportDeclaration(stmt)) {
-                for (const spec of stmt.specifiers) {
-                  if (
-                    t.isImportSpecifier(spec) &&
-                    t.isIdentifier(spec.imported) &&
-                    spec.imported.name === 'loadOfflineBundle'
-                  ) {
-                    hasManualLoad = true;
-                    break;
-                  }
-                }
-              }
-              if (hasManualLoad) break;
-            }
-
-            if (!hasManualLoad) {
-              hasInjected = true;
-
-              // Compute relative path from this file to the bundle
-              const filename = getFilenameFromState(state) || '';
-              const bundleJsPath = nodePath.join(bundleDirPath, 'icons.js');
-              let relativeBundlePath: string;
-
-              if (filename) {
-                const fileDir = nodePath.dirname(filename);
-                relativeBundlePath = nodePath.relative(fileDir, bundleJsPath);
-                if (!relativeBundlePath.startsWith('.')) {
-                  relativeBundlePath = './' + relativeBundlePath;
-                }
-              } else {
-                relativeBundlePath = bundleJsPath;
-              }
-
-              // Import loadOfflineBundle from 'rn-iconify'
-              const loadBundleImport = t.importDeclaration(
-                [
-                  t.importSpecifier(
-                    t.identifier('_rnIconifyLoadBundle'),
-                    t.identifier('loadOfflineBundle')
-                  ),
-                ],
-                t.stringLiteral('rn-iconify')
-              );
-
-              // Import bundle data
-              const bundleDataImport = t.importDeclaration(
-                [t.importDefaultSpecifier(t.identifier('_rnIconifyBundle'))],
-                t.stringLiteral(relativeBundlePath)
-              );
-
-              // Call: _rnIconifyLoadBundle(_rnIconifyBundle)
-              const loadCall = t.expressionStatement(
-                t.callExpression(t.identifier('_rnIconifyLoadBundle'), [
-                  t.identifier('_rnIconifyBundle'),
-                ])
-              );
-
-              // Insert after the current import
-              path.insertAfter([loadBundleImport, bundleDataImport, loadCall]);
-
-              if (opts.verbose) {
-                console.log(`[rn-iconify] Auto-injected bundle loading in ${filename}`);
-              }
-            }
-          }
-        }
-      },
-
       /**
        * Visit JSX opening elements to find icon usage
        */
@@ -451,8 +351,6 @@ export function resetPluginState(): void {
   processedFiles.clear();
   buildInProgress = false;
   projectRoot = '';
-  hasInjected = false;
-  bundleExists = false;
   bundleDirPath = '';
   scannedIcons = [];
   existingBundle = null;

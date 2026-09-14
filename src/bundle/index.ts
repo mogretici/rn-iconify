@@ -15,9 +15,10 @@ export interface IconBundle {
   version: string;
 
   /**
-   * Generation timestamp
+   * When the bundle was generated. Bundles the Babel plugin wrote before 5.0.0
+   * carry it; it no longer does — a timestamp rewrote the file on every build.
    */
-  generatedAt: string;
+  generatedAt?: string;
 
   /**
    * Icons in the bundle
@@ -293,7 +294,7 @@ export function getBundleStats(bundle: IconBundle): {
   iconCount: number;
   prefixes: string[];
   estimatedSizeBytes: number;
-  generatedAt: Date;
+  generatedAt: Date | null;
 } {
   const prefixes = new Set<string>();
   let totalSize = 0;
@@ -308,6 +309,6 @@ export function getBundleStats(bundle: IconBundle): {
     iconCount: bundle.count,
     prefixes: Array.from(prefixes).sort(),
     estimatedSizeBytes: totalSize,
-    generatedAt: new Date(bundle.generatedAt),
+    generatedAt: bundle.generatedAt ? new Date(bundle.generatedAt) : null,
   };
 }

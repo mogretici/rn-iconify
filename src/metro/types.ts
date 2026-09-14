@@ -18,9 +18,40 @@ export interface MetroServerConfig {
 }
 
 /**
+ * Where Metro resolved a module to (partial, only what we need)
+ */
+export type MetroResolution =
+  | { type: 'sourceFile'; filePath: string }
+  | { type: string; [key: string]: unknown };
+
+/**
+ * The context Metro hands a custom resolver; `resolveRequest` is its own
+ */
+export interface MetroResolutionContext {
+  resolveRequest: MetroResolveRequest;
+  [key: string]: unknown;
+}
+
+export type MetroResolveRequest = (
+  context: MetroResolutionContext,
+  moduleName: string,
+  platform: string | null
+) => MetroResolution;
+
+/**
+ * Metro resolver configuration
+ */
+export interface MetroResolverConfig {
+  resolveRequest?: MetroResolveRequest;
+  [key: string]: unknown;
+}
+
+/**
  * Metro configuration object (partial, only what we need)
  */
 export interface MetroConfig {
+  projectRoot?: string;
+  resolver?: MetroResolverConfig;
   server?: MetroServerConfig;
   [key: string]: unknown;
 }
@@ -30,7 +61,8 @@ export interface MetroConfig {
  */
 export interface RnIconifyMetroOptions {
   /**
-   * Directory to store usage data
+   * Directory holding the icon bundle and usage data — the Babel plugin's
+   * `outputPath`, so the two must agree
    * @default '.rn-iconify'
    */
   outputDir?: string;
