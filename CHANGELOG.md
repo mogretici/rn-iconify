@@ -1,3 +1,22 @@
+# [5.0.0](https://github.com/mogretici/rn-iconify/compare/v4.5.0...v5.0.0) (2026-09-14)
+
+### Features
+
+- **babel:** load the offline bundle from the library, never from injected code ([#24](https://github.com/mogretici/rn-iconify/issues/24)) ([f22b9eb](https://github.com/mogretici/rn-iconify/commit/f22b9ebf13e7f2e58d86b0955eb4d420edef9f96))
+- sync icon sets with Iconify API ([36c22a6](https://github.com/mogretici/rn-iconify/commit/36c22a6fe6dc17ab953d75b6f338ef45b6c8b418))
+- sync icon sets with Iconify API ([0e1495a](https://github.com/mogretici/rn-iconify/commit/0e1495a2da8ca30e3786e1c953651095a0a16be5))
+- sync icon sets with Iconify API ([87df371](https://github.com/mogretici/rn-iconify/commit/87df37175653c91ab1d904a5b95ac7282ca4a66c))
+- sync icon sets with Iconify API ([4ca89ca](https://github.com/mogretici/rn-iconify/commit/4ca89cafb7b7e2f5f64dc67a8a3f8b27f2ce5a79))
+
+### BREAKING CHANGES
+
+- **babel:** the Babel plugin no longer injects loadOfflineBundle() and
+  the autoInject option is removed. Add withRnIconify to the Metro config for
+  the generated bundle to reach the app; the Babel plugin's outputPath and the
+  wrapper's outputDir must agree (both default to .rn-iconify). Bundles no
+  longer carry generatedAt, and getBundleStats() returns generatedAt as
+  Date | null.
+
 # [4.5.0](https://github.com/mogretici/rn-iconify/compare/v4.4.0...v4.5.0) (2026-08-12)
 
 ### Features
