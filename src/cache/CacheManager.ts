@@ -23,7 +23,7 @@ interface BundledIconData {
  */
 interface IconBundle {
   version: string;
-  generatedAt: string;
+  generatedAt?: string;
   icons: Record<string, BundledIconData>;
   count: number;
 }
@@ -68,9 +68,21 @@ class CacheManagerImpl {
 
     this.bundledIconsInitialized = true;
 
-    // Bundled icons loading is disabled by default to prevent Metro bundling errors
-    // Use loadBundle() explicitly to load icons from a generated bundle file
-    // This is called by the app after importing the bundle from the Babel plugin output
+    // The application's bundle when rn-iconify/metro resolves this module to
+    // it, the package's own empty one otherwise. Read here, on first use, and
+    // never injected into application code — see babel/plugin.ts for why.
+    let bundle: IconBundle;
+    try {
+      bundle = require('rn-iconify/bundled-icons') as IconBundle;
+    } catch (error) {
+      if (__DEV__) {
+        console.warn('[rn-iconify] Could not read the bundled icons:', error);
+      }
+      return;
+    }
+    if (bundle && bundle.count > 0) {
+      this.loadBundle(bundle);
+    }
   }
 
   /**

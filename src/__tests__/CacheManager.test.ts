@@ -29,6 +29,45 @@ describe('CacheManager', () => {
     jest.clearAllMocks();
   });
 
+  // The bundle comes from `rn-iconify/bundled-icons`, which rn-iconify/metro
+  // points at the application's `.rn-iconify/icons.js` — never from a call the
+  // Babel plugin injects into application code.
+  describe('bundled icons', () => {
+    // A fresh manager, made to read its bundle while the mock stands — the
+    // read is lazy, and a mock left registered would reach the shared
+    // CacheManager the rest of this file uses.
+    const managerWith = (bundle: unknown): typeof CacheManager => {
+      let manager: typeof CacheManager | undefined;
+      jest.isolateModules(() => {
+        jest.doMock('rn-iconify/bundled-icons', () => bundle);
+        manager = require('../cache/CacheManager').CacheManager;
+        manager!.getBundledCount();
+      });
+      return manager!;
+    };
+
+    afterEach(() => {
+      jest.dontMock('rn-iconify/bundled-icons');
+    });
+
+    it('reads the application bundle on first use', () => {
+      const manager = managerWith({
+        version: '1.0.0',
+        icons: { 'mdi:home': { svg: '<svg>bundled</svg>', width: 24, height: 24 } },
+        count: 1,
+      });
+
+      expect(manager.get('mdi:home')).toBe('<svg>bundled</svg>');
+      expect(manager.getBundledCount()).toBe(1);
+    });
+
+    it('has none when the application has no bundle', () => {
+      const manager = managerWith({ version: '1.0.0', icons: {}, count: 0 });
+
+      expect(manager.getBundledCount()).toBe(0);
+    });
+  });
+
   describe('get', () => {
     it('should return from memory cache first', () => {
       MemoryCache.set('mdi:home', '<svg>memory</svg>');

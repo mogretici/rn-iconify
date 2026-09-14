@@ -30,6 +30,13 @@ npx rn-iconify bundle \
 
 ## Loading Bundles
 
+:::tip
+  With the [Babel plugin](/docs/advanced/babel-plugin) and `withRnIconify` in
+  your Metro config, the library loads the generated bundle itself — there is
+  nothing to call. `loadOfflineBundle` is for bundles you build yourself, such
+  as the CLI's.
+:::
+
 Load the bundle at app startup:
 
 ```tsx

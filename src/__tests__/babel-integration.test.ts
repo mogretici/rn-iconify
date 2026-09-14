@@ -699,81 +699,6 @@ describe('Collector State Management', () => {
   });
 });
 
-describe('Auto-Inject Plugin Option', () => {
-  beforeEach(() => {
-    jest.clearAllTimers();
-    resetPluginState();
-    collector.initialize({});
-  });
-
-  afterEach(() => {
-    jest.clearAllTimers();
-    resetPluginState();
-  });
-
-  it('accepts autoInject option without errors', () => {
-    const code = `
-      import { Mdi } from 'rn-iconify';
-      export function App() {
-        return <Mdi name="home" />;
-      }
-    `;
-
-    // Should not throw with autoInject option
-    const result = transform(code, { autoInject: true });
-    expect(result).toBeTruthy();
-    expect(collector.getIconNames()).toContain('mdi:home');
-  });
-
-  it('accepts autoInject: false option', () => {
-    const code = `
-      import { Mdi } from 'rn-iconify';
-      export function App() {
-        return <Mdi name="home" />;
-      }
-    `;
-
-    const result = transform(code, { autoInject: false });
-    expect(result).toBeTruthy();
-    expect(collector.getIconNames()).toContain('mdi:home');
-  });
-
-  it('does not inject when no bundle exists (first build)', () => {
-    const code = `
-      import { Mdi } from 'rn-iconify';
-      export function App() {
-        return <Mdi name="home" />;
-      }
-    `;
-
-    const result = transform(code);
-
-    // On first build, no bundle exists, so no injection
-    // The output should not contain _rnIconifyLoadBundle
-    expect(result?.code).not.toContain('_rnIconifyLoadBundle');
-  });
-
-  it('still collects icons with autoInject enabled', () => {
-    const code = `
-      import { Mdi, Heroicons } from 'rn-iconify';
-      export function App() {
-        return (
-          <>
-            <Mdi name="home" />
-            <Heroicons name="user" />
-          </>
-        );
-      }
-    `;
-
-    transform(code, { autoInject: true });
-
-    const icons = collector.getIconNames();
-    expect(icons).toContain('mdi:home');
-    expect(icons).toContain('heroicons:user');
-  });
-});
-
 describe('Scan Lock', () => {
   const lockDir = path.join(__dirname, '.test-lock-dir');
   const lockPath = path.join(lockDir, '.scan-lock');
@@ -831,21 +756,24 @@ describe('Scan Lock', () => {
   });
 
   /**
-   * Auto-injection rewrites the consumer's own module: when a bundle exists,
-   * an import of `loadOfflineBundle` and a call to it are added to the first
-   * file that imports rn-iconify. It is the only part of this plugin that
-   * changes anyone's code, and it had no tests.
+   * The plugin must never change the code it transforms. It used to add a
+   * loadOfflineBundle() call to the first file importing rn-iconify that a
+   * worker met, so a file compiled one way or the other depending on build
+   * order. Metro caches a transform by the file's content, paired one
+   * compilation's code with the other's dependency map, and the injected
+   * require reached an unrelated module: "loadOfflineBundle is not a function"
+   * on device. The library loads the bundle itself now.
    *
-   * The failure that matters is not it doing nothing — it is doing it twice,
-   * or doing it on top of a call the application already wrote.
+   * These run with a bundle on disk — the state in which injection happened.
    */
-  describe('auto-injecting the offline bundle', () => {
+  describe('leaving the transformed code alone', () => {
     let root: string;
     let bundleDir: string;
 
     // projectRoot is not a plugin option — the plugin reads Babel's own root,
     // so the tests hand it to Babel rather than to the plugin.
     const withBundle = (options: Record<string, unknown> = {}) => options;
+    const app = `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`;
 
     beforeEach(() => {
       root = fs.mkdtempSync(path.join(require('os').tmpdir(), 'rn-iconify-inject-'));
@@ -864,40 +792,35 @@ describe('Scan Lock', () => {
       fs.rmSync(root, { recursive: true, force: true });
     });
 
-    it('adds the loader to a file that imports rn-iconify', () => {
-      const result = transform(
-        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
-        withBundle(),
-        path.join(root, 'src', 'App.tsx'),
-        root
-      );
+    it('adds nothing to a file that imports rn-iconify', () => {
+      const result = transform(app, withBundle(), path.join(root, 'src', 'App.tsx'), root);
 
-      expect(result?.code).toContain('loadOfflineBundle');
+      expect(result?.code).not.toContain('loadOfflineBundle');
+      expect(result?.code).not.toContain('.rn-iconify');
     });
 
-    // Injecting into every file that imports rn-iconify would load the bundle
-    // once per module — the same work repeated for no benefit.
-    it('adds it to one file only', () => {
-      const first = transform(
-        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
-        withBundle(),
-        path.join(root, 'src', 'A.tsx'),
-        root
-      );
-      const second = transform(
+    // The property Metro's cache depends on: the output is a function of the
+    // file alone, not of which files this worker transformed before it.
+    it('compiles a file the same way whichever files came first', () => {
+      const first = transform(app, withBundle(), path.join(root, 'src', 'A.tsx'), root);
+      transform(
         `import { Ion } from 'rn-iconify';\nexport const B = () => <Ion name="home" />;`,
         withBundle(),
         path.join(root, 'src', 'B.tsx'),
         root
       );
+      const again = transform(app, withBundle(), path.join(root, 'src', 'A.tsx'), root);
 
-      expect(first?.code).toContain('loadOfflineBundle');
-      expect(second?.code).not.toContain('loadOfflineBundle');
+      expect(again?.code).toBe(first?.code);
     });
 
-    // An application that loads the bundle itself has said how it wants this
-    // done, and a second automatic call would be loading it twice.
-    it('leaves a file that already loads the bundle alone', () => {
+    it('still collects the icons of a file it leaves alone', () => {
+      transform(app, withBundle(), path.join(root, 'src', 'App.tsx'), root);
+
+      expect(collector.getIconNames()).toContain('mdi:home');
+    });
+
+    it('keeps a call the application wrote itself', () => {
       const result = transform(
         `import { Mdi, loadOfflineBundle } from 'rn-iconify';\n` +
           `loadOfflineBundle({});\nexport const A = () => <Mdi name="home" />;`,
@@ -908,39 +831,6 @@ describe('Scan Lock', () => {
 
       const occurrences = (result?.code?.match(/loadOfflineBundle/g) ?? []).length;
       expect(occurrences).toBe(2); // the import and the call the app wrote
-    });
-
-    it('does nothing when asked not to', () => {
-      const result = transform(
-        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
-        withBundle({ autoInject: false }),
-        path.join(root, 'src', 'App.tsx'),
-        root
-      );
-
-      expect(result?.code).not.toContain('loadOfflineBundle');
-    });
-
-    it('leaves files that do not import rn-iconify untouched', () => {
-      const result = transform(
-        `export const helper = () => 42;`,
-        withBundle(),
-        path.join(root, 'src', 'helper.ts'),
-        root
-      );
-
-      expect(result?.code).not.toContain('loadOfflineBundle');
-    });
-
-    it('points at the bundle by a path relative to the file', () => {
-      const result = transform(
-        `import { Mdi } from 'rn-iconify';\nexport const A = () => <Mdi name="home" />;`,
-        withBundle(),
-        path.join(root, 'src', 'deep', 'nested', 'App.tsx'),
-        root
-      );
-
-      expect(result?.code).toContain('../../../.rn-iconify/icons');
     });
   });
 });

@@ -27,6 +27,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^rn-iconify$': '<rootDir>/src/index.ts',
+    '^rn-iconify/bundled-icons$': '<rootDir>/bundled-icons.js',
   },
   globals: {
     'ts-jest': {

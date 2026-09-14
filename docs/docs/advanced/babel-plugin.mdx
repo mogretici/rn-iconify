@@ -37,6 +37,16 @@ module.exports = {
 };
 ```
 
+And wrap your Metro config, which is how the bundle reaches the app:
+
+```js
+// metro.config.js
+const { getDefaultConfig } = require('expo/metro-config'); // or @react-native/metro-config
+const { withRnIconify } = require('rn-iconify/metro');
+
+module.exports = withRnIconify(getDefaultConfig(__dirname));
+```
+
 ## How It Works
 
 The Babel plugin automatically:
@@ -46,6 +56,20 @@ The Babel plugin automatically:
 3. **Fetches at build time** - Downloads SVG data from Iconify API
 4. **Generates cache** - Creates a local cache file with all icon data
 5. **Instant runtime** - Icons render immediately without network requests
+
+The plugin never changes the code it compiles. The library reads the bundle
+itself, from `rn-iconify/bundled-icons`, which `withRnIconify` points at
+`.rn-iconify/icons.js`. Without the Metro wrapper that module is an empty
+bundle, and icons come from the disk cache or the network.
+
+:::note[Before 5.0.0]
+  The plugin used to inject a `loadOfflineBundle()` call into the first file
+  importing rn-iconify that it compiled. Which file that was depended on build
+  order, so the same file could compile two ways, and Metro's transform cache
+  could pair one version's code with the other's dependencies — failing on
+  device with `loadOfflineBundle is not a function`. The `autoInject` option is
+  gone with it; add `withRnIconify` to your Metro config instead.
+:::
 
 ```tsx
 // Your code - plugin detects these automatically
@@ -71,8 +95,8 @@ module.exports = {
         'mdi:test-*',   // Skip test icons
       ],
 
-      // Output path for generated cache
-      outputPath: '.rn-iconify-cache',
+      // Output path for generated cache (withRnIconify's outputDir must match)
+      outputPath: '.rn-iconify',
 
       // Enable verbose logging
       verbose: true,
@@ -90,7 +114,7 @@ module.exports = {
 |--------|------|---------|-------------|
 | `include` | `string[]` | `[]` | Icon patterns to include (wildcards supported) |
 | `exclude` | `string[]` | `[]` | Icon patterns to exclude |
-| `outputPath` | `string` | `.rn-iconify-cache` | Generated cache location |
+| `outputPath` | `string` | `.rn-iconify` | Generated cache location; `withRnIconify`'s `outputDir` must match |
 | `verbose` | `boolean` | `false` | Log detected icons during build |
 | `disabled` | `boolean` | `false` | Disable the plugin |
 
@@ -246,7 +270,7 @@ With `verbose: true`, you'll see detected icons during build:
 [rn-iconify] Detected 47 unique icons across 23 files
 [rn-iconify] Icon sets: mdi (28), heroicons (12), lucide (7)
 [rn-iconify] Generating bundle...
-[rn-iconify] Bundle generated: .rn-iconify-cache/icons.json (15.2 KB)
+[rn-iconify] Bundle written to .rn-iconify/icons.json (15.2 KB)
 ```
 
 ## Generated Files
@@ -254,15 +278,23 @@ With `verbose: true`, you'll see detected icons during build:
 The plugin creates a cache directory:
 
 ```
-.rn-iconify-cache/
-├── icons.json      # Icon data
-└── icons.js        # JavaScript module
+.rn-iconify/
+├── icons.json      # Icon data the next build reads back
+├── icons.js        # The module Metro serves as rn-iconify/bundled-icons
+└── usage.json      # Icons fetched at runtime in development
 ```
 
-Add to `.gitignore`:
+The bundle is deterministic: icons in name order, no timestamp, and written
+only when its contents change. Commit it the way you commit a lockfile — it
+changes exactly when the code starts using an icon it did not before, and a
+fresh checkout or a CI build then renders every icon offline without fetching
+anything. The plugin only adds icons; `npx rn-iconify doctor --prune` removes
+the ones nothing uses any more.
+
+Ignore only the lock the plugin takes while scanning:
 
 ```gitignore
-.rn-iconify-cache/
+.rn-iconify/.scan-lock
 ```
 
 ## CI/CD Integration

@@ -13,6 +13,9 @@ import {
   buildSvg,
   readExistingBundle,
   getNewIconNames,
+  createBundle,
+  writeFileIfChanged,
+  bundleModuleSource,
 } from '../babel/cache-writer';
 
 // Mock fetch
@@ -25,6 +28,7 @@ jest.mock('fs', () => ({
   mkdirSync: jest.fn(),
   writeFileSync: jest.fn(),
   readFileSync: jest.fn(),
+  renameSync: jest.fn(),
 }));
 
 // Mock path.dirname to work properly
@@ -293,11 +297,13 @@ describe('Cache Writer', () => {
 
       writeBundleToFile(bundle, '/output/icons.json', false);
 
+      const temporary = `/output/icons.json.${process.pid}.tmp`;
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        '/output/icons.json',
+        temporary,
         expect.stringContaining('"version":"1.0.0"'),
         'utf-8'
       );
+      expect(fs.renameSync).toHaveBeenCalledWith(temporary, '/output/icons.json');
     });
 
     it('creates directory if not exists', () => {
@@ -334,6 +340,70 @@ describe('Cache Writer', () => {
       );
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  // A committed bundle must change only when its icons do.
+  describe('createBundle', () => {
+    const home = { svg: '<svg>home</svg>', width: 24, height: 24 };
+    const star = { svg: '<svg>star</svg>', width: 24, height: 24 };
+
+    it('keeps icons in name order, whatever order they came in', () => {
+      const bundle = createBundle({ 'mdi:star': star, 'mdi:home': home });
+
+      expect(Object.keys(bundle.icons)).toEqual(['mdi:home', 'mdi:star']);
+      expect(bundle.count).toBe(2);
+    });
+
+    it('gives the same bytes for the same icons', () => {
+      const first = JSON.stringify(createBundle({ 'mdi:star': star, 'mdi:home': home }));
+      const second = JSON.stringify(createBundle({ 'mdi:home': home, 'mdi:star': star }));
+
+      expect(first).toBe(second);
+    });
+
+    it('carries no timestamp', () => {
+      expect(createBundle({ 'mdi:home': home })).not.toHaveProperty('generatedAt');
+    });
+  });
+
+  describe('writeFileIfChanged', () => {
+    it('does not touch a file that already holds the content', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValueOnce('same');
+
+      expect(writeFileIfChanged('/output/icons.js', 'same')).toBe(false);
+      expect(fs.writeFileSync).not.toHaveBeenCalled();
+      expect(fs.renameSync).not.toHaveBeenCalled();
+    });
+
+    it('writes beside the file and renames it into place, so no reader sees half of it', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValueOnce('old');
+
+      expect(writeFileIfChanged('/output/icons.js', 'new')).toBe(true);
+
+      const temporary = `/output/icons.js.${process.pid}.tmp`;
+      expect(fs.writeFileSync).toHaveBeenCalledWith(temporary, 'new', 'utf-8');
+      expect(fs.renameSync).toHaveBeenCalledWith(temporary, '/output/icons.js');
+    });
+
+    it('replaces a file it cannot read', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('EACCES');
+      });
+
+      expect(writeFileIfChanged('/output/icons.js', 'new')).toBe(true);
+      expect(fs.renameSync).toHaveBeenCalled();
+    });
+  });
+
+  describe('bundleModuleSource', () => {
+    it('exports the bundle as the module Metro serves', () => {
+      expect(bundleModuleSource(createBundle({}))).toContain(
+        'module.exports = {"version":"1.0.0","icons":{},"count":0};'
+      );
     });
   });
 
@@ -537,6 +607,27 @@ describe('Cache Writer', () => {
       await generateBundle(['mdi:home'], {}, '/project', existingBundle);
 
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('writes the merged bundle in name order, without a timestamp', async () => {
+      const existingBundle = {
+        version: '1.0.0',
+        generatedAt: '2024-01-01',
+        icons: { 'mdi:star': { svg: '<svg>star</svg>', width: 24, height: 24 } },
+        count: 1,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ prefix: 'mdi', icons: { home: { body: '<path/>' } } }),
+      });
+
+      await generateBundle(['mdi:home', 'mdi:star'], {}, '/project', existingBundle);
+
+      const json = (fs.writeFileSync as jest.Mock).mock.calls.find(([file]) =>
+        String(file).includes('icons.json')
+      )?.[1] as string;
+      expect(Object.keys(JSON.parse(json).icons)).toEqual(['mdi:home', 'mdi:star']);
+      expect(json).not.toContain('generatedAt');
     });
   });
 

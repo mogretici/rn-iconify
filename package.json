@@ -51,6 +51,7 @@
       "types": "./lib/typescript/commonjs/metro/index.d.ts",
       "default": "./lib/commonjs/metro/index.js"
     },
+    "./bundled-icons": "./bundled-icons.js",
     "./dev": {
       "react-native": "./src/dev/index.ts",
       "import": {
@@ -104,6 +105,7 @@
     "!**/*.map",
     "babel.js",
     "metro.js",
+    "bundled-icons.js",
     "README.md",
     "assets",
     "!android/build",

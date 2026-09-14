@@ -15,12 +15,26 @@ const packageJson = JSON.parse(
 ) as {
   sideEffects?: unknown;
   scripts: Record<string, string>;
+  files: string[];
+  exports: Record<string, unknown>;
   'size-limit'?: Array<{ name: string; import?: string; limit: string }>;
 };
 
 describe('packaging', () => {
   it('declares the package free of side effects', () => {
     expect(packageJson.sideEffects).toBe(false);
+  });
+
+  /**
+   * CacheManager requires `rn-iconify/bundled-icons`. rn-iconify/metro points
+   * it at the application's bundle; everywhere else it has to resolve to the
+   * package's own empty one, or an application without the Metro wrapper
+   * cannot build.
+   */
+  it('publishes the empty bundle the library falls back to', () => {
+    expect(packageJson.exports['./bundled-icons']).toBe('./bundled-icons.js');
+    expect(packageJson.files).toContain('bundled-icons.js');
+    expect(require('../../bundled-icons.js')).toEqual({ version: '1.0.0', icons: {}, count: 0 });
   });
 
   /**
