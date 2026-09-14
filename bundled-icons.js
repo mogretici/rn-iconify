@@ -6,5 +6,10 @@
  * `.rn-iconify/icons.js`, which the Babel plugin keeps up to date. Without it,
  * this empty bundle is what `CacheManager` reads, and every icon comes from the
  * disk cache or the network — as it would with no bundle at all.
+ *
+ * Assigned one by one so Node can see the names statically: the declarations
+ * expose them, and an ESM `import { icons }` must not crash at runtime.
  */
-module.exports = { version: '1.0.0', icons: {}, count: 0 };
+exports.version = '1.0.0';
+exports.icons = {};
+exports.count = 0;

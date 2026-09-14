@@ -32,8 +32,15 @@ describe('packaging', () => {
    * cannot build.
    */
   it('publishes the empty bundle the library falls back to', () => {
-    expect(packageJson.exports['./bundled-icons']).toBe('./bundled-icons.js');
-    expect(packageJson.files).toContain('bundled-icons.js');
+    // Typed, or arethetypeswrong fails the package: an export that resolves to
+    // JavaScript with no declarations.
+    expect(packageJson.exports['./bundled-icons']).toEqual({
+      types: './bundled-icons.d.ts',
+      default: './bundled-icons.js',
+    });
+    expect(packageJson.files).toEqual(
+      expect.arrayContaining(['bundled-icons.js', 'bundled-icons.d.ts'])
+    );
     expect(require('../../bundled-icons.js')).toEqual({ version: '1.0.0', icons: {}, count: 0 });
   });
 
